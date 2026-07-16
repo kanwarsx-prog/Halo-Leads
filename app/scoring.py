@@ -84,7 +84,7 @@ def apply_pursuit_gate(
     overall_score: int,
     priority: str,
     servicenow_status: str,
-) -> tuple[int, str]:
+) -> tuple[int, str, str]:
     """
     Apply the ServiceNow-verification pursuit gate.
 
@@ -92,9 +92,9 @@ def apply_pursuit_gate(
     pursuit regardless of how other signals score.
     """
     if servicenow_status == "unverified":
-        return min(overall_score, 44), "do_not_pursue"
+        return min(overall_score, 44), "do_not_pursue", "hard_cap_unverified"
 
     if servicenow_status == "possible" and priority == "immediate_pursuit":
-        return min(overall_score, 79), "research_and_nurture"
+        return min(overall_score, 79), "research_and_nurture", "cap_possible_status"
 
-    return overall_score, priority
+    return overall_score, priority, "pass"

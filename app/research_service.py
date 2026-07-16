@@ -170,7 +170,7 @@ def research_organisation(
             migration_fit=scores.migration_fit,
         )
 
-        overall_score, priority = apply_pursuit_gate(
+        overall_score, priority, pursuit_gate = apply_pursuit_gate(
             overall_score=score_result.overall_score,
             priority=score_result.priority,
             servicenow_status=bundle.servicenow_status,
@@ -186,6 +186,7 @@ def research_organisation(
             overall_score=overall_score,
             priority=priority,
             servicenow_status=bundle.servicenow_status,
+            pursuit_gate=pursuit_gate,
             apparent_use_cases=bundle.apparent_use_cases,
             advanced_use_cases_found=bundle.advanced_use_cases_found,
             opportunity_hypothesis=bundle.opportunity_hypothesis,
