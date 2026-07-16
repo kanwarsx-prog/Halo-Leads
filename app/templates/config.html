@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Prompt Configuration - HaloITSM Lead Agent</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div>
+                <a href="/ui" class="text-sm" style="display: inline-block; margin-bottom: 0.5rem;">&larr; Back to Dashboard</a>
+                <h1>AI Prompt Configuration</h1>
+                <p class="text-sm mt-2" style="color: var(--text-secondary);">Tweak the system prompts that guide the AI agents.</p>
+            </div>
+        </header>
+
+        <div class="mt-8" style="display: flex; flex-direction: column; gap: 2rem;">
+            {% for prompt in prompts %}
+            <div class="card">
+                <form class="prompt-form" data-name="{{ prompt.name }}">
+                    <div class="flex-between mb-4">
+                        <h2>{{ prompt.name }}</h2>
+                        <button type="submit" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.9rem;" class="save-btn">Save Changes</button>
+                    </div>
+                    {% if prompt.description %}
+                    <p class="text-sm mb-4" style="color: var(--text-secondary);">{{ prompt.description }}</p>
+                    {% endif %}
+                    <div class="form-group">
+                        <textarea name="content" rows="15" required style="width: 100%; font-family: monospace; font-size: 0.9rem;">{{ prompt.content }}</textarea>
+                    </div>
+                </form>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <script>
+        document.querySelectorAll('.prompt-form').forEach(form => {
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const name = form.dataset.name;
+                const btn = form.querySelector('button[type="submit"]');
+                const content = form.querySelector('textarea').value;
+                
+                const originalText = btn.textContent;
+                btn.textContent = 'Saving...';
+                btn.disabled = true;
+                
+                try {
+                    const res = await fetch(`/prompts/${name}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ content })
+                    });
+                    
+                    if (res.ok) {
+                        btn.textContent = 'Saved!';
+                        btn.style.backgroundColor = 'var(--success)';
+                        setTimeout(() => {
+                            btn.textContent = originalText;
+                            btn.style.backgroundColor = '';
+                            btn.disabled = false;
+                        }, 2000);
+                    } else {
+                        alert("Failed to save.");
+                        btn.textContent = originalText;
+                        btn.disabled = false;
+                    }
+                } catch (err) {
+                    console.error(err);
+                    alert("Network error.");
+                    btn.textContent = originalText;
+                    btn.disabled = false;
+                }
+            });
+        });
+    </script>
+</body>
+</html>

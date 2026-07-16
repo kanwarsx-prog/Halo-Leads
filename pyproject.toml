@@ -1,0 +1,32 @@
+[project]
+name = "halo-lead-agent"
+version = "0.1.0"
+description = "Evidence-backed HaloITSM lead intelligence MVP"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi[standard]",
+    "openai",
+    "sqlalchemy>=2.0",
+    "alembic",
+    "psycopg[binary]",
+    "pydantic>=2.0",
+    "pydantic-settings",
+    "httpx",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-asyncio",
+    "ruff",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+
+[tool.setuptools.packages.find]
+include = ["app*"]
+
+[tool.ruff]
+line-length = 100

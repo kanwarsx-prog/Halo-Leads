@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ org.name }} - HaloITSM Lead Agent</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div>
+                <a href="/ui" class="text-sm" style="display: inline-block; margin-bottom: 0.5rem;">&larr; Back to Dashboard</a>
+                <h1>{{ org.name }}</h1>
+            </div>
+            <div>
+                <a href="/ui/config" class="btn btn-secondary" style="margin-right: 0.5rem;">Prompt Config</a>
+                <button id="trigger-research-btn" data-org-id="{{ org.id }}" class="btn btn-primary">
+                    Run New Discovery
+                </button>
+            </div>
+        </header>
+
+        <div class="grid-2">
+            <!-- Org Info -->
+            <div class="card">
+                <h2>Organisation Details</h2>
+                <div class="mt-4">
+                    <p class="text-sm mb-4"><strong>Website:</strong> <a href="{{ org.website }}" target="_blank">{{ org.website or 'N/A' }}</a></p>
+                    <p class="text-sm mb-4"><strong>Country:</strong> {{ org.country or 'N/A' }}</p>
+                    <p class="text-sm mb-4"><strong>Sector:</strong> <span class="badge badge-info">{{ org.sector or 'N/A' }}</span></p>
+                    <p class="text-sm"><strong>Notes:</strong> {{ org.notes or 'None' }}</p>
+                </div>
+            </div>
+
+            <!-- Latest Assessment Summary -->
+            <div class="card">
+                <h2>Latest Assessment</h2>
+                {% if runs and runs[0].assessment %}
+                    {% set latest = runs[0].assessment %}
+                    <div class="mt-4">
+                        <div class="flex-between mb-4">
+                            <strong>Lead Score:</strong>
+                            <span class="badge {% if latest.overall_score > 70 %}badge-success{% elif latest.overall_score > 40 %}badge-warning{% else %}badge-danger{% endif %}" style="font-size: 1rem;">
+                                {{ latest.overall_score }}/100
+                            </span>
+                        </div>
+                        <div class="flex-between mb-4">
+                            <strong>ServiceNow Status:</strong>
+                            <span class="badge badge-info">{{ latest.servicenow_status|capitalize }}</span>
+                        </div>
+                        <div class="flex-between mb-4">
+                            <strong>Pursuit Gate:</strong>
+                            <span class="badge {% if latest.pursuit_gate == 'open' %}badge-success{% else %}badge-danger{% endif %}">
+                                {{ latest.pursuit_gate|upper }}
+                            </span>
+                        </div>
+                        <p class="text-sm mt-4"><strong>Hypothesis:</strong> {{ latest.opportunity_hypothesis }}</p>
+                    </div>
+                {% else %}
+                    <div class="mt-4 text-center">
+                        <p class="text-sm">No completed assessment available.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Key Contacts -->
+        {% if runs and runs[0].contact_leads %}
+        <h2 class="mt-8 mb-4">Key Contacts</h2>
+        <div class="card">
+            <table style="width: 100%; text-align: left; border-collapse: collapse;">
+                <thead>
+                    <tr style="border-bottom: 1px solid var(--bg-surface-hover);">
+                        <th style="padding: 0.5rem 0;">Name</th>
+                        <th style="padding: 0.5rem 0;">Job Title</th>
+                        <th style="padding: 0.5rem 0;">Notes</th>
+                        <th style="padding: 0.5rem 0;">LinkedIn</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for lead in runs[0].contact_leads %}
+                    <tr style="border-bottom: 1px solid var(--bg-surface-hover);">
+                        <td style="padding: 0.75rem 0;"><strong>{{ lead.name }}</strong></td>
+                        <td style="padding: 0.75rem 0;">{{ lead.job_title }}</td>
+                        <td style="padding: 0.75rem 0; font-size: 0.9rem; color: var(--text-secondary);">{{ lead.notes or '' }}</td>
+                        <td style="padding: 0.75rem 0;">
+                            {% if lead.linkedin_url %}
+                            <a href="{{ lead.linkedin_url }}" target="_blank" style="color: var(--primary);">View Profile</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+
+        <!-- Research History -->
+        <h2 class="mt-8 mb-4">Research History</h2>
+        {% for run in runs %}
+            <div class="card mb-4" style="border-left: 4px solid {% if run.status.value == 'completed' %}var(--success){% elif run.status.value == 'failed' %}var(--danger){% else %}var(--warning){% endif %};">
+                <div class="flex-between">
+                    <div>
+                        <strong>Run {{ run.id|string|truncate(12, True, '') }}</strong>
+                        <span class="text-sm ml-2">{{ run.started_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                    </div>
+                    <span class="badge {% if run.status.value == 'completed' %}badge-success{% elif run.status.value == 'failed' %}badge-danger{% else %}badge-warning{% endif %}">
+                        {{ run.status.value|upper }}
+                    </span>
+                </div>
+                
+                {% if run.assessment %}
+                    <div class="mt-4 text-sm" style="background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 8px;">
+                        <p><strong>Use Cases:</strong> {{ run.assessment.apparent_use_cases | join(', ') }}</p>
+                        {% if run.assessment.discovery_questions %}
+                            <p class="mt-2"><strong>Discovery Qs:</strong></p>
+                            <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                                {% for q in run.assessment.discovery_questions %}
+                                    <li>{{ q }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        {% else %}
+            <p class="text-sm">No research runs performed yet.</p>
+        {% endfor %}
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>

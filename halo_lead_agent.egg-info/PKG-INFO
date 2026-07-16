@@ -1,0 +1,17 @@
+Metadata-Version: 2.4
+Name: halo-lead-agent
+Version: 0.1.0
+Summary: Evidence-backed HaloITSM lead intelligence MVP
+Requires-Python: >=3.12
+Requires-Dist: fastapi[standard]
+Requires-Dist: openai
+Requires-Dist: sqlalchemy>=2.0
+Requires-Dist: alembic
+Requires-Dist: psycopg[binary]
+Requires-Dist: pydantic>=2.0
+Requires-Dist: pydantic-settings
+Requires-Dist: httpx
+Provides-Extra: dev
+Requires-Dist: pytest; extra == "dev"
+Requires-Dist: pytest-asyncio; extra == "dev"
+Requires-Dist: ruff; extra == "dev"

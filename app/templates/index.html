@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HaloITSM Lead Agent</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>HaloITSM Discovery</h1>
+            <div>
+                <a href="/ui/config" class="btn btn-secondary" style="margin-right: 0.5rem;">Prompt Config</a>
+                <a href="/docs" target="_blank" class="btn btn-secondary">API Docs</a>
+            </div>
+        </header>
+
+        <div class="grid-2">
+            <!-- Add Organisation Form -->
+            <div class="card">
+                <h2>Add Target Organisation</h2>
+                <form id="add-org-form">
+                    <div class="form-group">
+                        <label for="name">Organisation Name *</label>
+                        <input type="text" id="name" name="name" required placeholder="e.g. Example Council">
+                    </div>
+                    <div class="form-group">
+                        <label for="website">Website (Optional)</label>
+                        <input type="url" id="website" name="website" placeholder="https://www.example.gov.uk">
+                    </div>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label for="country">Country</label>
+                            <input type="text" id="country" name="country" placeholder="e.g. United Kingdom">
+                        </div>
+                        <div class="form-group">
+                            <label for="sector">Sector</label>
+                            <select id="sector" name="sector">
+                                <option value="">Select Sector</option>
+                                <option value="Local government">Local government</option>
+                                <option value="Higher education">Higher education</option>
+                                <option value="Housing">Housing</option>
+                                <option value="Healthcare">Healthcare</option>
+                                <option value="Private">Private</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="notes">Notes</label>
+                        <input type="text" id="notes" name="notes" placeholder="Any initial context...">
+                    </div>
+                    <button type="submit" class="btn btn-primary mt-4">Add Organisation</button>
+                </form>
+            </div>
+
+            <!-- Automated Prospecting Form -->
+            <div class="card">
+                <h2>Automated Prospecting</h2>
+                <p class="text-sm mt-4 mb-4" style="color: var(--text-secondary);">
+                    Instruct the AI to hunt the web for brand new companies that fit your criteria, and extract their IT leadership contacts automatically.
+                </p>
+                <form id="prospecting-form">
+                    <div class="form-group">
+                        <label for="criteria">Target Criteria *</label>
+                        <textarea id="criteria" name="criteria" required placeholder="e.g. Find 5 retail companies in the UK using ServiceNow" rows="4"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary mt-4" id="prospect-btn">
+                        Run Automated Prospecting
+                    </button>
+                    <div id="prospecting-spinner" class="mt-4 text-sm" style="display: none; color: var(--accent);">
+                        Agent is hunting the web... This may take a minute or two.
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <h2 class="mt-8">Target Organisations</h2>
+        <div class="org-grid">
+            {% for org in organisations %}
+            <a href="/ui/organisations/{{ org.id }}" class="card">
+                <div class="flex-between mb-4">
+                    <h3 style="color: var(--text-primary); font-size: 1.125rem;">{{ org.name }}</h3>
+                </div>
+                {% if org.sector %}
+                    <span class="badge badge-info mb-4">{{ org.sector }}</span>
+                {% endif %}
+                <p class="text-sm">{{ org.website or 'No website provided' }}</p>
+                <div class="mt-4 text-sm" style="color: var(--text-secondary);">
+                    Added: {{ org.created_at.strftime('%Y-%m-%d') }}
+                </div>
+            </a>
+            {% else %}
+            <div class="card" style="grid-column: 1 / -1; text-align: center; padding: 3rem;">
+                <p class="text-sm">No organisations added yet. Add one above to get started.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
