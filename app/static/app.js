@@ -88,7 +88,7 @@ document.addEventListener('DOMContentLoaded', () => {
         triggerBtn.addEventListener('click', async () => {
             const orgId = triggerBtn.dataset.orgId;
             const originalText = triggerBtn.textContent;
-            triggerBtn.textContent = 'Researching (Takes 1-2 mins)...';
+            triggerBtn.textContent = 'Initializing...';
             triggerBtn.disabled = true;
             triggerBtn.classList.add('loading');
 
@@ -97,15 +97,48 @@ document.addEventListener('DOMContentLoaded', () => {
                     method: 'POST'
                 });
 
-                if (response.ok) {
-                    showToast('Research run completed!', 'success');
-                    setTimeout(() => window.location.reload(), 1500);
-                } else {
+                if (!response.ok) {
                     const errData = await response.json();
-                    showToast(errData.detail || 'Failed to complete research', 'error');
-                    triggerBtn.textContent = originalText;
-                    triggerBtn.disabled = false;
-                    triggerBtn.classList.remove('loading');
+                    showToast(errData.detail || 'Failed to start research', 'error');
+                    throw new Error('Failed to start');
+                }
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder("utf-8");
+                let buffer = "";
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split('\\n');
+                    
+                    // Keep the last incomplete line in the buffer
+                    buffer = lines.pop();
+
+                    for (const line of lines) {
+                        if (!line.trim()) continue;
+                        
+                        try {
+                            const data = JSON.parse(line);
+                            
+                            if (data.status === 'info') {
+                                triggerBtn.textContent = data.message;
+                            } else if (data.status === 'success') {
+                                triggerBtn.textContent = 'Complete!';
+                                showToast('Research run completed!', 'success');
+                                setTimeout(() => window.location.reload(), 1500);
+                            } else if (data.status === 'error') {
+                                showToast(data.message || 'An error occurred', 'error');
+                                triggerBtn.textContent = originalText;
+                                triggerBtn.disabled = false;
+                                triggerBtn.classList.remove('loading');
+                            }
+                        } catch (e) {
+                            console.error("Failed to parse stream line:", line, e);
+                        }
+                    }
                 }
             } catch (error) {
                 console.error(error);

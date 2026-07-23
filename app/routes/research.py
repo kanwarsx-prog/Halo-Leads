@@ -1,6 +1,8 @@
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import StreamingResponse
+import json
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -20,7 +22,7 @@ router = APIRouter()
 def start_research(
     organisation_id: uuid.UUID,
     db: Session = Depends(get_db),
-) -> dict:
+):
     """
     Start a research run for the given organisation.
 
@@ -51,27 +53,23 @@ def start_research(
         if latest.completed_at and latest.completed_at > datetime.now(
             timezone.utc
         ) - timedelta(days=30):
-            return {
-                "research_run_id": str(latest.id),
-                "status": latest.status.value,
-                "note": (
-                    "A completed assessment less than 30 days old already exists. "
-                    "Use research_again=true to force a new run."
-                ),
-            }
+            def cached_stream():
+                yield json.dumps({
+                    "status": "success",
+                    "message": "Found existing recent assessment.",
+                    "research_run_id": str(latest.id),
+                    "note": "Use research_again=true to force a new run."
+                }) + "\n"
+            return StreamingResponse(cached_stream(), media_type="application/x-ndjson")
 
-    try:
-        run = research_organisation(
-            db=db,
-            organisation_id=organisation_id,
-        )
-    except ValueError as exc:
-        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    def event_stream():
+        try:
+            for event in research_organisation(db=db, organisation_id=organisation_id):
+                yield json.dumps(event) + "\n"
+        except ValueError as exc:
+            yield json.dumps({"status": "error", "message": str(exc)}) + "\n"
 
-    return {
-        "research_run_id": str(run.id),
-        "status": run.status.value,
-    }
+    return StreamingResponse(event_stream(), media_type="application/x-ndjson")
 
 
 @router.post(
@@ -81,20 +79,16 @@ def start_research(
 def force_research(
     organisation_id: uuid.UUID,
     db: Session = Depends(get_db),
-) -> dict:
+):
     """Force a new research run even if a recent result exists."""
-    try:
-        run = research_organisation(
-            db=db,
-            organisation_id=organisation_id,
-        )
-    except ValueError as exc:
-        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    def event_stream():
+        try:
+            for event in research_organisation(db=db, organisation_id=organisation_id):
+                yield json.dumps(event) + "\n"
+        except ValueError as exc:
+            yield json.dumps({"status": "error", "message": str(exc)}) + "\n"
 
-    return {
-        "research_run_id": str(run.id),
-        "status": run.status.value,
-    }
+    return StreamingResponse(event_stream(), media_type="application/x-ndjson")
 
 
 @router.get("/runs/{run_id}")
