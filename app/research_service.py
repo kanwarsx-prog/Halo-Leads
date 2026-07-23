@@ -36,7 +36,7 @@ from app.models import (
     ResearchSource,
     ResearchStatus,
 )
-from app.openai_research import extract_evidence_bundle, run_web_research
+from app.openai_research import extract_evidence_bundle, run_web_research, generate_research_plan
 from app.prompts import PROMPT_VERSION, build_research_input, get_prompt
 from app.scoring import SCORING_VERSION, apply_pursuit_gate, calculate_lead_score
 from app.source_parser import collect_sources
@@ -75,7 +75,7 @@ def research_organisation(
     db.refresh(run)
 
     try:
-        # Stage 1: web discovery
+        # Stage 0: Plan
         research_input = build_research_input(
             organisation_name=organisation.name,
             website=organisation.website,
@@ -83,19 +83,43 @@ def research_organisation(
             sector=organisation.sector,
             notes=organisation.notes,
         )
+        research_instructions = get_prompt(db, "RESEARCH_INSTRUCTIONS")
 
-        discovery_text, raw_response = run_web_research(
+        questions = generate_research_plan(
+            organisation_name=organisation.name,
             research_input=research_input,
-            instructions=get_prompt(db, "RESEARCH_INSTRUCTIONS")
+            instructions=research_instructions,
         )
 
-        run.discovery_text = discovery_text
-        run.raw_discovery_response = raw_response
+        # Stage 1: web discovery (Multi-step)
+        aggregated_discovery_text = ""
+        all_raw_responses = []
+        all_sources = []
 
-        # Parse and save sources
-        source_dicts = collect_sources(raw_response)
+        for q in questions:
+            q_input = f"{research_input}\n\nFocus specifically on answering this question: {q}"
+            discovery_text, raw_response = run_web_research(
+                research_input=q_input,
+                instructions=research_instructions
+            )
+            aggregated_discovery_text += f"\n\n--- Research on: {q} ---\n{discovery_text}"
+            all_raw_responses.append(raw_response)
+            
+            source_dicts = collect_sources(raw_response)
+            all_sources.extend(source_dicts)
 
-        for source in source_dicts[: settings.max_research_sources]:
+        run.discovery_text = aggregated_discovery_text.strip()
+        run.raw_discovery_response = {"responses": all_raw_responses}
+
+        # Deduplicate sources
+        seen_urls = set()
+        unique_sources = []
+        for src in all_sources:
+            if src["url"] not in seen_urls:
+                seen_urls.add(src["url"])
+                unique_sources.append(src)
+
+        for source in unique_sources[: settings.max_research_sources]:
             db.add(
                 ResearchSource(
                     research_run_id=run.id,
@@ -109,16 +133,16 @@ def research_organisation(
         run.status = ResearchStatus.extracting
         db.commit()
 
-        # Stage 2: structured evidence extraction
+        # Stage 2: structured extraction
         bundle = extract_evidence_bundle(
             organisation_name=organisation.name,
-            discovery_text=discovery_text,
-            sources=source_dicts,
-            instructions=get_prompt(db, "EXTRACTION_INSTRUCTIONS"),
+            discovery_text=run.discovery_text,
+            sources=unique_sources,
+            instructions=get_prompt(db, "EXTRACTION_INSTRUCTIONS")
         )
 
         # Deterministic validation
-        known_urls = {source["url"] for source in source_dicts}
+        known_urls = {source["url"] for source in unique_sources}
         validation_errors = validate_evidence_bundle(bundle, known_urls)
 
         if validation_errors:

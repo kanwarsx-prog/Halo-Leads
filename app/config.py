@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     app_env: str = "development"
     max_research_sources: int = 20
     research_search_context_size: str = "large"
+    max_research_deep_dives: int = 3
 
     model_config = SettingsConfigDict(
         env_file=".env",

@@ -16,10 +16,34 @@ from typing import Any
 from app.config import get_settings
 from app.openai_client import client
 from app.prompts import EXTRACTION_INSTRUCTIONS, RESEARCH_INSTRUCTIONS
-from app.schemas import EvidenceBundle
+from app.schemas import EvidenceBundle, ResearchPlan
 
 
 settings = get_settings()
+
+
+def generate_research_plan(
+    *,
+    organisation_name: str,
+    research_input: str,
+    instructions: str,
+) -> list[str]:
+    """
+    Stage 0: Generate a list of targeted research questions to investigate.
+    """
+    input_text = f"Organisation: {organisation_name}\n\nContext:\n{research_input}\n\nGenerate up to {settings.max_research_deep_dives} specific research questions."
+    
+    response = client.responses.parse(
+        model=settings.openai_research_model,
+        instructions=instructions,
+        input=input_text,
+        text_format=ResearchPlan,
+    )
+
+    if response.output_parsed is None:
+        raise RuntimeError("The planner response did not contain parsed output")
+
+    return response.output_parsed.questions
 
 
 def run_web_research(research_input: str, instructions: str) -> tuple[str, dict[str, Any]]:

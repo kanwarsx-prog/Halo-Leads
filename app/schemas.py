@@ -2,7 +2,11 @@ import uuid
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, Field, HttpUrl
+from pydantic import BaseModel, ConfigDict, Field, HttpUrl
+
+
+class ResearchPlan(BaseModel):
+    questions: list[str] = Field(description="A list of specific research questions to investigate for this organisation.")
 
 
 class OrganisationCreate(BaseModel):
