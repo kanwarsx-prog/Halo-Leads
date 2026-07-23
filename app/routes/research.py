@@ -69,7 +69,12 @@ def start_research(
         except Exception as exc:
             yield json.dumps({"status": "error", "message": str(exc)}) + "\n"
 
-    return StreamingResponse(event_stream(), media_type="application/x-ndjson")
+    headers = {
+        "X-Accel-Buffering": "no",
+        "Cache-Control": "no-cache",
+        "Connection": "keep-alive",
+    }
+    return StreamingResponse(event_stream(), media_type="application/x-ndjson", headers=headers)
 
 
 @router.post(
@@ -88,7 +93,12 @@ def force_research(
         except Exception as exc:
             yield json.dumps({"status": "error", "message": str(exc)}) + "\n"
 
-    return StreamingResponse(event_stream(), media_type="application/x-ndjson")
+    headers = {
+        "X-Accel-Buffering": "no",
+        "Cache-Control": "no-cache",
+        "Connection": "keep-alive",
+    }
+    return StreamingResponse(event_stream(), media_type="application/x-ndjson", headers=headers)
 
 
 @router.get("/runs/{run_id}")
