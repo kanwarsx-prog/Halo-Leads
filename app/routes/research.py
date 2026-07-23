@@ -66,7 +66,7 @@ def start_research(
         try:
             for event in research_organisation(db=db, organisation_id=organisation_id):
                 yield json.dumps(event) + "\n"
-        except ValueError as exc:
+        except Exception as exc:
             yield json.dumps({"status": "error", "message": str(exc)}) + "\n"
 
     return StreamingResponse(event_stream(), media_type="application/x-ndjson")
@@ -85,7 +85,7 @@ def force_research(
         try:
             for event in research_organisation(db=db, organisation_id=organisation_id):
                 yield json.dumps(event) + "\n"
-        except ValueError as exc:
+        except Exception as exc:
             yield json.dumps({"status": "error", "message": str(exc)}) + "\n"
 
     return StreamingResponse(event_stream(), media_type="application/x-ndjson")
