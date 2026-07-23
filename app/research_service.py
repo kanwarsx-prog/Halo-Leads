@@ -46,13 +46,17 @@ from app.validation import validate_evidence_bundle
 settings = get_settings()
 
 
-from typing import Generator
+def update_run_message(db: Session, run_id: uuid.UUID, message: str):
+    run = db.get(ResearchRun, run_id)
+    if run:
+        run.current_message = message
+        db.commit()
 
 def research_organisation(
     *,
     db: Session,
     organisation_id: uuid.UUID,
-) -> Generator[dict, None, ResearchRun]:
+) -> ResearchRun:
     """
     Run the full research pipeline for an organisation.
 
@@ -87,7 +91,7 @@ def research_organisation(
         )
         research_instructions = get_prompt(db, "RESEARCH_INSTRUCTIONS")
 
-        yield {"status": "info", "message": "Planning research strategy..."}
+        update_run_message(db, run.id, "Planning research strategy...")
         questions = generate_research_plan(
             organisation_name=organisation.name,
             research_input=research_input,
@@ -100,7 +104,7 @@ def research_organisation(
         all_sources = []
 
         for i, q in enumerate(questions, 1):
-            yield {"status": "info", "message": f"Deep dive {i}/{len(questions)}: {q}"}
+            update_run_message(db, run.id, f"Deep dive {i}/{len(questions)}: {q}")
             q_input = f"{research_input}\n\nFocus specifically on answering this question: {q}"
             discovery_text, raw_response = run_web_research(
                 research_input=q_input,
@@ -137,7 +141,7 @@ def research_organisation(
         run.status = ResearchStatus.extracting
         db.commit()
 
-        yield {"status": "info", "message": "Synthesizing evidence and generating assessment..."}
+        update_run_message(db, run.id, "Synthesizing evidence and generating assessment...")
 
         # Stage 2: structured extraction
         bundle = extract_evidence_bundle(
@@ -153,7 +157,6 @@ def research_organisation(
 
         if validation_errors:
             error_msg = f"Evidence validation failed: {validation_errors}"
-            yield {"status": "error", "message": error_msg}
             raise ValueError(error_msg)
 
         # Save evidence items
@@ -234,7 +237,6 @@ def research_organisation(
         db.commit()
         db.refresh(run)
 
-        yield {"status": "success", "message": "Research complete!", "run_id": str(run.id)}
         return run
 
     except Exception as exc:
@@ -244,6 +246,7 @@ def research_organisation(
         if failed_run is not None:
             failed_run.status = ResearchStatus.failed
             failed_run.error_message = str(exc)
+            failed_run.current_message = f"Error: {str(exc)}"
             failed_run.completed_at = datetime.now(timezone.utc)
             db.commit()
 

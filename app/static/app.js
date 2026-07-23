@@ -103,43 +103,34 @@ document.addEventListener('DOMContentLoaded', () => {
                     throw new Error('Failed to start');
                 }
 
-                const reader = response.body.getReader();
-                const decoder = new TextDecoder("utf-8");
-                let buffer = "";
+                const data = await response.json();
+                const runId = data.run_id;
 
-                while (true) {
-                    const { done, value } = await reader.read();
-                    if (done) break;
-
-                    buffer += decoder.decode(value, { stream: true });
-                    const lines = buffer.split('\\n');
-                    
-                    // Keep the last incomplete line in the buffer
-                    buffer = lines.pop();
-
-                    for (const line of lines) {
-                        if (!line.trim()) continue;
-                        
-                        try {
-                            const data = JSON.parse(line);
+                const pollInterval = setInterval(async () => {
+                    try {
+                        const progressRes = await fetch(`/research/organisations/${orgId}/runs/${runId}/progress`);
+                        if (progressRes.ok) {
+                            const progress = await progressRes.json();
                             
-                            if (data.status === 'info') {
-                                triggerBtn.textContent = data.message;
-                            } else if (data.status === 'success') {
+                            if (progress.status === 'completed') {
+                                clearInterval(pollInterval);
                                 triggerBtn.textContent = 'Complete!';
                                 showToast('Research run completed!', 'success');
                                 setTimeout(() => window.location.reload(), 1500);
-                            } else if (data.status === 'error') {
-                                showToast(data.message || 'An error occurred', 'error');
+                            } else if (progress.status === 'failed') {
+                                clearInterval(pollInterval);
+                                showToast(progress.message || 'Research failed', 'error');
                                 triggerBtn.textContent = originalText;
                                 triggerBtn.disabled = false;
                                 triggerBtn.classList.remove('loading');
+                            } else {
+                                triggerBtn.textContent = progress.message;
                             }
-                        } catch (e) {
-                            console.error("Failed to parse stream line:", line, e);
                         }
+                    } catch (e) {
+                        console.error('Polling error:', e);
                     }
-                }
+                }, 1500);
             } catch (error) {
                 console.error(error);
                 showToast('A network error occurred.', 'error');
@@ -148,6 +139,41 @@ document.addEventListener('DOMContentLoaded', () => {
                 triggerBtn.classList.remove('loading');
             }
         });
+
+        // Check if there is an active run on page load
+        const activeRunId = triggerBtn.dataset.activeRunId;
+        if (activeRunId) {
+            triggerBtn.disabled = true;
+            triggerBtn.classList.add('loading');
+            const orgId = triggerBtn.dataset.orgId;
+            const originalText = 'Run New Discovery';
+
+            const pollInterval = setInterval(async () => {
+                try {
+                    const progressRes = await fetch(`/research/organisations/${orgId}/runs/${activeRunId}/progress`);
+                    if (progressRes.ok) {
+                        const progress = await progressRes.json();
+                        
+                        if (progress.status === 'completed') {
+                            clearInterval(pollInterval);
+                            triggerBtn.textContent = 'Complete!';
+                            showToast('Research run completed!', 'success');
+                            setTimeout(() => window.location.reload(), 1500);
+                        } else if (progress.status === 'failed') {
+                            clearInterval(pollInterval);
+                            showToast(progress.message || 'Research failed', 'error');
+                            triggerBtn.textContent = originalText;
+                            triggerBtn.disabled = false;
+                            triggerBtn.classList.remove('loading');
+                        } else {
+                            triggerBtn.textContent = progress.message;
+                        }
+                    }
+                } catch (e) {
+                    console.error('Polling error:', e);
+                }
+            }, 1500);
+        }
     }
 });
 

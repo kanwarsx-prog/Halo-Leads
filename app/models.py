@@ -109,6 +109,7 @@ class ResearchRun(Base):
     discovery_text: Mapped[str | None] = mapped_column(Text)
     raw_discovery_response: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
     error_message: Mapped[str | None] = mapped_column(Text)
+    current_message: Mapped[str | None] = mapped_column(Text)
 
     started_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

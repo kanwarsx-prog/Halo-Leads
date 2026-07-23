@@ -79,8 +79,14 @@
         <div class="org-grid">
             {% for org in organisations %}
             <a href="/ui/organisations/{{ org.id }}" class="card">
+                {% set latest_run = org.research_runs[0] if org.research_runs else None %}
                 <div class="flex-between mb-4">
                     <h3 style="color: var(--text-primary); font-size: 1.125rem;">{{ org.name }}</h3>
+                    {% if latest_run and latest_run.status.value in ['queued', 'researching', 'extracting', 'scoring'] %}
+                        <span class="badge badge-warning" style="animation: pulse 2s infinite;">Researching...</span>
+                    {% elif latest_run and latest_run.status.value == 'completed' %}
+                        <span class="badge badge-success">Research Complete</span>
+                    {% endif %}
                 </div>
                 {% if org.sector %}
                     <span class="badge badge-info mb-4">{{ org.sector }}</span>

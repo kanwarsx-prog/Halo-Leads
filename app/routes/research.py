@@ -1,6 +1,6 @@
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from fastapi.responses import StreamingResponse
 import json
 from sqlalchemy import select
@@ -21,6 +21,7 @@ router = APIRouter()
 )
 def start_research(
     organisation_id: uuid.UUID,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
 ):
     """
@@ -53,28 +54,27 @@ def start_research(
         if latest.completed_at and latest.completed_at > datetime.now(
             timezone.utc
         ) - timedelta(days=30):
-            def cached_stream():
-                yield json.dumps({
-                    "status": "success",
-                    "message": "Found existing recent assessment.",
-                    "research_run_id": str(latest.id),
-                    "note": "Use research_again=true to force a new run."
-                }) + "\n"
-            return StreamingResponse(cached_stream(), media_type="application/x-ndjson")
+            return {
+                "status": "success",
+                "message": "Found existing recent assessment.",
+                "research_run_id": str(latest.id),
+                "note": "Use research_again=true to force a new run."
+            }
 
-    def event_stream():
-        try:
-            for event in research_organisation(db=db, organisation_id=organisation_id):
-                yield json.dumps(event) + "\n"
-        except Exception as exc:
-            yield json.dumps({"status": "error", "message": str(exc)}) + "\n"
+    # Start research in background
+    run = ResearchRun(
+        organisation_id=organisation_id,
+        status=ResearchStatus.queued,
+        research_model="gpt-4o-mini", # Will be updated by service
+        extraction_model="gpt-4o", # Will be updated by service
+        prompt_version="v1" # Will be updated by service
+    )
+    db.add(run)
+    db.commit()
+    db.refresh(run)
 
-    headers = {
-        "X-Accel-Buffering": "no",
-        "Cache-Control": "no-cache",
-        "Connection": "keep-alive",
-    }
-    return StreamingResponse(event_stream(), media_type="application/x-ndjson", headers=headers)
+    background_tasks.add_task(research_organisation, db=db, organisation_id=organisation_id)
+    return {"status": "started", "run_id": str(run.id)}
 
 
 @router.post(
@@ -83,23 +83,40 @@ def start_research(
 )
 def force_research(
     organisation_id: uuid.UUID,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
 ):
     """Force a new research run even if a recent result exists."""
-    def event_stream():
-        try:
-            for event in research_organisation(db=db, organisation_id=organisation_id):
-                yield json.dumps(event) + "\n"
-        except Exception as exc:
-            yield json.dumps({"status": "error", "message": str(exc)}) + "\n"
+    run = ResearchRun(
+        organisation_id=organisation_id,
+        status=ResearchStatus.queued,
+        research_model="gpt-4o-mini",
+        extraction_model="gpt-4o",
+        prompt_version="v1"
+    )
+    db.add(run)
+    db.commit()
+    db.refresh(run)
 
-    headers = {
-        "X-Accel-Buffering": "no",
-        "Cache-Control": "no-cache",
-        "Connection": "keep-alive",
+    background_tasks.add_task(research_organisation, db=db, organisation_id=organisation_id)
+    return {"status": "started", "run_id": str(run.id)}
+
+
+@router.get("/organisations/{organisation_id}/runs/{run_id}/progress")
+def get_research_progress(
+    organisation_id: uuid.UUID,
+    run_id: uuid.UUID,
+    db: Session = Depends(get_db),
+):
+    """Get the live progress of a running research job."""
+    run = db.get(ResearchRun, run_id)
+    if not run or run.organisation_id != organisation_id:
+        raise HTTPException(status_code=404, detail="Run not found")
+        
+    return {
+        "status": run.status.value,
+        "message": run.current_message or "Initializing..."
     }
-    return StreamingResponse(event_stream(), media_type="application/x-ndjson", headers=headers)
-
 
 @router.get("/runs/{run_id}")
 def get_research_run(

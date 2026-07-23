@@ -15,9 +15,17 @@
             </div>
             <div>
                 <a href="/ui/config" class="btn btn-secondary" style="margin-right: 0.5rem;">Prompt Config</a>
-                <button id="trigger-research-btn" data-org-id="{{ org.id }}" class="btn btn-primary">
-                    Run New Discovery
-                </button>
+                <button id="trigger-research-btn" data-org-id="{{ org.id }}" 
+            {% if runs and runs[0].status.value in ['queued', 'researching', 'extracting', 'scoring'] %}
+                data-active-run-id="{{ runs[0].id }}"
+            {% endif %}
+            class="btn btn-primary">
+            {% if runs and runs[0].status.value in ['queued', 'researching', 'extracting', 'scoring'] %}
+                {{ runs[0].current_message or 'Initializing...' }}
+            {% else %}
+                Run New Discovery
+            {% endif %}
+        </button>
             </div>
         </header>
 
@@ -112,15 +120,10 @@
                 
                 {% if run.assessment %}
                     <div class="mt-4 text-sm" style="background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 8px;">
-                        <p><strong>Use Cases:</strong> {{ run.assessment.apparent_use_cases | join(', ') }}</p>
-                        {% if run.assessment.discovery_questions %}
-                            <p class="mt-2"><strong>Discovery Qs:</strong></p>
-                            <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
-                                {% for q in run.assessment.discovery_questions %}
-                                    <li>{{ q }}</li>
-                                {% endfor %}
-                            </ul>
-                        {% endif %}
+                        <p><strong>ServiceNow Status:</strong> <span class="badge badge-info">{{ run.assessment.servicenow_status|capitalize }}</span></p>
+                        <p class="mt-2"><strong>Pursuit Gate:</strong> <span class="badge {% if run.assessment.pursuit_gate == 'open' %}badge-success{% else %}badge-danger{% endif %}">{{ run.assessment.pursuit_gate|upper }}</span></p>
+                        <p class="mt-2"><strong>Hypothesis:</strong> {{ run.assessment.opportunity_hypothesis }}</p>
+                        <p class="mt-2"><strong>Suggested Outreach:</strong> {{ run.assessment.suggested_outreach }}</p>
                     </div>
                 {% endif %}
             </div>
