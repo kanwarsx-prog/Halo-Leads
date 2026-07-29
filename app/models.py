@@ -82,6 +82,7 @@ class Organisation(Base):
     research_runs: Mapped[list["ResearchRun"]] = relationship(
         back_populates="organisation",
         cascade="all, delete-orphan",
+        order_by="desc(ResearchRun.started_at)",
     )
     contact_leads: Mapped[list["ContactLead"]] = relationship(
         back_populates="organisation",
