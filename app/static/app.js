@@ -103,7 +103,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                     const pollInterval = setInterval(async () => {
                         try {
-                            const progressRes = await fetch(`/prospecting/runs/${runId}/progress`);
+                            const progressRes = await fetch(`/organisations/prospecting/runs/${runId}/progress`);
                             if (progressRes.ok) {
                                 const progress = await progressRes.json();
                                 
