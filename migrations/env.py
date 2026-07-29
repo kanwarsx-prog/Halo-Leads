@@ -16,10 +16,11 @@ from app.config import get_settings
 # access to the values within the .ini file in use.
 config = context.config
 
-# Override the sqlalchemy.url from alembic.ini with the value from our
-# application settings (reads from .env automatically)
 settings = get_settings()
-config.set_main_option("sqlalchemy.url", settings.database_url)
+db_url = settings.database_url
+if db_url.startswith("postgres://"):
+    db_url = db_url.replace("postgres://", "postgresql+psycopg://", 1)
+config.set_main_option("sqlalchemy.url", db_url)
 
 # Interpret the config file for Python logging.
 if config.config_file_name is not None:
