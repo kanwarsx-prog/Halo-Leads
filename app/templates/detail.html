@@ -59,9 +59,9 @@
                             <span class="badge badge-info">{{ latest.servicenow_status|capitalize }}</span>
                         </div>
                         <div class="flex-between mb-4">
-                            <strong>Pursuit Gate:</strong>
+                            <strong>Qualification:</strong>
                             <span class="badge {% if latest.pursuit_gate == 'open' %}badge-success{% else %}badge-danger{% endif %}">
-                                {{ latest.pursuit_gate|upper }}
+                                {% if latest.pursuit_gate == 'open' %}QUALIFIED{% else %}DISQUALIFIED{% endif %}
                             </span>
                         </div>
                         <p class="text-sm mt-4"><strong>Hypothesis:</strong> {{ latest.opportunity_hypothesis }}</p>
@@ -122,7 +122,7 @@
                 {% if run.assessment %}
                     <div class="mt-4 text-sm" style="background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 8px;">
                         <p><strong>ServiceNow Status:</strong> <span class="badge badge-info">{{ run.assessment.servicenow_status|capitalize }}</span></p>
-                        <p class="mt-2"><strong>Pursuit Gate:</strong> <span class="badge {% if run.assessment.pursuit_gate == 'open' %}badge-success{% else %}badge-danger{% endif %}">{{ run.assessment.pursuit_gate|upper }}</span></p>
+                        <p class="mt-2"><strong>Qualification:</strong> <span class="badge {% if run.assessment.pursuit_gate == 'open' %}badge-success{% else %}badge-danger{% endif %}">{% if run.assessment.pursuit_gate == 'open' %}QUALIFIED{% else %}DISQUALIFIED{% endif %}</span></p>
                         <p class="mt-2"><strong>Hypothesis:</strong> {{ run.assessment.opportunity_hypothesis }}</p>
                         <p class="mt-2"><strong>Suggested Outreach:</strong> {{ run.assessment.suggested_outreach }}</p>
                     </div>
