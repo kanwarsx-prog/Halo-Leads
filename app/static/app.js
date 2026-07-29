@@ -39,6 +39,41 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Delete Organisation Handler
+    const deleteOrgBtn = document.getElementById('delete-org-btn');
+    if (deleteOrgBtn) {
+        deleteOrgBtn.addEventListener('click', async () => {
+            if (!confirm('Are you sure you want to delete this organisation? All research runs and assessments will be permanently lost.')) {
+                return;
+            }
+
+            const orgId = deleteOrgBtn.dataset.orgId;
+            const originalText = deleteOrgBtn.textContent;
+            deleteOrgBtn.textContent = 'Deleting...';
+            deleteOrgBtn.disabled = true;
+
+            try {
+                const response = await fetch(`/organisations/${orgId}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    showToast('Organisation deleted successfully!', 'success');
+                    setTimeout(() => window.location.href = '/ui', 1000);
+                } else {
+                    const errData = await response.json();
+                    showToast(errData.detail || 'Failed to delete organisation', 'error');
+                }
+            } catch (error) {
+                console.error(error);
+                showToast('A network error occurred.', 'error');
+            } finally {
+                deleteOrgBtn.textContent = originalText;
+                deleteOrgBtn.disabled = false;
+            }
+        });
+    }
+
     // Add Prospecting Form Handler
     const prospectingForm = document.getElementById('prospecting-form');
     if (prospectingForm) {
