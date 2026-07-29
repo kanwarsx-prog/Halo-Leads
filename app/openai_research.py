@@ -16,7 +16,7 @@ from typing import Any
 from app.config import get_settings
 from app.openai_client import client
 from app.prompts import EXTRACTION_INSTRUCTIONS, RESEARCH_INSTRUCTIONS
-from app.schemas import EvidenceBundle, ResearchPlan
+from app.schemas import EvidenceBundle, ResearchPlan, ProspectingPlan
 
 
 settings = get_settings()
@@ -44,6 +44,29 @@ def generate_research_plan(
         raise RuntimeError("The planner response did not contain parsed output")
 
     return response.output_parsed.questions
+
+
+def generate_prospecting_plan(
+    *,
+    criteria: str,
+    instructions: str,
+) -> list[str]:
+    """
+    Stage 0: Generate a list of targeted prospecting missions based on criteria.
+    """
+    input_text = f"Criteria: {criteria}\n\nGenerate up to {settings.max_research_deep_dives} specific search missions."
+    
+    response = client.responses.parse(
+        model=settings.openai_research_model,
+        instructions=instructions,
+        input=input_text,
+        text_format=ProspectingPlan,
+    )
+
+    if response.output_parsed is None:
+        raise RuntimeError("The planner response did not contain parsed output")
+
+    return response.output_parsed.missions
 
 
 def run_web_research(research_input: str, instructions: str) -> tuple[str, dict[str, Any]]:

@@ -105,6 +105,21 @@ Convert the supplied prospecting report into the required structured schema.
 4. Ensure the notes field contains a strong summary of why they are a good target.
 """
 
+PROSPECTING_PLAN_INSTRUCTIONS = """
+You are an expert sales prospector. 
+Your job is to read the user's prospecting criteria and break it down into a specific search plan.
+
+Output ONLY a JSON array of strings, where each string is a specific web search mission for a downstream agent to execute.
+Do not output anything else.
+
+Example output:
+[
+  "Mission 1: Find 5 retail companies in the UK",
+  "Mission 2: Investigate IT leadership and ITSM tools at Retail Company A",
+  "Mission 3: Investigate IT leadership and ITSM tools at Retail Company B"
+]
+"""
+
 def build_prospecting_input(criteria: str) -> str:
     return f"""
 Find companies that match the following target criteria:
@@ -125,6 +140,7 @@ Produce a rigorous, highly detailed report of your findings.
 DEFAULT_PROMPTS = {
     "RESEARCH_INSTRUCTIONS": ("The main web-browsing agent's system prompt for deep-dive research.", RESEARCH_INSTRUCTIONS),
     "EXTRACTION_INSTRUCTIONS": ("The extraction agent's system prompt to format the deep-dive report.", EXTRACTION_INSTRUCTIONS),
+    "PROSPECTING_PLAN_INSTRUCTIONS": ("The planning agent's system prompt to generate a search plan.", PROSPECTING_PLAN_INSTRUCTIONS),
     "PROSPECTING_INSTRUCTIONS": ("The web-browsing agent's system prompt for discovering new companies.", PROSPECTING_INSTRUCTIONS),
     "PROSPECTING_EXTRACTION_INSTRUCTIONS": ("The extraction agent's system prompt to format the prospecting report.", PROSPECTING_EXTRACTION_INSTRUCTIONS),
 }

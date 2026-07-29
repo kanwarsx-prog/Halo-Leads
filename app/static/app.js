@@ -63,18 +63,44 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
 
                 if (response.ok) {
-                    const result = await response.json();
-                    showToast(result.message || 'Prospecting complete!', 'success');
-                    prospectingForm.reset();
-                    setTimeout(() => window.location.reload(), 1500);
+                    const data = await response.json();
+                    const runId = data.run_id;
+                    
+                    const pollInterval = setInterval(async () => {
+                        try {
+                            const progressRes = await fetch(`/prospecting/runs/${runId}/progress`);
+                            if (progressRes.ok) {
+                                const progress = await progressRes.json();
+                                
+                                if (progress.status === 'completed') {
+                                    clearInterval(pollInterval);
+                                    spinner.innerText = 'Prospecting complete!';
+                                    showToast('Prospecting run completed!', 'success');
+                                    setTimeout(() => window.location.reload(), 1500);
+                                } else if (progress.status === 'failed') {
+                                    clearInterval(pollInterval);
+                                    showToast(progress.message || 'Prospecting failed', 'error');
+                                    btn.textContent = originalText;
+                                    btn.disabled = false;
+                                    spinner.style.display = 'none';
+                                } else {
+                                    spinner.innerText = progress.message;
+                                }
+                            }
+                        } catch (e) {
+                            console.error('Polling error:', e);
+                        }
+                    }, 1500);
                 } else {
                     const errData = await response.json();
                     showToast(errData.detail || 'Failed to run prospecting', 'error');
+                    btn.textContent = originalText;
+                    btn.disabled = false;
+                    spinner.style.display = 'none';
                 }
             } catch (error) {
                 console.error(error);
                 showToast('A network error occurred.', 'error');
-            } finally {
                 btn.textContent = originalText;
                 btn.disabled = false;
                 spinner.style.display = 'none';

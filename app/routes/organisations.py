@@ -1,11 +1,11 @@
 import uuid
 from pydantic import BaseModel
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models import Organisation
+from app.models import Organisation, ProspectingRun, ProspectingStatus
 from app.schemas import OrganisationCreate, OrganisationRead
 
 
@@ -81,8 +81,34 @@ class ProspectingRequest(BaseModel):
 @router.post("/prospecting/run")
 def api_run_prospecting(
     request: ProspectingRequest,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
 ):
     from app.prospecting_service import run_prospecting
-    batch = run_prospecting(request.criteria, db)
-    return {"message": f"Successfully processed {len(batch.companies)} companies", "batch": batch.model_dump()}
+    
+    run = ProspectingRun(
+        criteria=request.criteria,
+        status=ProspectingStatus.queued,
+    )
+    db.add(run)
+    db.commit()
+    db.refresh(run)
+    
+    background_tasks.add_task(run_prospecting, run_id=run.id, criteria=request.criteria, db=db)
+    
+    return {"status": "started", "run_id": str(run.id)}
+
+@router.get("/prospecting/runs/{run_id}/progress")
+def get_prospecting_progress(
+    run_id: uuid.UUID,
+    db: Session = Depends(get_db),
+):
+    """Get the live progress of a running prospecting job."""
+    run = db.get(ProspectingRun, run_id)
+    if not run:
+        raise HTTPException(status_code=404, detail="Run not found")
+        
+    return {
+        "status": run.status.value,
+        "message": run.current_message or "Initializing..."
+    }

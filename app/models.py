@@ -29,6 +29,12 @@ class ResearchStatus(str, enum.Enum):
     completed = "completed"
     failed = "failed"
 
+class ProspectingStatus(str, enum.Enum):
+    queued = "queued"
+    running = "running"
+    completed = "completed"
+    failed = "failed"
+
 
 class ReviewStatus(str, enum.Enum):
     pending = "pending"
@@ -140,6 +146,32 @@ class ResearchRun(Base):
         cascade="all, delete-orphan",
     )
 
+
+class ProspectingRun(Base):
+    __tablename__ = "prospecting_runs"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+    )
+    criteria: Mapped[str] = mapped_column(Text, nullable=False)
+    status: Mapped[ProspectingStatus] = mapped_column(
+        Enum(ProspectingStatus),
+        nullable=False,
+        default=ProspectingStatus.queued,
+    )
+    current_message: Mapped[str | None] = mapped_column(Text)
+    error_message: Mapped[str | None] = mapped_column(Text)
+    results_count: Mapped[int | None] = mapped_column(Integer)
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+    )
+    completed_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True)
+    )
 
 class ResearchSource(Base):
     __tablename__ = "research_sources"

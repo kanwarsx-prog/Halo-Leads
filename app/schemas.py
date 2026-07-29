@@ -9,6 +9,10 @@ class ResearchPlan(BaseModel):
     questions: list[str] = Field(description="A list of specific research questions to investigate for this organisation.")
 
 
+class ProspectingPlan(BaseModel):
+    missions: list[str] = Field(description="A list of specific search missions to execute based on the prospecting criteria.")
+
+
 class OrganisationCreate(BaseModel):
     name: str = Field(min_length=2, max_length=300)
     website: HttpUrl | None = None
