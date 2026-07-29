@@ -53,10 +53,9 @@ def update_run_message(db: Session, run_id: uuid.UUID, message: str):
         db.commit()
 
 def research_organisation(
-    *,
     db: Session,
-    organisation_id: uuid.UUID,
-) -> ResearchRun:
+    run_id: uuid.UUID,
+) -> None:
     """
     Run the full research pipeline for an organisation.
 
@@ -65,20 +64,16 @@ def research_organisation(
     All exceptions are caught internally to mark the run as failed before
     re-raising.
     """
-    organisation = db.get(Organisation, organisation_id)
+    run = db.get(ResearchRun, run_id)
+    if run is None:
+        raise ValueError("Research run not found")
+        
+    organisation = db.get(Organisation, run.organisation_id)
     if organisation is None:
         raise ValueError("Organisation not found")
-
-    run = ResearchRun(
-        organisation_id=organisation.id,
-        status=ResearchStatus.researching,
-        research_model=settings.openai_research_model,
-        extraction_model=settings.openai_extraction_model,
-        prompt_version=PROMPT_VERSION,
-    )
-    db.add(run)
+        
+    run.status = ResearchStatus.researching
     db.commit()
-    db.refresh(run)
 
     try:
         # Stage 0: Plan

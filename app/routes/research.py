@@ -73,7 +73,7 @@ def start_research(
     db.commit()
     db.refresh(run)
 
-    background_tasks.add_task(research_organisation, db=db, organisation_id=organisation_id)
+    background_tasks.add_task(research_organisation, db=db, run_id=run.id)
     return {"status": "started", "run_id": str(run.id)}
 
 
@@ -98,7 +98,7 @@ def force_research(
     db.commit()
     db.refresh(run)
 
-    background_tasks.add_task(research_organisation, db=db, organisation_id=organisation_id)
+    background_tasks.add_task(research_organisation, db=db, run_id=run.id)
     return {"status": "started", "run_id": str(run.id)}
 
 
