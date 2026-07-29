@@ -75,7 +75,7 @@
         </div>
 
         <!-- Key Contacts -->
-        {% if runs and runs[0].contact_leads %}
+        {% if org.contact_leads %}
         <h2 class="mt-8 mb-4">Key Contacts</h2>
         <div class="card">
             <table style="width: 100%; text-align: left; border-collapse: collapse;">
@@ -88,7 +88,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for lead in runs[0].contact_leads %}
+                    {% for lead in org.contact_leads %}
                     <tr style="border-bottom: 1px solid var(--bg-surface-hover);">
                         <td style="padding: 0.75rem 0;"><strong>{{ lead.name }}</strong></td>
                         <td style="padding: 0.75rem 0;">{{ lead.job_title }}</td>
