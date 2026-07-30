@@ -71,7 +71,8 @@ Target Organisation: {org.name}, Sector: {org.sector}
     if assessment:
         context += f"""
 Research Assessment:
-- ServiceNow Status: {assessment.servicenow_status}
+- ITSM Status: {assessment.itsm_status}
+- Identified Tools: {assessment.identified_tools}
 - Opportunity Hypothesis: {assessment.opportunity_hypothesis}
 - Suggested Outreach: {assessment.suggested_outreach}
 """
