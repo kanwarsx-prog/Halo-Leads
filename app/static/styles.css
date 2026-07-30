@@ -89,7 +89,8 @@ label {
 
 input[type="text"],
 input[type="url"],
-select {
+select,
+textarea {
     width: 100%;
     padding: 0.75rem 1rem;
     background: rgba(0, 0, 0, 0.2);
@@ -98,10 +99,12 @@ select {
     color: var(--text-primary);
     font-family: 'Inter', sans-serif;
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    resize: vertical;
 }
 
 input:focus,
-select:focus {
+select:focus,
+textarea:focus {
     outline: none;
     border-color: var(--accent);
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
