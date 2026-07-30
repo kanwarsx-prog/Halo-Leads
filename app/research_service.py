@@ -32,6 +32,7 @@ from app.models import (
     EvidenceNature,
     EvidenceStrength,
     Organisation,
+    PipelineStage,
     ResearchRun,
     ResearchSource,
     ResearchStatus,
@@ -228,6 +229,12 @@ def research_organisation(
 
         run.status = ResearchStatus.completed
         run.completed_at = datetime.now(timezone.utc)
+
+        # Update organisation stage automatically
+        if pursuit_gate == "pass":
+            organisation.pipeline_stage = PipelineStage.qualified
+        else:
+            organisation.pipeline_stage = PipelineStage.disqualified
 
         db.commit()
         db.refresh(run)

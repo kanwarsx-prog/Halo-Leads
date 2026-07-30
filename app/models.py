@@ -43,6 +43,17 @@ class ReviewStatus(str, enum.Enum):
     more_research = "more_research"
 
 
+class PipelineStage(str, enum.Enum):
+    discovered = "discovered"
+    researching = "researching"
+    qualified = "qualified"
+    disqualified = "disqualified"
+    outreach = "outreach"
+    meeting_scheduled = "meeting_scheduled"
+    closed_won = "closed_won"
+    closed_lost = "closed_lost"
+
+
 class EvidenceStrength(str, enum.Enum):
     strong = "strong"
     moderate = "moderate"
@@ -68,6 +79,12 @@ class Organisation(Base):
     country: Mapped[str | None] = mapped_column(String(100))
     sector: Mapped[str | None] = mapped_column(String(200))
     notes: Mapped[str | None] = mapped_column(Text)
+
+    pipeline_stage: Mapped[PipelineStage] = mapped_column(
+        Enum(PipelineStage),
+        nullable=False,
+        default=PipelineStage.discovered,
+    )
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

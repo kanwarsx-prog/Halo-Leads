@@ -38,7 +38,20 @@
                     <p class="text-sm mb-4"><strong>Website:</strong> <a href="{{ org.website }}" target="_blank">{{ org.website or 'N/A' }}</a></p>
                     <p class="text-sm mb-4"><strong>Country:</strong> {{ org.country or 'N/A' }}</p>
                     <p class="text-sm mb-4"><strong>Sector:</strong> <span class="badge badge-info">{{ org.sector or 'N/A' }}</span></p>
-                    <p class="text-sm"><strong>Notes:</strong> {{ org.notes or 'None' }}</p>
+                    <p class="text-sm mb-4"><strong>Notes:</strong> {{ org.notes or 'None' }}</p>
+                    <div class="text-sm mt-4">
+                        <strong>Pipeline Stage:</strong>
+                        <select id="stage-select" data-org-id="{{ org.id }}" class="btn btn-secondary" style="margin-left: 0.5rem; padding: 0.25rem 0.5rem; background: var(--bg-surface-hover);">
+                            <option value="discovered" {% if org.pipeline_stage.value == 'discovered' %}selected{% endif %}>Discovered</option>
+                            <option value="researching" {% if org.pipeline_stage.value == 'researching' %}selected{% endif %}>Researching</option>
+                            <option value="qualified" {% if org.pipeline_stage.value == 'qualified' %}selected{% endif %}>Qualified</option>
+                            <option value="disqualified" {% if org.pipeline_stage.value == 'disqualified' %}selected{% endif %}>Disqualified</option>
+                            <option value="outreach" {% if org.pipeline_stage.value == 'outreach' %}selected{% endif %}>Outreach</option>
+                            <option value="meeting_scheduled" {% if org.pipeline_stage.value == 'meeting_scheduled' %}selected{% endif %}>Meeting Scheduled</option>
+                            <option value="closed_won" {% if org.pipeline_stage.value == 'closed_won' %}selected{% endif %}>Closed Won</option>
+                            <option value="closed_lost" {% if org.pipeline_stage.value == 'closed_lost' %}selected{% endif %}>Closed Lost</option>
+                        </select>
+                    </div>
                 </div>
             </div>
 

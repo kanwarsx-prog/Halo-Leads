@@ -75,30 +75,42 @@
             </div>
         </div>
 
-        <h2 class="mt-8">Target Organisations</h2>
-        <div class="org-grid">
-            {% for org in organisations %}
-            <a href="/ui/organisations/{{ org.id }}" class="card">
-                {% set latest_run = org.research_runs[0] if org.research_runs else None %}
-                <div class="flex-between mb-4">
-                    <h3 style="color: var(--text-primary); font-size: 1.125rem;">{{ org.name }}</h3>
-                    {% if latest_run and latest_run.status.value in ['queued', 'researching', 'extracting', 'scoring'] %}
-                        <span class="badge badge-warning" style="animation: pulse 2s infinite;">Researching...</span>
-                    {% elif latest_run and latest_run.status.value == 'completed' %}
-                        <span class="badge badge-success">Research Complete</span>
+        <h2 class="mt-8 mb-4">Opportunity Pipeline</h2>
+        <div class="kanban-board">
+            {% set stages = [
+                ('discovered', 'Discovered', 'var(--text-secondary)'),
+                ('researching', 'Researching', 'var(--warning)'),
+                ('qualified', 'Qualified', 'var(--success)'),
+                ('disqualified', 'Disqualified', 'var(--danger)'),
+                ('outreach', 'Outreach', 'var(--info)'),
+                ('meeting_scheduled', 'Meeting', 'var(--accent)'),
+                ('closed_won', 'Closed Won', 'var(--success)'),
+                ('closed_lost', 'Closed Lost', 'var(--danger)')
+            ] %}
+            
+            {% for stage_id, stage_name, stage_color in stages %}
+            <div class="kanban-column" data-stage="{{ stage_id }}" ondrop="drop(event)" ondragover="allowDrop(event)">
+                <div class="kanban-header">
+                    <span>{{ stage_name }}</span>
+                    {% set count = organisations | selectattr('pipeline_stage.value', 'equalto', stage_id) | list | length %}
+                    <span class="badge" style="background: {{ stage_color }}; color: #fff;">{{ count }}</span>
+                </div>
+                
+                {% for org in organisations if org.pipeline_stage.value == stage_id %}
+                <a href="/ui/organisations/{{ org.id }}" class="card" draggable="true" ondragstart="drag(event)" id="org-{{ org.id }}" data-id="{{ org.id }}">
+                    <div class="flex-between mb-2">
+                        <strong style="color: var(--text-primary);">{{ org.name }}</strong>
+                    </div>
+                    {% if org.sector %}
+                        <span class="badge badge-info mb-2 text-sm">{{ org.sector }}</span>
                     {% endif %}
-                </div>
-                {% if org.sector %}
-                    <span class="badge badge-info mb-4">{{ org.sector }}</span>
-                {% endif %}
-                <p class="text-sm">{{ org.website or 'No website provided' }}</p>
-                <div class="mt-4 text-sm" style="color: var(--text-secondary);">
-                    Added: {{ org.created_at.strftime('%Y-%m-%d') }}
-                </div>
-            </a>
-            {% else %}
-            <div class="card" style="grid-column: 1 / -1; text-align: center; padding: 3rem;">
-                <p class="text-sm">No organisations added yet. Add one above to get started.</p>
+                    
+                    {% set latest_run = org.research_runs[0] if org.research_runs else None %}
+                    {% if latest_run and latest_run.status.value in ['queued', 'researching', 'extracting', 'scoring'] %}
+                        <div class="mt-2"><span class="badge badge-warning" style="animation: pulse 2s infinite;">Researching...</span></div>
+                    {% endif %}
+                </a>
+                {% endfor %}
             </div>
             {% endfor %}
         </div>

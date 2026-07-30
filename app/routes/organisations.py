@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models import Organisation, ProspectingRun, ProspectingStatus
-from app.schemas import OrganisationCreate, OrganisationRead
+from app.schemas import OrganisationCreate, OrganisationRead, OrganisationStageUpdate
 
 
 router = APIRouter()
@@ -54,6 +54,23 @@ def get_organisation(
     if organisation is None:
         raise HTTPException(status_code=404, detail="Organisation not found")
 
+    return organisation
+
+
+@router.patch("/{organisation_id}/stage", response_model=OrganisationRead)
+def update_organisation_stage(
+    organisation_id: uuid.UUID,
+    payload: OrganisationStageUpdate,
+    db: Session = Depends(get_db),
+) -> Organisation:
+    """Update the pipeline stage of an organisation."""
+    organisation = db.get(Organisation, organisation_id)
+    if organisation is None:
+        raise HTTPException(status_code=404, detail="Organisation not found")
+
+    organisation.pipeline_stage = payload.pipeline_stage
+    db.commit()
+    db.refresh(organisation)
     return organisation
 
 

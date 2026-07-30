@@ -4,6 +4,8 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, HttpUrl
 
+from app.models import PipelineStage
+
 
 class ResearchPlan(BaseModel):
     questions: list[str] = Field(description="A list of specific research questions to investigate for this organisation.")
@@ -28,9 +30,14 @@ class OrganisationRead(BaseModel):
     country: str | None
     sector: str | None
     notes: str | None
+    pipeline_stage: PipelineStage
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+class OrganisationStageUpdate(BaseModel):
+    pipeline_stage: PipelineStage
 
 
 class EvidenceExtraction(BaseModel):
