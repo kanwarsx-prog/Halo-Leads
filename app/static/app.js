@@ -263,9 +263,43 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }, 1500);
         }
-    }
+    // Draft Email Buttons
+    const draftEmailBtns = document.querySelectorAll('.draft-email-btn');
+    draftEmailBtns.forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            const orgId = e.target.dataset.orgId;
+            const contactId = e.target.dataset.contactId;
+            const row = document.getElementById(`email-draft-row-${contactId}`);
+            const textarea = document.getElementById(`email-draft-${contactId}`);
+            const spinner = row.querySelector('.draft-spinner');
+            
+            row.style.display = 'table-row';
+            spinner.style.display = 'inline';
+            btn.disabled = true;
+            btn.innerText = 'Drafting...';
+            
+            try {
+                const response = await fetch(`/organisations/${orgId}/contacts/${contactId}/draft-email`, {
+                    method: 'POST'
+                });
+                
+                if (!response.ok) throw new Error('Failed to generate draft');
+                
+                const data = await response.json();
+                textarea.value = data.draft;
+                
+                showToast('Email drafted successfully', 'success');
+            } catch (error) {
+                console.error(error);
+                showToast('Error drafting email', 'error');
+            } finally {
+                spinner.style.display = 'none';
+                btn.disabled = false;
+                btn.innerText = 'Draft Email (AI)';
+            }
+        });
+    });
 });
-
 function showToast(message, type = 'success') {
     let container = document.getElementById('toast-container');
     if (!container) {

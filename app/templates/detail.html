@@ -98,6 +98,7 @@
                         <th style="padding: 0.5rem 0;">Job Title</th>
                         <th style="padding: 0.5rem 0;">Notes</th>
                         <th style="padding: 0.5rem 0;">LinkedIn</th>
+                        <th style="padding: 0.5rem 0; text-align: right;">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -110,6 +111,20 @@
                             {% if lead.linkedin_url %}
                             <a href="{{ lead.linkedin_url }}" target="_blank" style="color: var(--primary);">View Profile</a>
                             {% endif %}
+                        </td>
+                        <td style="padding: 0.75rem 0; text-align: right;">
+                            <button class="btn btn-secondary text-sm draft-email-btn" data-org-id="{{ org.id }}" data-contact-id="{{ lead.id }}" style="padding: 0.25rem 0.75rem;">
+                                Draft Email (AI)
+                            </button>
+                        </td>
+                    </tr>
+                    <tr id="email-draft-row-{{ lead.id }}" style="display: {% if lead.latest_email_draft %}table-row{% else %}none{% endif %}; background: rgba(0,0,0,0.2);">
+                        <td colspan="5" style="padding: 1rem;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                                <strong style="color: var(--accent);">AI Drafted Outreach</strong>
+                                <span class="text-sm draft-spinner" style="display: none; color: var(--warning);">Drafting...</span>
+                            </div>
+                            <textarea id="email-draft-{{ lead.id }}" class="email-draft-text" style="width: 100%; min-height: 150px; padding: 1rem; background: var(--bg-surface); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-family: inherit; resize: vertical;" readonly>{{ lead.latest_email_draft or '' }}</textarea>
                         </td>
                     </tr>
                     {% endfor %}
