@@ -106,7 +106,9 @@
                     <tr style="border-bottom: 1px solid var(--bg-surface-hover);">
                         <td style="padding: 0.75rem 0;"><strong>{{ lead.name }}</strong></td>
                         <td style="padding: 0.75rem 0;">{{ lead.job_title }}</td>
-                        <td id="contact-notes-{{ lead.id }}" style="padding: 0.75rem 0; font-size: 0.9rem; color: var(--text-secondary);">{{ lead.notes or '' }}</td>
+                        <td style="padding: 0.75rem 0; font-size: 0.9rem; color: var(--text-secondary);">
+                            <div id="contact-notes-{{ lead.id }}" class="markdown-content">{{ lead.notes or '' }}</div>
+                        </td>
                         <td style="padding: 0.75rem 0;">
                             {% if lead.linkedin_url %}
                             <a href="{{ lead.linkedin_url }}" target="_blank" style="color: var(--primary);">View Profile</a>
@@ -167,6 +169,16 @@
         {% endfor %}
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.markdown-content').forEach(el => {
+                if(el.textContent.trim()) {
+                    el.innerHTML = marked.parse(el.textContent);
+                }
+            });
+        });
+    </script>
     <script src="/static/app.js?v=2"></script>
 </body>
 </html>

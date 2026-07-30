@@ -321,7 +321,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!response.ok) throw new Error('Failed to deep dive');
                 
                 const data = await response.json();
-                notesCell.textContent = data.notes;
+                notesCell.innerHTML = marked.parse(data.notes);
                 
                 showToast('Deep dive completed successfully', 'success');
             } catch (error) {

@@ -151,8 +151,9 @@ Perform targeted, semantic searches to discover their digital footprint. Look fo
 1. Do not hallucinate or invent information. If you cannot find any public digital footprint, explicitly state that they have a minimal public footprint.
 2. Extract exact, verbatim quotes where possible.
 3. Keep the report focused on professional, business-related intelligence that could be leveraged for hyper-personalized cold outreach.
+4. DO NOT write a long biography or resume. We only need specific, recent hooks.
 
-Produce a concise but highly detailed dossier on the individual, highlighting specific topics or events that could be used as an icebreaker.
+Produce a maximum of 3 bullet points highlighting specific, recent topics or events that could be used as an icebreaker. Keep the entire output under 75 words.
 """
 
 EMAIL_DRAFTING_PROMPT = """
