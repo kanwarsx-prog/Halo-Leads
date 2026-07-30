@@ -279,7 +279,7 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.innerText = 'Drafting...';
             
             try {
-                const response = await fetch(`/organisations/${orgId}/contacts/${contactId}/draft-email`, {
+                const response = await fetch(`/ui/organisations/${orgId}/contacts/${contactId}/draft-email`, {
                     method: 'POST'
                 });
                 
