@@ -106,13 +106,16 @@
                     <tr style="border-bottom: 1px solid var(--bg-surface-hover);">
                         <td style="padding: 0.75rem 0;"><strong>{{ lead.name }}</strong></td>
                         <td style="padding: 0.75rem 0;">{{ lead.job_title }}</td>
-                        <td style="padding: 0.75rem 0; font-size: 0.9rem; color: var(--text-secondary);">{{ lead.notes or '' }}</td>
+                        <td id="contact-notes-{{ lead.id }}" style="padding: 0.75rem 0; font-size: 0.9rem; color: var(--text-secondary);">{{ lead.notes or '' }}</td>
                         <td style="padding: 0.75rem 0;">
                             {% if lead.linkedin_url %}
                             <a href="{{ lead.linkedin_url }}" target="_blank" style="color: var(--primary);">View Profile</a>
                             {% endif %}
                         </td>
-                        <td style="padding: 0.75rem 0; text-align: right;">
+                        <td style="padding: 0.75rem 0; text-align: right; white-space: nowrap;">
+                            <button class="btn btn-secondary text-sm deep-dive-btn" data-org-id="{{ org.id }}" data-contact-id="{{ lead.id }}" style="padding: 0.25rem 0.75rem; margin-right: 0.5rem; border-color: var(--primary); color: var(--primary);">
+                                Deep Dive (AI)
+                            </button>
                             <button class="btn btn-secondary text-sm draft-email-btn" data-org-id="{{ org.id }}" data-contact-id="{{ lead.id }}" style="padding: 0.25rem 0.75rem;">
                                 Draft Email (AI)
                             </button>

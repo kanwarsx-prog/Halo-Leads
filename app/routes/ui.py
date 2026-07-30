@@ -8,6 +8,7 @@ from app.models import Organisation, ResearchRun, PromptConfig, ContactLead
 from app.prompts import DEFAULT_PROMPTS, get_prompt
 from app.openai_client import client
 from app.config import get_settings
+from app.openai_research import run_web_research
 
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
@@ -67,6 +68,7 @@ def draft_contact_email(org_id: str, contact_id: str, db: Session = Depends(get_
     
     context = f"""Target Contact: {contact.name}, {contact.job_title}
 Target Organisation: {org.name}, Sector: {org.sector}
+Contact Notes: {contact.notes or 'None'}
 """
     if assessment:
         context += f"""
@@ -90,3 +92,24 @@ Research Assessment:
     db.commit()
     
     return {"status": "success", "draft": draft}
+
+@router.post("/organisations/{org_id}/contacts/{contact_id}/deep-research")
+def deep_research_contact(org_id: str, contact_id: str, db: Session = Depends(get_db)):
+    contact = db.get(ContactLead, contact_id)
+    org = db.get(Organisation, org_id)
+    if not contact or not org or str(contact.organisation_id) != org_id:
+        raise HTTPException(status_code=404, detail="Contact not found")
+        
+    prompt = get_prompt(db, "CONTACT_RESEARCH_INSTRUCTIONS")
+    input_text = f"Research {contact.name}, {contact.job_title} at {org.name}."
+    
+    discovery_text, _ = run_web_research(
+        research_input=input_text,
+        instructions=prompt
+    )
+    
+    # Save the deep research findings into the contact's notes
+    contact.notes = discovery_text
+    db.commit()
+    
+    return {"status": "success", "notes": discovery_text}

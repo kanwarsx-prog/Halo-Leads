@@ -300,6 +300,40 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
+
+    // Deep Dive Buttons
+    const deepDiveBtns = document.querySelectorAll('.deep-dive-btn');
+    deepDiveBtns.forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            const orgId = e.target.dataset.orgId;
+            const contactId = e.target.dataset.contactId;
+            const notesCell = document.getElementById(`contact-notes-${contactId}`);
+            
+            btn.disabled = true;
+            btn.innerText = 'Researching...';
+            notesCell.innerHTML = '<span style="color: var(--warning);">Agent is hunting...</span>';
+            
+            try {
+                const response = await fetch(`/ui/organisations/${orgId}/contacts/${contactId}/deep-research`, {
+                    method: 'POST'
+                });
+                
+                if (!response.ok) throw new Error('Failed to deep dive');
+                
+                const data = await response.json();
+                notesCell.textContent = data.notes;
+                
+                showToast('Deep dive completed successfully', 'success');
+            } catch (error) {
+                console.error(error);
+                showToast('Error researching contact', 'error');
+                notesCell.textContent = 'Research failed.';
+            } finally {
+                btn.disabled = false;
+                btn.innerText = 'Deep Dive (AI)';
+            }
+        });
+    });
 });
 function showToast(message, type = 'success') {
     let container = document.getElementById('toast-container');
