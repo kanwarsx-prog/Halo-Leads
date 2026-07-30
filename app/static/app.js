@@ -263,6 +263,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }, 1500);
         }
+    }
     // Draft Email Buttons
     const draftEmailBtns = document.querySelectorAll('.draft-email-btn');
     draftEmailBtns.forEach(btn => {
