@@ -3,19 +3,110 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HaloITSM Lead Agent</title>
+    <title>Prospecting Pipeline</title>
     <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>HaloITSM Discovery</h1>
+            <h1>Prospecting Pipeline</h1>
             <div>
                 <a href="/ui/config" class="btn btn-secondary" style="margin-right: 0.5rem;">Prompt Config</a>
                 <a href="/docs" target="_blank" class="btn btn-secondary">API Docs</a>
             </div>
         </header>
 
+        <h2 class="mt-8 mb-4">Pipeline Summary</h2>
+        <div class="metrics-row">
+            {% set stages = [
+                ('discovered', 'Discovered', 'var(--text-secondary)'),
+                ('researching', 'Researching', 'var(--warning)'),
+                ('qualified', 'Qualified', 'var(--success)'),
+                ('disqualified', 'Disqualified', 'var(--danger)'),
+                ('outreach', 'Outreach', 'var(--info)'),
+                ('meeting_scheduled', 'Meeting', 'var(--accent)'),
+                ('closed_won', 'Closed Won', 'var(--success)'),
+                ('closed_lost', 'Closed Lost', 'var(--danger)')
+            ] %}
+            
+            {% for stage_id, stage_name, stage_color in stages %}
+            <div class="metric-card card" style="text-align: center; padding: 1rem;">
+                <div class="metric-title text-sm" style="color: var(--text-secondary); font-weight: 500;">{{ stage_name }}</div>
+                {% set count = organisations | selectattr('pipeline_stage.value', 'equalto', stage_id) | list | length %}
+                <div class="metric-value mt-2" style="color: {{ stage_color }}; font-size: 1.5rem; font-weight: bold;">{{ count }}</div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <h2 class="mt-8 mb-4">Organisations</h2>
+        <div class="table-container card" style="padding: 0; overflow-x: auto;">
+            <table class="crm-table">
+                <thead>
+                    <tr>
+                        <th>Company Name</th>
+                        <th>Sector</th>
+                        <th>Latest Score</th>
+                        <th>Added Date</th>
+                        <th>Pipeline Stage</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for org in organisations %}
+                    <tr>
+                        <td>
+                            <a href="/ui/organisations/{{ org.id }}" style="color: var(--text-primary); font-weight: 500; text-decoration: none;">
+                                {{ org.name }}
+                            </a>
+                            {% set latest_run = org.research_runs[0] if org.research_runs else None %}
+                            {% if latest_run and latest_run.status.value in ['queued', 'researching', 'extracting', 'scoring'] %}
+                                <span class="badge badge-warning" style="animation: pulse 2s infinite; font-size: 0.7rem; margin-left: 0.5rem;">Researching...</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if org.sector %}
+                                <span class="badge badge-info text-sm">{{ org.sector }}</span>
+                            {% else %}
+                                <span class="text-sm" style="color: var(--text-secondary)">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if latest_run and latest_run.assessment %}
+                                {% set score = latest_run.assessment.overall_score %}
+                                <span class="badge {% if score > 70 %}badge-success{% elif score > 40 %}badge-warning{% else %}badge-danger{% endif %} text-sm">
+                                    {{ score }}/100
+                                </span>
+                            {% else %}
+                                <span class="text-sm" style="color: var(--text-secondary)">-</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-sm" style="color: var(--text-secondary)">
+                            {{ org.created_at.strftime('%Y-%m-%d') }}
+                        </td>
+                        <td>
+                            <select class="stage-select btn btn-secondary text-sm" data-org-id="{{ org.id }}" style="padding: 0.25rem 0.5rem; background: var(--bg-surface-hover); min-width: 150px; border-color: transparent;">
+                                <option value="discovered" {% if org.pipeline_stage.value == 'discovered' %}selected{% endif %}>Discovered</option>
+                                <option value="researching" {% if org.pipeline_stage.value == 'researching' %}selected{% endif %}>Researching</option>
+                                <option value="qualified" {% if org.pipeline_stage.value == 'qualified' %}selected{% endif %}>Qualified</option>
+                                <option value="disqualified" {% if org.pipeline_stage.value == 'disqualified' %}selected{% endif %}>Disqualified</option>
+                                <option value="outreach" {% if org.pipeline_stage.value == 'outreach' %}selected{% endif %}>Outreach</option>
+                                <option value="meeting_scheduled" {% if org.pipeline_stage.value == 'meeting_scheduled' %}selected{% endif %}>Meeting Scheduled</option>
+                                <option value="closed_won" {% if org.pipeline_stage.value == 'closed_won' %}selected{% endif %}>Closed Won</option>
+                                <option value="closed_lost" {% if org.pipeline_stage.value == 'closed_lost' %}selected{% endif %}>Closed Lost</option>
+                            </select>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 3rem; color: var(--text-secondary)">
+                            No organisations added yet. Add one below to get started.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <h2 class="mt-8 mb-4">Add New Targets</h2>
         <div class="grid-2">
             <!-- Add Organisation Form -->
             <div class="card">
@@ -73,46 +164,6 @@
                     </div>
                 </form>
             </div>
-        </div>
-
-        <h2 class="mt-8 mb-4">Opportunity Pipeline</h2>
-        <div class="kanban-board">
-            {% set stages = [
-                ('discovered', 'Discovered', 'var(--text-secondary)'),
-                ('researching', 'Researching', 'var(--warning)'),
-                ('qualified', 'Qualified', 'var(--success)'),
-                ('disqualified', 'Disqualified', 'var(--danger)'),
-                ('outreach', 'Outreach', 'var(--info)'),
-                ('meeting_scheduled', 'Meeting', 'var(--accent)'),
-                ('closed_won', 'Closed Won', 'var(--success)'),
-                ('closed_lost', 'Closed Lost', 'var(--danger)')
-            ] %}
-            
-            {% for stage_id, stage_name, stage_color in stages %}
-            <div class="kanban-column" data-stage="{{ stage_id }}" ondrop="drop(event)" ondragover="allowDrop(event)">
-                <div class="kanban-header">
-                    <span>{{ stage_name }}</span>
-                    {% set count = organisations | selectattr('pipeline_stage.value', 'equalto', stage_id) | list | length %}
-                    <span class="badge" style="background: {{ stage_color }}; color: #fff;">{{ count }}</span>
-                </div>
-                
-                {% for org in organisations if org.pipeline_stage.value == stage_id %}
-                <a href="/ui/organisations/{{ org.id }}" class="card" draggable="true" ondragstart="drag(event)" id="org-{{ org.id }}" data-id="{{ org.id }}">
-                    <div class="flex-between mb-2">
-                        <strong style="color: var(--text-primary);">{{ org.name }}</strong>
-                    </div>
-                    {% if org.sector %}
-                        <span class="badge badge-info mb-2 text-sm">{{ org.sector }}</span>
-                    {% endif %}
-                    
-                    {% set latest_run = org.research_runs[0] if org.research_runs else None %}
-                    {% if latest_run and latest_run.status.value in ['queued', 'researching', 'extracting', 'scoring'] %}
-                        <div class="mt-2"><span class="badge badge-warning" style="animation: pulse 2s infinite;">Researching...</span></div>
-                    {% endif %}
-                </a>
-                {% endfor %}
-            </div>
-            {% endfor %}
         </div>
     </div>
 

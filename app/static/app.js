@@ -143,10 +143,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Stage Select Dropdown
-    const stageSelect = document.getElementById('stage-select');
-    if (stageSelect) {
-        stageSelect.addEventListener('change', async (e) => {
+    // Stage Select Dropdowns
+    const stageSelects = document.querySelectorAll('.stage-select, #stage-select');
+    stageSelects.forEach(select => {
+        select.addEventListener('change', async (e) => {
             const orgId = e.target.dataset.orgId;
             const newStage = e.target.value;
             
@@ -160,12 +160,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!response.ok) throw new Error('Failed to update stage');
                 
                 showToast('Stage updated successfully', 'success');
+                // Reload the page to update the dashboard metrics
+                if (window.location.pathname === '/ui') {
+                    setTimeout(() => window.location.reload(), 500);
+                }
             } catch (error) {
                 console.error(error);
                 showToast('Error updating stage', 'error');
             }
         });
-    }
+    });
 
     // Trigger Research Run Handler
     const triggerBtn = document.getElementById('trigger-research-btn');
@@ -284,46 +288,4 @@ function showToast(message, type = 'success') {
         setTimeout(() => toast.remove(), 300);
     }, 4000);
 }
-// Kanban Drag and Drop
-function allowDrop(ev) {
-    ev.preventDefault();
-}
 
-function drag(ev) {
-    ev.dataTransfer.setData("text", ev.target.dataset.id);
-}
-
-async function drop(ev) {
-    ev.preventDefault();
-    const orgId = ev.dataTransfer.getData("text");
-    const targetColumn = ev.target.closest('.kanban-column');
-    
-    if (!targetColumn) return;
-    
-    const newStage = targetColumn.dataset.stage;
-    const card = document.querySelector(`.card[data-id="${orgId}"]`);
-    
-    // Optimistic UI update
-    targetColumn.appendChild(card);
-    
-    // Call API
-    try {
-        const response = await fetch(`/organisations/${orgId}/stage`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ pipeline_stage: newStage })
-        });
-        
-        if (!response.ok) {
-            throw new Error('Failed to update stage');
-        }
-        
-        showToast('Stage updated successfully', 'success');
-        setTimeout(() => window.location.reload(), 500); // Reload to update counts and order
-    } catch (error) {
-        console.error(error);
-        showToast('Error updating stage', 'error');
-        // Reload to revert UI state
-        setTimeout(() => window.location.reload(), 1000);
-    }
-}
