@@ -307,7 +307,7 @@ class Assessment(Base):
         unique=True,
     )
 
-    servicenow_confidence: Mapped[int] = mapped_column(Integer, nullable=False)
+    itsm_confidence: Mapped[int] = mapped_column(Integer, nullable=False)
     basic_use_likelihood: Mapped[int] = mapped_column(Integer, nullable=False)
     cost_pressure: Mapped[int] = mapped_column(Integer, nullable=False)
     renewal_proximity: Mapped[int] = mapped_column(Integer, nullable=False)
@@ -315,7 +315,8 @@ class Assessment(Base):
     overall_score: Mapped[int] = mapped_column(Integer, nullable=False)
     priority: Mapped[str] = mapped_column(String(50), nullable=False)
 
-    servicenow_status: Mapped[str] = mapped_column(String(50), nullable=False)
+    itsm_status: Mapped[str] = mapped_column(String(50), nullable=False)
+    identified_tools: Mapped[str | None] = mapped_column(Text)
     pursuit_gate: Mapped[str] = mapped_column(String(50), nullable=False)
     apparent_use_cases: Mapped[list[str]] = mapped_column(
         JSONB,

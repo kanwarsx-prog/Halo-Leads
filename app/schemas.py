@@ -42,7 +42,7 @@ class OrganisationStageUpdate(BaseModel):
 
 class EvidenceExtraction(BaseModel):
     claim_type: Literal[
-        "servicenow_usage",
+        "legacy_itsm_usage",
         "basic_itsm_usage",
         "advanced_platform_usage",
         "contract",
@@ -63,7 +63,7 @@ class EvidenceExtraction(BaseModel):
 
 
 class ComponentScores(BaseModel):
-    servicenow_confidence: int = Field(ge=0, le=100)
+    itsm_confidence: int = Field(ge=0, le=100)
     basic_use_likelihood: int = Field(ge=0, le=100)
     cost_pressure: int = Field(ge=0, le=100)
     renewal_proximity: int = Field(ge=0, le=100)
@@ -83,7 +83,7 @@ class ProspectingResult(BaseModel):
     website: str | None = Field(description="Website URL if found", default=None)
     country: str | None = Field(description="Country where headquartered", default=None)
     sector: str | None = Field(description="Industry sector", default=None)
-    notes: str | None = Field(description="Brief notes on why this company is a good fit and their ServiceNow usage", default=None)
+    notes: str | None = Field(description="Brief notes on why this company is a good fit and their ITSM usage", default=None)
     contact_leads: list[ContactLeadSchema] = Field(default_factory=list, description="Key IT contacts found for this organisation")
 
 
@@ -103,12 +103,13 @@ class PromptConfigUpdate(BaseModel):
 class EvidenceBundle(BaseModel):
     organisation: str
 
-    servicenow_status: Literal[
+    itsm_status: Literal[
         "confirmed",
         "highly_likely",
         "possible",
         "unverified",
     ]
+    identified_tools: list[str] = Field(description="List of specific legacy ITSM tools identified (e.g. ServiceNow, BMC Remedy, Cherwell)")
 
     apparent_use_cases: list[str]
     advanced_use_cases_found: list[str]

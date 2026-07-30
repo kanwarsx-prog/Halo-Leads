@@ -192,7 +192,7 @@ def research_organisation(
         scores = bundle.component_scores
 
         score_result = calculate_lead_score(
-            servicenow_confidence=scores.servicenow_confidence,
+            itsm_confidence=scores.itsm_confidence,
             basic_use_likelihood=scores.basic_use_likelihood,
             cost_pressure=scores.cost_pressure,
             renewal_proximity=scores.renewal_proximity,
@@ -202,19 +202,20 @@ def research_organisation(
         overall_score, priority, pursuit_gate = apply_pursuit_gate(
             overall_score=score_result.overall_score,
             priority=score_result.priority,
-            servicenow_status=bundle.servicenow_status,
+            itsm_status=bundle.itsm_status,
         )
 
         assessment = Assessment(
             research_run_id=run.id,
-            servicenow_confidence=scores.servicenow_confidence,
+            itsm_confidence=scores.itsm_confidence,
             basic_use_likelihood=scores.basic_use_likelihood,
             cost_pressure=scores.cost_pressure,
             renewal_proximity=scores.renewal_proximity,
             migration_fit=scores.migration_fit,
             overall_score=overall_score,
             priority=priority,
-            servicenow_status=bundle.servicenow_status,
+            itsm_status=bundle.itsm_status,
+            identified_tools=", ".join(bundle.identified_tools) if bundle.identified_tools else None,
             pursuit_gate=pursuit_gate,
             apparent_use_cases=bundle.apparent_use_cases,
             advanced_use_cases_found=bundle.advanced_use_cases_found,

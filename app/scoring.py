@@ -2,7 +2,7 @@
 Deterministic lead scoring.
 
 Weights:
-  servicenow_confidence  15%  — is ServiceNow actually used here?
+  itsm_confidence        15%  — is a legacy ITSM tool actually used here?
   basic_use_likelihood   25%  — is usage narrow / basic rather than enterprise-wide?
   cost_pressure          20%  — cost-reduction or vendor-consolidation pressure?
   renewal_proximity      20%  — contract renewal or review coming up?
@@ -15,7 +15,7 @@ Priority bands:
   < 45   do_not_pursue
 
 Pursuit gate:
-  Unverified ServiceNow status hard-caps score to <= 44 regardless of other signals.
+  Unverified ITSM status hard-caps score to <= 44 regardless of other signals.
   "Possible" status prevents immediate_pursuit — capped to research_and_nurture.
 """
 
@@ -33,7 +33,7 @@ class ScoreResult:
 
 def calculate_lead_score(
     *,
-    servicenow_confidence: int,
+    itsm_confidence: int,
     basic_use_likelihood: int,
     cost_pressure: int,
     renewal_proximity: int,
@@ -45,7 +45,7 @@ def calculate_lead_score(
     Raises ValueError if any component is outside [0, 100].
     """
     values = {
-        "servicenow_confidence": servicenow_confidence,
+        "itsm_confidence": itsm_confidence,
         "basic_use_likelihood": basic_use_likelihood,
         "cost_pressure": cost_pressure,
         "renewal_proximity": renewal_proximity,
@@ -57,7 +57,7 @@ def calculate_lead_score(
             raise ValueError(f"{name} must be between 0 and 100, got {value}")
 
     score = round(
-        servicenow_confidence * 0.15
+        itsm_confidence * 0.15
         + basic_use_likelihood * 0.25
         + cost_pressure * 0.20
         + renewal_proximity * 0.20
@@ -83,18 +83,18 @@ def apply_pursuit_gate(
     *,
     overall_score: int,
     priority: str,
-    servicenow_status: str,
+    itsm_status: str,
 ) -> tuple[int, str, str]:
     """
-    Apply the ServiceNow-verification pursuit gate.
+    Apply the ITSM-verification pursuit gate.
 
     Unverified accounts must never be recommended for immediate or nurture
     pursuit regardless of how other signals score.
     """
-    if servicenow_status == "unverified":
+    if itsm_status == "unverified":
         return min(overall_score, 44), "do_not_pursue", "hard_cap_unverified"
 
-    if servicenow_status == "possible" and priority == "immediate_pursuit":
+    if itsm_status == "possible" and priority == "immediate_pursuit":
         return min(overall_score, 79), "research_and_nurture", "cap_possible_status"
 
     return overall_score, priority, "pass"
