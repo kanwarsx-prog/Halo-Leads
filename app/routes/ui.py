@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, Request, HTTPException
+from pydantic import BaseModel
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 from sqlalchemy import select
