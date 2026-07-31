@@ -281,6 +281,8 @@ class ContactLead(Base):
     name: Mapped[str] = mapped_column(String(300), nullable=False)
     job_title: Mapped[str] = mapped_column(String(300), nullable=False)
     linkedin_url: Mapped[str | None] = mapped_column(String(1000))
+    email: Mapped[str | None] = mapped_column(String(300))
+    email_is_guessed: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False, server_default='false')
     notes: Mapped[str | None] = mapped_column(Text)
     source_url: Mapped[str | None] = mapped_column(String(3000))
     latest_email_draft: Mapped[str | None] = mapped_column(Text)

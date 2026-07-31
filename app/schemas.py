@@ -74,6 +74,8 @@ class ContactLeadSchema(BaseModel):
     name: str = Field(description="Full name of the contact")
     job_title: str = Field(description="Job title of the contact")
     linkedin_url: str | None = Field(description="LinkedIn URL of the contact, if found", default=None)
+    email: str | None = Field(description="Email address of the contact, if found or reasonably inferred", default=None)
+    email_is_guessed: bool = Field(description="True if the email address was inferred based on corporate patterns, False if explicitly found", default=False)
     notes: str | None = Field(description="Any notes regarding their role or relevance", default=None)
     source_url: str | None = Field(description="URL of the source where they were found", default=None)
 

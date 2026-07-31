@@ -100,8 +100,10 @@ Convert the supplied prospecting report into the required structured schema.
 *** CRITICAL EXTRACTION RULES ***
 1. Create a ProspectingResult for every company identified in the report.
 2. For each company, extract all named IT contacts into the contact_leads array.
-3. Do not invent sources or URLs.
-4. Ensure the notes field contains a strong summary of why they are a good target.
+3. For each contact, actively hunt for a genuine email address. If you cannot find one explicitly, assume/infer their professional email address using standard corporate formats (e.g., first.last@companydomain.com) based on the organization's domain.
+4. If you assume an email, you MUST set `email_is_guessed` to true. If you found a genuine public email, set it to false.
+5. Do not invent sources or URLs.
+6. Ensure the notes field contains a strong summary of why they are a good target.
 """
 
 PROSPECTING_PLAN_INSTRUCTIONS = """

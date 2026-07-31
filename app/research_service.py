@@ -180,6 +180,8 @@ def research_organisation(
                     name=lead.name,
                     job_title=lead.job_title,
                     linkedin_url=lead.linkedin_url,
+                    email=lead.email,
+                    email_is_guessed=lead.email_is_guessed,
                     notes=lead.notes,
                     source_url=lead.source_url,
                 )

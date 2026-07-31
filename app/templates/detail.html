@@ -105,7 +105,17 @@
                     {% for lead in org.contact_leads %}
                     <tr style="border-bottom: 1px solid var(--bg-surface-hover);">
                         <td style="padding: 0.75rem 0;"><strong>{{ lead.name }}</strong></td>
-                        <td style="padding: 0.75rem 0;">{{ lead.job_title }}</td>
+                        <td style="padding: 0.75rem 0;">
+                            <div style="margin-bottom: 0.25rem;">{{ lead.job_title }}</div>
+                            {% if lead.email %}
+                            <div style="font-size: 0.85rem; color: var(--primary);">
+                                <a href="mailto:{{ lead.email }}" style="color: inherit; text-decoration: none;">{{ lead.email }}</a>
+                                {% if lead.email_is_guessed %}
+                                <span class="badge badge-warning" style="font-size: 0.65rem; padding: 0.15rem 0.4rem; margin-left: 0.25rem;" title="Inferred based on corporate email patterns">Assumed</span>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                        </td>
                         <td style="padding: 0.75rem 0; font-size: 0.9rem; color: var(--text-secondary);">
                             <div id="contact-notes-{{ lead.id }}" class="markdown-content">{{ lead.notes or '' }}</div>
                         </td>
