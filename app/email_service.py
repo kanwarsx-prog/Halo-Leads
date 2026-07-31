@@ -7,6 +7,19 @@ import os
 from app.config import get_settings
 
 
+import socket
+
+class IPv4SMTP(smtplib.SMTP):
+    def _get_socket(self, host, port, timeout):
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        if timeout is not None and timeout is not socket._GLOBAL_DEFAULT_TIMEOUT:
+            sock.settimeout(timeout)
+        
+        # Resolve IPv4 explicitly
+        addr = socket.gethostbyname(host)
+        sock.connect((addr, port))
+        return sock
+
 def send_email(to_email: str, subject: str, body: str, attachment_path: str | None = None) -> None:
     """
     Sends an email using the SMTP settings from the configuration.
@@ -30,7 +43,7 @@ def send_email(to_email: str, subject: str, body: str, attachment_path: str | No
         part['Content-Disposition'] = f'attachment; filename="{os.path.basename(attachment_path)}"'
         msg.attach(part)
 
-    with smtplib.SMTP(settings.smtp_host, settings.smtp_port, timeout=10) as server:
+    with IPv4SMTP(settings.smtp_host, settings.smtp_port, timeout=10) as server:
         server.set_debuglevel(1)
         server.starttls()
         server.login(settings.smtp_username, settings.smtp_password)
