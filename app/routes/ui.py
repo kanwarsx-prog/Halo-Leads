@@ -46,11 +46,26 @@ def ui_organisation_detail(request: Request, org_id: str, db: Session = Depends(
 @router.get("/contacts")
 def ui_contacts(request: Request, db: Session = Depends(get_db)):
     """Render the master contacts dashboard."""
-    contacts = db.query(ContactLead).order_by(ContactLead.id.desc()).all()
+    contacts = db.query(ContactLead).join(Organisation).order_by(Organisation.name.asc(), ContactLead.name.asc()).all()
     return templates.TemplateResponse(
         request=request,
         name="contacts.html",
         context={"contacts": contacts}
+    )
+
+@router.get("/organisations/{org_id}/contacts/{contact_id}")
+def ui_contact_detail(org_id: str, contact_id: str, request: Request, db: Session = Depends(get_db)):
+    """Render the dedicated contact profile page."""
+    contact = db.get(ContactLead, contact_id)
+    org = db.get(Organisation, org_id)
+    
+    if not contact or not org or str(contact.organisation_id) != org_id:
+        raise HTTPException(status_code=404, detail="Contact not found")
+        
+    return templates.TemplateResponse(
+        request=request,
+        name="contact_detail.html",
+        context={"org": org, "lead": contact}
     )
 
 @router.get("/config", response_class=HTMLResponse)

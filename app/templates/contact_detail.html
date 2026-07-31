@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact: {{ lead.name }}</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div>
+                <a href="/ui/contacts" class="text-sm" style="display: inline-block; margin-bottom: 0.5rem;">&larr; Back to Contacts</a>
+                <h1>{{ lead.name }}</h1>
+            </div>
+            <div>
+                <a href="/ui/contacts" class="btn btn-secondary" style="margin-right: 0.5rem;">Contacts</a>
+                <a href="/ui/config" class="btn btn-secondary" style="margin-right: 0.5rem;">Prompt Config</a>
+                <a href="/" class="btn btn-secondary">Dashboard</a>
+            </div>
+        </header>
+
+        <div class="card mb-8">
+            <h2 class="mb-4">Contact Profile</h2>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                <div>
+                    <div style="margin-bottom: 1rem;">
+                        <strong>Job Title:</strong>
+                        <div style="color: var(--text-secondary); margin-top: 0.25rem;">{{ lead.job_title }}</div>
+                    </div>
+                    <div style="margin-bottom: 1rem;">
+                        <strong>Organization:</strong>
+                        <div style="margin-top: 0.25rem;">
+                            <a href="/ui/organisations/{{ org.id }}" style="color: var(--primary); text-decoration: none;">
+                                {{ org.name }}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <div style="margin-bottom: 1rem;">
+                        <strong>Email Address:</strong>
+                        <div style="margin-top: 0.25rem;">
+                            {% if lead.email %}
+                            <a href="mailto:{{ lead.email }}" style="color: var(--primary); text-decoration: none;">{{ lead.email }}</a>
+                            {% if lead.email_is_guessed %}
+                            <span class="badge badge-warning" style="font-size: 0.75rem; padding: 0.15rem 0.4rem; margin-left: 0.5rem;" title="Inferred based on corporate email patterns">Assumed</span>
+                            {% endif %}
+                            {% else %}
+                            <span style="color: var(--text-secondary);">Not found</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div style="margin-bottom: 1rem;">
+                        <strong>LinkedIn:</strong>
+                        <div style="margin-top: 0.25rem;">
+                            {% if lead.linkedin_url %}
+                            <a href="{{ lead.linkedin_url }}" target="_blank" style="color: var(--primary); text-decoration: none;">View Profile</a>
+                            {% else %}
+                            <span style="color: var(--text-secondary);">Not found</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+            <!-- Deep Dive Workspace -->
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <h2 style="margin: 0;">AI Deep Dive</h2>
+                    <button class="btn btn-secondary text-sm deep-dive-btn" data-org-id="{{ org.id }}" data-contact-id="{{ lead.id }}" style="border-color: var(--primary); color: var(--primary);">
+                        Run Deep Dive
+                    </button>
+                </div>
+                
+                <div id="contact-notes-{{ lead.id }}" class="markdown-content" style="background: var(--bg-surface-hover); padding: 1rem; border-radius: 8px; min-height: 200px; color: var(--text-secondary);">
+                    {% if lead.notes %}
+                        {{ lead.notes }}
+                    {% else %}
+                        <em>No research conducted yet. Click "Run Deep Dive" to instruct the AI to find recent hooks.</em>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Outreach Workspace -->
+            <div class="card" id="email-draft-row-{{ lead.id }}">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <h2 style="margin: 0; color: var(--accent);">Outreach Draft</h2>
+                    <div style="display: flex; gap: 1rem; align-items: center;">
+                        <span class="text-sm draft-spinner" style="display: none; color: var(--warning);">Drafting...</span>
+                        <button class="btn btn-secondary text-sm draft-email-btn" data-org-id="{{ org.id }}" data-contact-id="{{ lead.id }}">
+                            Draft Email (AI)
+                        </button>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <span class="text-sm" style="color: var(--text-secondary);">To:</span>
+                    <input type="email" id="email-to-{{ lead.id }}" value="{{ lead.email or '' }}" class="form-control" style="background: var(--bg-surface-hover); border: 1px solid var(--border); color: var(--text-primary); padding: 0.5rem; border-radius: 4px; width: 100%;">
+                </div>
+                
+                <textarea id="email-draft-{{ lead.id }}" class="email-draft-text" style="width: 100%; min-height: 300px; padding: 1rem; background: var(--bg-surface-hover); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-family: inherit; resize: vertical; margin-bottom: 1rem;">{{ lead.latest_email_draft or '' }}</textarea>
+                
+                <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 1rem; border-top: 1px solid var(--border);">
+                    <label class="text-sm" style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-secondary);">
+                        <input type="checkbox" id="email-attach-{{ lead.id }}" checked>
+                        Include Slide Deck Attachment
+                    </label>
+                    <button class="btn btn-primary send-email-btn" data-org-id="{{ org.id }}" data-contact-id="{{ lead.id }}" style="display: {% if lead.latest_email_draft %}inline-block{% else %}none{% endif %};">
+                        Send Email
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="/static/app.js?v=2"></script>
+    <script>
+        // Render initial markdown
+        document.addEventListener('DOMContentLoaded', () => {
+            const notesEl = document.getElementById('contact-notes-{{ lead.id }}');
+            if (notesEl && notesEl.innerHTML.trim() && !notesEl.innerHTML.includes('No research conducted')) {
+                notesEl.innerHTML = marked.parse(notesEl.innerHTML);
+            }
+        });
+    </script>
+</body>
+</html>

@@ -99,13 +99,16 @@
                         <th style="padding: 0.5rem 0;">Job Title</th>
                         <th style="padding: 0.5rem 0;">Notes</th>
                         <th style="padding: 0.5rem 0;">LinkedIn</th>
-                        <th style="padding: 0.5rem 0; text-align: right;">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for lead in org.contact_leads %}
-                    <tr style="border-bottom: 1px solid var(--bg-surface-hover);">
-                        <td style="padding: 0.75rem 0;"><strong>{{ lead.name }}</strong></td>
+                    <tr style="border-bottom: 1px solid var(--bg-surface-hover); cursor: pointer;" onclick="window.location.href='/ui/organisations/{{ org.id }}/contacts/{{ lead.id }}'">
+                        <td style="padding: 0.75rem 0;">
+                            <a href="/ui/organisations/{{ org.id }}/contacts/{{ lead.id }}" style="color: var(--text-primary); text-decoration: none;">
+                                <strong>{{ lead.name }}</strong>
+                            </a>
+                        </td>
                         <td style="padding: 0.75rem 0;">
                             <div style="margin-bottom: 0.25rem;">{{ lead.job_title }}</div>
                             {% if lead.email %}
@@ -118,42 +121,12 @@
                             {% endif %}
                         </td>
                         <td style="padding: 0.75rem 0; font-size: 0.9rem; color: var(--text-secondary);">
-                            <div id="contact-notes-{{ lead.id }}" class="markdown-content">{{ lead.notes or '' }}</div>
+                            <div class="markdown-content" style="max-height: 40px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ lead.notes or 'No research yet.' }}</div>
                         </td>
                         <td style="padding: 0.75rem 0;">
                             {% if lead.linkedin_url %}
                             <a href="{{ lead.linkedin_url }}" target="_blank" style="color: var(--primary);">View Profile</a>
                             {% endif %}
-                        </td>
-                        <td style="padding: 0.75rem 0; text-align: right; white-space: nowrap;">
-                            <button class="btn btn-secondary text-sm deep-dive-btn" data-org-id="{{ org.id }}" data-contact-id="{{ lead.id }}" style="padding: 0.25rem 0.75rem; margin-right: 0.5rem; border-color: var(--primary); color: var(--primary);">
-                                Deep Dive (AI)
-                            </button>
-                            <button class="btn btn-secondary text-sm draft-email-btn" data-org-id="{{ org.id }}" data-contact-id="{{ lead.id }}" style="padding: 0.25rem 0.75rem;">
-                                Draft Email (AI)
-                            </button>
-                        </td>
-                    </tr>
-                    <tr id="email-draft-row-{{ lead.id }}" style="display: {% if lead.latest_email_draft %}table-row{% else %}none{% endif %}; background: rgba(0,0,0,0.2);">
-                        <td colspan="5" style="padding: 1rem;">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                                <strong style="color: var(--accent);">AI Drafted Outreach</strong>
-                                <div style="display: flex; gap: 1rem; align-items: center;">
-                                    <span class="text-sm draft-spinner" style="display: none; color: var(--warning);">Drafting...</span>
-                                    <label class="text-sm" style="display: flex; align-items: center; gap: 0.25rem;">
-                                        <input type="checkbox" id="email-attach-{{ lead.id }}" checked>
-                                        Include Slide Deck
-                                    </label>
-                                    <button class="btn btn-primary text-sm send-email-btn" data-org-id="{{ org.id }}" data-contact-id="{{ lead.id }}" style="padding: 0.25rem 0.75rem; display: {% if lead.latest_email_draft %}inline-block{% else %}none{% endif %};">
-                                        Send Email
-                                    </button>
-                                </div>
-                            </div>
-                            <div style="margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
-                                <span class="text-sm" style="color: var(--text-secondary);">To:</span>
-                                <input type="email" id="email-to-{{ lead.id }}" value="{{ lead.email or '' }}" class="form-control" style="background: var(--bg-surface); border: 1px solid var(--border); color: var(--text-primary); padding: 0.25rem 0.5rem; border-radius: 4px; width: 300px;">
-                            </div>
-                            <textarea id="email-draft-{{ lead.id }}" class="email-draft-text" style="width: 100%; min-height: 150px; padding: 1rem; background: var(--bg-surface); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-family: inherit; resize: vertical;">{{ lead.latest_email_draft or '' }}</textarea>
                         </td>
                     </tr>
                     {% endfor %}
