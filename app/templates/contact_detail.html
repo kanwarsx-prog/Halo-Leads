@@ -76,13 +76,7 @@
                     </button>
                 </div>
                 
-                <div id="contact-notes-{{ lead.id }}" class="markdown-content" style="background: var(--bg-surface-hover); padding: 1rem; border-radius: 8px; min-height: 200px; color: var(--text-secondary);">
-                    {% if lead.notes %}
-                        {{ lead.notes }}
-                    {% else %}
-                        <em>No research conducted yet. Click "Run Deep Dive" to instruct the AI to find recent hooks.</em>
-                    {% endif %}
-                </div>
+                <div id="contact-notes-{{ lead.id }}" class="markdown-content" style="background: var(--bg-surface-hover); padding: 1rem; border-radius: 8px; min-height: 200px; color: var(--text-secondary);">{% if lead.notes %}{{ lead.notes }}{% else %}<em>No research conducted yet. Click "Run Deep Dive" to instruct the AI to find recent hooks.</em>{% endif %}</div>
             </div>
 
             <!-- Outreach Workspace -->
