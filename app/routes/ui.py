@@ -43,6 +43,16 @@ def ui_organisation_detail(request: Request, org_id: str, db: Session = Depends(
         },
     )
 
+@router.get("/contacts")
+def ui_contacts(request: Request, db: Session = Depends(get_db)):
+    """Render the master contacts dashboard."""
+    contacts = db.query(ContactLead).order_by(ContactLead.id.desc()).all()
+    return templates.TemplateResponse(
+        request=request,
+        name="contacts.html",
+        context={"contacts": contacts}
+    )
+
 @router.get("/config", response_class=HTMLResponse)
 def config_page(request: Request, db: Session = Depends(get_db)):
     for name in DEFAULT_PROMPTS:
