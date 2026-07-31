@@ -80,6 +80,12 @@ class ContactLeadSchema(BaseModel):
     source_url: str | None = Field(description="URL of the source where they were found", default=None)
 
 
+class ContactDeepDiveResult(BaseModel):
+    notes: str = Field(description="The markdown notes of the deep dive")
+    email: str | None = Field(description="The extracted or assumed email address", default=None)
+    email_is_guessed: bool = Field(description="True if the email address was assumed/guessed", default=False)
+
+
 class ProspectingResult(BaseModel):
     name: str = Field(description="Name of the organisation")
     website: str | None = Field(description="Website URL if found", default=None)

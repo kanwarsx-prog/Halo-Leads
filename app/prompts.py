@@ -154,8 +154,9 @@ Perform targeted, semantic searches to discover their digital footprint. Look fo
 2. Extract exact, verbatim quotes where possible.
 3. Keep the report focused on professional, business-related intelligence that could be leveraged for hyper-personalized cold outreach.
 4. DO NOT write a long biography or resume. We only need specific, recent hooks.
+5. Actively hunt for a genuine professional email address. If you cannot find one explicitly, assume/infer their professional email address using standard corporate formats (e.g., first.last@companydomain.com) based on their organization's domain.
 
-Produce a maximum of 3 bullet points highlighting specific, recent topics or events that could be used as an icebreaker. Keep the entire output under 75 words.
+Produce a maximum of 3 bullet points highlighting specific, recent topics or events that could be used as an icebreaker. Keep the entire output under 75 words. Also explicitly include their discovered or inferred email address.
 """
 
 EMAIL_DRAFTING_PROMPT = """

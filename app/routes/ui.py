@@ -108,8 +108,36 @@ def deep_research_contact(org_id: str, contact_id: str, db: Session = Depends(ge
         instructions=prompt
     )
     
-    # Save the deep research findings into the contact's notes
-    contact.notes = discovery_text
+    # Parse the deep dive findings to extract email and structured notes
+    from app.schemas import ContactDeepDiveResult
+    import json
+    
+    try:
+        from config import settings
+        from openai import OpenAI
+        client = OpenAI(api_key=settings.openai_api_key)
+        response = client.beta.chat.completions.parse(
+            model=settings.openai_extraction_model,
+            messages=[
+                {"role": "system", "content": "Extract the deep dive notes and email address into the JSON schema."},
+                {"role": "user", "content": discovery_text}
+            ],
+            response_format=ContactDeepDiveResult
+        )
+        result = response.choices[0].message.parsed
+        contact.notes = result.notes
+        if result.email:
+            contact.email = result.email
+            contact.email_is_guessed = result.email_is_guessed
+    except Exception as e:
+        # Fallback if structured parsing fails
+        contact.notes = discovery_text
+
     db.commit()
     
-    return {"status": "success", "notes": discovery_text}
+    return {
+        "status": "success", 
+        "notes": contact.notes,
+        "email": contact.email,
+        "email_is_guessed": contact.email_is_guessed
+    }

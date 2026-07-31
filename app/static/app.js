@@ -324,11 +324,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 notesCell.innerHTML = marked.parse(data.notes);
                 
                 showToast('Deep dive completed successfully', 'success');
+                setTimeout(() => window.location.reload(), 1500);
             } catch (error) {
                 console.error(error);
                 showToast('Error researching contact', 'error');
                 notesCell.textContent = 'Research failed.';
-            } finally {
                 btn.disabled = false;
                 btn.innerText = 'Deep Dive (AI)';
             }
