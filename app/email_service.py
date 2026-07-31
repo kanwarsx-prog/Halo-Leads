@@ -30,7 +30,8 @@ def send_email(to_email: str, subject: str, body: str, attachment_path: str | No
         part['Content-Disposition'] = f'attachment; filename="{os.path.basename(attachment_path)}"'
         msg.attach(part)
 
-    with smtplib.SMTP(settings.smtp_host, settings.smtp_port) as server:
+    with smtplib.SMTP(settings.smtp_host, settings.smtp_port, timeout=10) as server:
+        server.set_debuglevel(1)
         server.starttls()
         server.login(settings.smtp_username, settings.smtp_password)
         server.send_message(msg)
