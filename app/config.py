@@ -16,6 +16,14 @@ class Settings(BaseSettings):
     max_research_sources: int = 20
     research_search_context_size: str = "large"
     max_research_deep_dives: int = 3
+    
+    smtp_host: str = "smtp.office365.com"
+    smtp_port: int = 587
+    smtp_username: str = ""
+    smtp_password: str = ""
+    sender_name: str = "Munish Kanwar"
+    sender_email: str = ""
+    calendar_link: str = ""
 
     model_config = SettingsConfigDict(
         env_file=".env",

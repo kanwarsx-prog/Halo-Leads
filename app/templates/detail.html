@@ -137,9 +137,14 @@
                         <td colspan="5" style="padding: 1rem;">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
                                 <strong style="color: var(--accent);">AI Drafted Outreach</strong>
-                                <span class="text-sm draft-spinner" style="display: none; color: var(--warning);">Drafting...</span>
+                                <div>
+                                    <span class="text-sm draft-spinner" style="display: none; color: var(--warning); margin-right: 1rem;">Drafting...</span>
+                                    <button class="btn btn-primary text-sm send-email-btn" data-org-id="{{ org.id }}" data-contact-id="{{ lead.id }}" style="padding: 0.25rem 0.75rem; display: {% if lead.latest_email_draft %}inline-block{% else %}none{% endif %};">
+                                        Send Email
+                                    </button>
+                                </div>
                             </div>
-                            <textarea id="email-draft-{{ lead.id }}" class="email-draft-text" style="width: 100%; min-height: 150px; padding: 1rem; background: var(--bg-surface); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-family: inherit; resize: vertical;" readonly>{{ lead.latest_email_draft or '' }}</textarea>
+                            <textarea id="email-draft-{{ lead.id }}" class="email-draft-text" style="width: 100%; min-height: 150px; padding: 1rem; background: var(--bg-surface); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-family: inherit; resize: vertical;">{{ lead.latest_email_draft or '' }}</textarea>
                         </td>
                     </tr>
                     {% endfor %}

@@ -288,6 +288,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 const data = await response.json();
                 textarea.value = data.draft;
+                row.querySelector('.send-email-btn').style.display = 'inline-block';
                 
                 showToast('Email drafted successfully', 'success');
             } catch (error) {
@@ -297,6 +298,40 @@ document.addEventListener('DOMContentLoaded', () => {
                 spinner.style.display = 'none';
                 btn.disabled = false;
                 btn.innerText = 'Draft Email (AI)';
+            }
+        });
+    });
+
+    // Send Email Buttons
+    const sendEmailBtns = document.querySelectorAll('.send-email-btn');
+    sendEmailBtns.forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            const orgId = e.target.dataset.orgId;
+            const contactId = e.target.dataset.contactId;
+            const textarea = document.getElementById(`email-draft-${contactId}`);
+            
+            btn.disabled = true;
+            btn.innerText = 'Sending...';
+            
+            try {
+                const response = await fetch(`/ui/organisations/${orgId}/contacts/${contactId}/send-email`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ draft_text: textarea.value })
+                });
+                
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.detail || 'Failed to send email');
+                
+                showToast('Email sent successfully!', 'success');
+                btn.innerText = 'Sent ✓';
+                btn.classList.remove('btn-primary');
+                btn.classList.add('btn-secondary');
+            } catch (error) {
+                console.error(error);
+                showToast(error.message || 'Error sending email', 'error');
+                btn.disabled = false;
+                btn.innerText = 'Send Email';
             }
         });
     });

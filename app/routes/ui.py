@@ -65,7 +65,9 @@ def draft_contact_email(org_id: str, contact_id: str, db: Session = Depends(get_
     
     settings = get_settings()
     prompt = get_prompt(db, "EMAIL_DRAFTING_PROMPT")
-    
+    if settings.calendar_link:
+        prompt = prompt.replace("[Your Calendar Link]", settings.calendar_link)
+        
     context = f"""Target Contact: {contact.name}, {contact.job_title}
 Target Organisation: {org.name}, Sector: {org.sector}
 Contact Notes: {contact.notes or 'None'}
@@ -141,3 +143,39 @@ def deep_research_contact(org_id: str, contact_id: str, db: Session = Depends(ge
         "email": contact.email,
         "email_is_guessed": contact.email_is_guessed
     }
+
+
+class SendEmailRequest(BaseModel):
+    draft_text: str
+
+@router.post("/organisations/{org_id}/contacts/{contact_id}/send-email")
+def send_contact_email(org_id: str, contact_id: str, payload: SendEmailRequest, db: Session = Depends(get_db)):
+    contact = db.get(ContactLead, contact_id)
+    org = db.get(Organisation, org_id)
+    if not contact or not org or str(contact.organisation_id) != org_id:
+        raise HTTPException(status_code=404, detail="Contact not found")
+        
+    if not contact.email:
+        raise HTTPException(status_code=400, detail="Contact has no email address")
+
+    from app.email_service import send_email
+    
+    subject = f"HaloITSM and {org.name}"
+    
+    # Extract subject if the AI put "Subject: ..." in the draft
+    lines = payload.draft_text.split("\n")
+    body = payload.draft_text
+    if lines and lines[0].lower().startswith("subject:"):
+        subject = lines[0][8:].strip()
+        body = "\n".join(lines[1:]).strip()
+
+    try:
+        send_email(
+            to_email=contact.email,
+            subject=subject,
+            body=body
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to send email: {str(e)}")
+        
+    return {"status": "success", "message": "Email sent"}
