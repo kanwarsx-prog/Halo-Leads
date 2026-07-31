@@ -268,3 +268,20 @@ a:hover {
 .crm-table tbody tr:last-child td {
     border-bottom: none;
 }
+
+.markdown-content pre {
+    white-space: pre-wrap;       /* css-3 */
+    word-wrap: break-word;       /* Internet Explorer 5.5+ */
+    max-width: 100%;
+    overflow-x: auto;
+    background: rgba(0,0,0,0.2);
+    padding: 1rem;
+    border-radius: 4px;
+}
+
+.markdown-content code {
+    background: rgba(0,0,0,0.2);
+    padding: 0.2em 0.4em;
+    border-radius: 3px;
+    font-family: monospace;
+}

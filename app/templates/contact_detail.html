@@ -66,9 +66,9 @@
             </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; min-width: 0;">
             <!-- Deep Dive Workspace -->
-            <div class="card">
+            <div class="card" style="min-width: 0;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                     <h2 style="margin: 0;">AI Deep Dive</h2>
                     <button class="btn btn-secondary text-sm deep-dive-btn" data-org-id="{{ org.id }}" data-contact-id="{{ lead.id }}" style="border-color: var(--primary); color: var(--primary);">
@@ -86,7 +86,7 @@
             </div>
 
             <!-- Outreach Workspace -->
-            <div class="card" id="email-draft-row-{{ lead.id }}">
+            <div class="card" id="email-draft-row-{{ lead.id }}" style="min-width: 0;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                     <h2 style="margin: 0; color: var(--accent);">Outreach Draft</h2>
                     <div style="display: flex; gap: 1rem; align-items: center;">
