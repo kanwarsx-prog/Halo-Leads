@@ -309,6 +309,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const orgId = e.target.dataset.orgId;
             const contactId = e.target.dataset.contactId;
             const textarea = document.getElementById(`email-draft-${contactId}`);
+            const emailInput = document.getElementById(`email-to-${contactId}`);
+            const attachCheckbox = document.getElementById(`email-attach-${contactId}`);
             
             btn.disabled = true;
             btn.innerText = 'Sending...';
@@ -317,7 +319,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 const response = await fetch(`/ui/organisations/${orgId}/contacts/${contactId}/send-email`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ draft_text: textarea.value })
+                    body: JSON.stringify({ 
+                        draft_text: textarea.value,
+                        recipient_email: emailInput.value,
+                        include_attachment: attachCheckbox.checked
+                    })
                 });
                 
                 const data = await response.json();

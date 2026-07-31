@@ -148,6 +148,8 @@ def deep_research_contact(org_id: str, contact_id: str, db: Session = Depends(ge
 
 class SendEmailRequest(BaseModel):
     draft_text: str
+    recipient_email: str
+    include_attachment: bool = False
 
 @router.post("/organisations/{org_id}/contacts/{contact_id}/send-email")
 def send_contact_email(org_id: str, contact_id: str, payload: SendEmailRequest, db: Session = Depends(get_db)):
@@ -156,10 +158,15 @@ def send_contact_email(org_id: str, contact_id: str, payload: SendEmailRequest, 
     if not contact or not org or str(contact.organisation_id) != org_id:
         raise HTTPException(status_code=404, detail="Contact not found")
         
-    if not contact.email:
-        raise HTTPException(status_code=400, detail="Contact has no email address")
+    if not payload.recipient_email:
+        raise HTTPException(status_code=400, detail="Recipient email address is required")
+        
+    if contact.email != payload.recipient_email:
+        contact.email = payload.recipient_email
+        db.commit()
 
     from app.email_service import send_email
+    settings = get_settings()
     
     subject = f"HaloITSM and {org.name}"
     
@@ -171,10 +178,13 @@ def send_contact_email(org_id: str, contact_id: str, payload: SendEmailRequest, 
         body = "\n".join(lines[1:]).strip()
 
     try:
+        attachment_path = settings.default_attachment_path if payload.include_attachment else None
+        
         send_email(
-            to_email=contact.email,
+            to_email=payload.recipient_email,
             subject=subject,
-            body=body
+            body=body,
+            attachment_path=attachment_path
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to send email: {str(e)}")

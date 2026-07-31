@@ -1,11 +1,13 @@
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from email.mime.application import MIMEApplication
+import os
 
 from app.config import get_settings
 
 
-def send_email(to_email: str, subject: str, body: str) -> None:
+def send_email(to_email: str, subject: str, body: str, attachment_path: str | None = None) -> None:
     """
     Sends an email using the SMTP settings from the configuration.
     Raises an exception if the configuration is missing or SMTP fails.
@@ -21,6 +23,12 @@ def send_email(to_email: str, subject: str, body: str) -> None:
     msg['Subject'] = subject
 
     msg.attach(MIMEText(body, 'plain'))
+
+    if attachment_path and os.path.exists(attachment_path):
+        with open(attachment_path, "rb") as f:
+            part = MIMEApplication(f.read(), Name=os.path.basename(attachment_path))
+        part['Content-Disposition'] = f'attachment; filename="{os.path.basename(attachment_path)}"'
+        msg.attach(part)
 
     with smtplib.SMTP(settings.smtp_host, settings.smtp_port) as server:
         server.starttls()

@@ -137,12 +137,20 @@
                         <td colspan="5" style="padding: 1rem;">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
                                 <strong style="color: var(--accent);">AI Drafted Outreach</strong>
-                                <div>
-                                    <span class="text-sm draft-spinner" style="display: none; color: var(--warning); margin-right: 1rem;">Drafting...</span>
+                                <div style="display: flex; gap: 1rem; align-items: center;">
+                                    <span class="text-sm draft-spinner" style="display: none; color: var(--warning);">Drafting...</span>
+                                    <label class="text-sm" style="display: flex; align-items: center; gap: 0.25rem;">
+                                        <input type="checkbox" id="email-attach-{{ lead.id }}" checked>
+                                        Include Slide Deck
+                                    </label>
                                     <button class="btn btn-primary text-sm send-email-btn" data-org-id="{{ org.id }}" data-contact-id="{{ lead.id }}" style="padding: 0.25rem 0.75rem; display: {% if lead.latest_email_draft %}inline-block{% else %}none{% endif %};">
                                         Send Email
                                     </button>
                                 </div>
+                            </div>
+                            <div style="margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                                <span class="text-sm" style="color: var(--text-secondary);">To:</span>
+                                <input type="email" id="email-to-{{ lead.id }}" value="{{ lead.email or '' }}" class="form-control" style="background: var(--bg-surface); border: 1px solid var(--border); color: var(--text-primary); padding: 0.25rem 0.5rem; border-radius: 4px; width: 300px;">
                             </div>
                             <textarea id="email-draft-{{ lead.id }}" class="email-draft-text" style="width: 100%; min-height: 150px; padding: 1rem; background: var(--bg-surface); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-family: inherit; resize: vertical;">{{ lead.latest_email_draft or '' }}</textarea>
                         </td>
