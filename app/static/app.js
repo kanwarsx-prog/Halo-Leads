@@ -335,6 +335,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 btn.classList.add('btn-secondary');
             } catch (error) {
                 console.error(error);
+                alert("Error sending email: " + (error.message || "Unknown error"));
                 showToast(error.message || 'Error sending email', 'error');
                 btn.disabled = false;
                 btn.innerText = 'Send Email';
