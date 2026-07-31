@@ -24,7 +24,7 @@ class Settings(BaseSettings):
     sender_name: str = "Munish Kanwar"
     sender_email: str = ""
     calendar_link: str = ""
-    default_attachment_path: str = "c:\\Apps\\LeadGen\\Captiv-8 - Legacy ITSM to Halo .pdf"
+    default_attachment_path: str = "assets/Captiv-8 - Legacy ITSM to Halo .pdf"
 
     model_config = SettingsConfigDict(
         env_file=".env",
