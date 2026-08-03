@@ -14,6 +14,17 @@ from app.openai_research import run_web_research
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
 
+class EmailSendRequest(BaseModel):
+    draft_text: str
+    recipient_email: str
+    include_attachment: bool = True
+
+class ManualContactCreate(BaseModel):
+    name: str
+    job_title: str
+    email: str | None = None
+    linkedin_url: str | None = None
+
 @router.get("/")
 def ui_dashboard(request: Request, db: Session = Depends(get_db)):
     """Render the main dashboard."""
@@ -192,17 +203,6 @@ class SendEmailRequest(BaseModel):
     draft_text: str
     recipient_email: str
     include_attachment: bool = False
-
-class EmailSendRequest(BaseModel):
-    draft_text: str
-    recipient_email: str
-    include_attachment: bool = True
-
-class ManualContactCreate(BaseModel):
-    name: str
-    job_title: str
-    email: str | None = None
-    linkedin_url: str | None = None
 
 @router.post("/organisations/{org_id}/contacts/{contact_id}/send-email")
 def send_contact_email(org_id: str, contact_id: str, payload: SendEmailRequest, db: Session = Depends(get_db)):
