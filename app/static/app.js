@@ -376,6 +376,50 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
+
+    // Manual Contact Form
+    const addContactForm = document.getElementById('add-contact-form');
+    if (addContactForm) {
+        addContactForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const orgId = addContactForm.dataset.orgId;
+            const btn = document.getElementById('manual-submit-btn');
+            const name = document.getElementById('manual-name').value;
+            const jobTitle = document.getElementById('manual-job-title').value;
+            const email = document.getElementById('manual-email').value;
+            const linkedin = document.getElementById('manual-linkedin').value;
+
+            btn.disabled = true;
+            btn.innerText = 'Saving...';
+
+            try {
+                const response = await fetch(`/ui/organisations/${orgId}/contacts/manual`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: name,
+                        job_title: jobTitle,
+                        email: email || null,
+                        linkedin_url: linkedin || null
+                    })
+                });
+
+                if (!response.ok) {
+                    const data = await response.json();
+                    throw new Error(data.detail || 'Failed to add contact');
+                }
+
+                showToast('Contact added successfully', 'success');
+                setTimeout(() => window.location.reload(), 1000);
+            } catch (error) {
+                console.error(error);
+                alert("Error: " + (error.message || "Unknown error"));
+                showToast(error.message || 'Error adding contact', 'error');
+                btn.disabled = false;
+                btn.innerText = 'Save Contact';
+            }
+        });
+    }
 });
 function showToast(message, type = 'success') {
     let container = document.getElementById('toast-container');

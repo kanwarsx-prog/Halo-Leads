@@ -68,6 +68,23 @@ def ui_contact_detail(org_id: str, contact_id: str, request: Request, db: Sessio
         context={"org": org, "lead": contact}
     )
 
+@router.post("/organisations/{org_id}/contacts/manual")
+def ui_create_contact(org_id: str, data: ManualContactCreate, db: Session = Depends(get_db)):
+    org = db.get(Organisation, org_id)
+    if not org:
+        raise HTTPException(status_code=404, detail="Organisation not found")
+        
+    contact = ContactLead(
+        organisation_id=org.id,
+        name=data.name,
+        job_title=data.job_title,
+        email=data.email,
+        linkedin_url=data.linkedin_url
+    )
+    db.add(contact)
+    db.commit()
+    return {"status": "success", "contact_id": str(contact.id)}
+
 @router.get("/config", response_class=HTMLResponse)
 def config_page(request: Request, db: Session = Depends(get_db)):
     for name in DEFAULT_PROMPTS:
@@ -175,6 +192,17 @@ class SendEmailRequest(BaseModel):
     draft_text: str
     recipient_email: str
     include_attachment: bool = False
+
+class EmailSendRequest(BaseModel):
+    draft_text: str
+    recipient_email: str
+    include_attachment: bool = True
+
+class ManualContactCreate(BaseModel):
+    name: str
+    job_title: str
+    email: str | None = None
+    linkedin_url: str | None = None
 
 @router.post("/organisations/{org_id}/contacts/{contact_id}/send-email")
 def send_contact_email(org_id: str, contact_id: str, payload: SendEmailRequest, db: Session = Depends(get_db)):
