@@ -62,10 +62,25 @@ def ui_organisation_detail(request: Request, org_id: str, db: Session = Depends(
 def ui_contacts(request: Request, db: Session = Depends(get_db)):
     """Render the master contacts dashboard."""
     contacts = db.query(ContactLead).join(Organisation).order_by(Organisation.name.asc(), ContactLead.name.asc()).all()
+    
+    total_orgs = db.query(Organisation).count()
+    total_contacts = len(contacts)
+    
+    from app.models import ContactStatus
+    researched_contacts = sum(1 for c in contacts if c.status in (ContactStatus.researched, ContactStatus.emailed, ContactStatus.replied))
+    emailed_contacts = sum(1 for c in contacts if c.status in (ContactStatus.emailed, ContactStatus.replied))
+    
+    metrics = {
+        "total_orgs": total_orgs,
+        "total_contacts": total_contacts,
+        "researched_contacts": researched_contacts,
+        "emailed_contacts": emailed_contacts,
+    }
+    
     return templates.TemplateResponse(
         request=request,
         name="contacts.html",
-        context={"contacts": contacts}
+        context={"contacts": contacts, "metrics": metrics}
     )
 
 @router.get("/organisations/{org_id}/contacts/{contact_id}")
@@ -195,6 +210,10 @@ def deep_research_contact(org_id: str, contact_id: str, db: Session = Depends(ge
         # Fallback if structured parsing fails
         contact.notes = discovery_text
 
+    from app.models import ContactStatus
+    if contact.status == ContactStatus.discovered:
+        contact.status = ContactStatus.researched
+
     db.commit()
     
     return {
@@ -247,5 +266,10 @@ def send_contact_email(org_id: str, contact_id: str, payload: SendEmailRequest, 
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to send email: {str(e)}")
+        
+    from app.models import ContactStatus
+    if contact.status in (ContactStatus.discovered, ContactStatus.researched):
+        contact.status = ContactStatus.emailed
+        db.commit()
         
     return {"status": "success", "message": "Email sent"}

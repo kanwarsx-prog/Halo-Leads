@@ -54,6 +54,13 @@ class PipelineStage(str, enum.Enum):
     closed_lost = "closed_lost"
 
 
+class ContactStatus(str, enum.Enum):
+    discovered = "discovered"
+    researched = "researched"
+    emailed = "emailed"
+    replied = "replied"
+
+
 class EvidenceStrength(str, enum.Enum):
     strong = "strong"
     moderate = "moderate"
@@ -283,6 +290,7 @@ class ContactLead(Base):
     linkedin_url: Mapped[str | None] = mapped_column(String(1000))
     email: Mapped[str | None] = mapped_column(String(300))
     email_is_guessed: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False, server_default='false')
+    status: Mapped[ContactStatus] = mapped_column(Enum(ContactStatus), nullable=False, default=ContactStatus.discovered, server_default='discovered')
     notes: Mapped[str | None] = mapped_column(Text)
     source_url: Mapped[str | None] = mapped_column(String(3000))
     latest_email_draft: Mapped[str | None] = mapped_column(Text)

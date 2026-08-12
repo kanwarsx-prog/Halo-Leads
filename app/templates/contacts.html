@@ -18,55 +18,53 @@
             </div>
         </header>
 
-        <h2 class="mt-8 mb-4">All Prospects</h2>
-        <div class="table-container card" style="padding: 0; overflow-x: auto;">
-            <table style="width: 100%; text-align: left; border-collapse: collapse;">
-                <thead>
-                    <tr style="border-bottom: 1px solid var(--bg-surface-hover);">
-                        <th style="padding: 1rem;">Name</th>
-                        <th style="padding: 1rem;">Job Title</th>
-                        <th style="padding: 1rem;">Organization</th>
-                        <th style="padding: 1rem;">Notes</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for lead in contacts %}
-                    <tr style="border-bottom: 1px solid var(--bg-surface-hover); cursor: pointer;" onclick="window.location.href='/ui/organisations/{{ lead.organisation.id }}/contacts/{{ lead.id }}'">
-                        <td style="padding: 1rem;">
-                            <a href="/ui/organisations/{{ lead.organisation.id }}/contacts/{{ lead.id }}" style="color: var(--text-primary); text-decoration: none;">
-                                <strong>{{ lead.name }}</strong>
-                            </a>
-                            {% if lead.linkedin_url %}
-                            <br>
-                            <a href="{{ lead.linkedin_url }}" target="_blank" style="color: var(--primary); font-size: 0.85rem;">LinkedIn</a>
-                            {% endif %}
-                        </td>
-                        <td style="padding: 1rem;">
-                            <div style="margin-bottom: 0.25rem;">{{ lead.job_title }}</div>
-                            {% if lead.email %}
-                            <div style="font-size: 0.85rem; color: var(--primary);">
-                                <a href="mailto:{{ lead.email }}" style="color: inherit; text-decoration: none;">{{ lead.email }}</a>
-                                {% if lead.email_is_guessed %}
-                                <span class="badge badge-warning" style="font-size: 0.65rem; padding: 0.15rem 0.4rem; margin-left: 0.25rem;" title="Inferred based on corporate email patterns">Assumed</span>
-                                {% endif %}
-                            </div>
-                            {% endif %}
-                        </td>
-                        <td style="padding: 1rem;">
-                            <a href="/ui/organisations/{{ lead.organisation.id }}" style="color: var(--text-primary); text-decoration: none; font-weight: 500;">
-                                {{ lead.organisation.name }}
-                            </a>
-                            <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.25rem;">
-                                {{ lead.organisation.pipeline_stage.value | title | replace('_', ' ') }}
-                            </div>
-                        </td>
-                        <td style="padding: 1rem; font-size: 0.9rem; color: var(--text-secondary);">
-                            <div class="markdown-content" style="max-height: 60px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ lead.notes or 'No research yet.' }}</div>
-                        </td>
-                    </tr>
+        <!-- Metrics Dashboard -->
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-top: 2rem; margin-bottom: 2rem;">
+            <div class="card" style="text-align: center; padding: 1.5rem;">
+                <h3 style="margin: 0; font-size: 2rem; color: var(--accent);">{{ metrics.total_orgs }}</h3>
+                <div style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 0.5rem; text-transform: uppercase; letter-spacing: 1px;">Target Orgs</div>
+            </div>
+            <div class="card" style="text-align: center; padding: 1.5rem;">
+                <h3 style="margin: 0; font-size: 2rem; color: var(--accent);">{{ metrics.total_contacts }}</h3>
+                <div style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 0.5rem; text-transform: uppercase; letter-spacing: 1px;">Total Contacts</div>
+            </div>
+            <div class="card" style="text-align: center; padding: 1.5rem;">
+                <h3 style="margin: 0; font-size: 2rem; color: var(--accent);">{{ metrics.researched_contacts }}</h3>
+                <div style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 0.5rem; text-transform: uppercase; letter-spacing: 1px;">Deep Dives Completed</div>
+            </div>
+            <div class="card" style="text-align: center; padding: 1.5rem;">
+                <h3 style="margin: 0; font-size: 2rem; color: var(--accent);">{{ metrics.emailed_contacts }}</h3>
+                <div style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 0.5rem; text-transform: uppercase; letter-spacing: 1px;">Emails Sent</div>
+            </div>
+        </div>
+
+        <h2 class="mb-4">Prospecting Pipeline</h2>
+        
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; align-items: start; overflow-x: auto; padding-bottom: 1rem;">
+            
+            {% set statuses = [('discovered', 'New Leads'), ('researched', 'Researched'), ('emailed', 'Outreach Active'), ('replied', 'Engaged')] %}
+            
+            {% for status_val, status_name in statuses %}
+            <div style="background: var(--bg-surface-hover); border-radius: 8px; padding: 1rem; min-height: 500px;">
+                <h3 style="margin-top: 0; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--border); color: var(--text-primary); font-size: 1.1rem; display: flex; justify-content: space-between;">
+                    {{ status_name }}
+                    <span style="background: var(--bg-surface); padding: 0.1rem 0.5rem; border-radius: 12px; font-size: 0.8rem; color: var(--text-secondary);">
+                        {{ contacts|selectattr('status', 'equalto', status_val)|list|length }}
+                    </span>
+                </h3>
+                
+                <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                    {% for lead in contacts if lead.status.value == status_val %}
+                    <div class="card" style="padding: 1rem; cursor: pointer; transition: transform 0.1s; background: var(--bg-surface); border: 1px solid var(--border);" onclick="window.location.href='/ui/organisations/{{ lead.organisation.id }}/contacts/{{ lead.id }}'" onmouseover="this.style.transform='translateY(-2px)'; this.style.borderColor='var(--accent)';" onmouseout="this.style.transform='none'; this.style.borderColor='var(--border)';">
+                        <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 0.25rem;">{{ lead.name }}</div>
+                        <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.5rem;">{{ lead.job_title }}</div>
+                        <div style="font-size: 0.8rem; color: var(--accent); font-weight: 500;">{{ lead.organisation.name }}</div>
+                    </div>
                     {% endfor %}
-                </tbody>
-            </table>
+                </div>
+            </div>
+            {% endfor %}
+            
         </div>
     </div>
     <script src="/static/app.js?v=2"></script>
