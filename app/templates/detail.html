@@ -124,13 +124,13 @@
 
         {% if org.contact_leads %}
         <div class="card">
-            <table style="width: 100%; text-align: left; border-collapse: collapse;">
+            <table style="width: 100%; text-align: left; border-collapse: collapse; table-layout: fixed;">
                 <thead>
                     <tr style="border-bottom: 1px solid var(--bg-surface-hover);">
-                        <th style="padding: 0.5rem 0;">Name</th>
-                        <th style="padding: 0.5rem 0;">Job Title</th>
-                        <th style="padding: 0.5rem 0;">Notes</th>
-                        <th style="padding: 0.5rem 0;">LinkedIn</th>
+                        <th style="padding: 0.5rem 0; width: 20%;">Name</th>
+                        <th style="padding: 0.5rem 0; width: 25%;">Job Title</th>
+                        <th style="padding: 0.5rem 0; width: 45%;">Notes</th>
+                        <th style="padding: 0.5rem 0; width: 10%;">LinkedIn</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -153,7 +153,7 @@
                             {% endif %}
                         </td>
                         <td style="padding: 0.75rem 0; font-size: 0.9rem; color: var(--text-secondary);">
-                            <div class="markdown-content" style="max-height: 40px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ lead.notes or 'No research yet.' }}</div>
+                            <div style="max-height: 40px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ lead.notes or 'No research yet.' }}</div>
                         </td>
                         <td style="padding: 0.75rem 0;">
                             {% if lead.linkedin_url %}
