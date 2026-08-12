@@ -25,6 +25,10 @@ class ManualContactCreate(BaseModel):
     email: str | None = None
     linkedin_url: str | None = None
 
+class DraftResult(BaseModel):
+    email_draft: str
+    linkedin_draft: str
+
 @router.get("/")
 def ui_dashboard(request: Request, db: Session = Depends(get_db)):
     """Render the main dashboard."""
@@ -135,19 +139,21 @@ Research Assessment:
 - Suggested Outreach: {assessment.suggested_outreach}
 """
     
-    response = client.chat.completions.create(
+    response = client.beta.chat.completions.parse(
         model=settings.openai_extraction_model,
         messages=[
             {"role": "system", "content": prompt},
             {"role": "user", "content": context}
-        ]
+        ],
+        response_format=DraftResult
     )
     
-    draft = response.choices[0].message.content
-    contact.latest_email_draft = draft
+    result = response.choices[0].message.parsed
+    contact.latest_email_draft = result.email_draft
+    contact.latest_linkedin_draft = result.linkedin_draft
     db.commit()
     
-    return {"status": "success", "draft": draft}
+    return {"status": "success", "draft": result.email_draft, "linkedin_draft": result.linkedin_draft}
 
 @router.post("/organisations/{org_id}/contacts/{contact_id}/deep-research")
 def deep_research_contact(org_id: str, contact_id: str, db: Session = Depends(get_db)):

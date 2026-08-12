@@ -281,16 +281,29 @@ document.addEventListener('DOMContentLoaded', () => {
             
             try {
                 const response = await fetch(`/ui/organisations/${orgId}/contacts/${contactId}/draft-email`, {
-                    method: 'POST'
+                    method: 'POST',
                 });
-                
-                if (!response.ok) throw new Error('Failed to generate draft');
-                
+                if (!response.ok) {
+                    const data = await response.json();
+                    throw new Error(data.detail || 'Failed to generate drafts');
+                }
                 const data = await response.json();
-                textarea.value = data.draft;
-                row.querySelector('.send-email-btn').style.display = 'inline-block';
                 
-                showToast('Email drafted successfully', 'success');
+                const emailTextArea = document.getElementById(`email-draft-${contactId}`);
+                if (emailTextArea) {
+                    emailTextArea.value = data.draft;
+                }
+
+                const linkedinTextArea = document.getElementById(`linkedin-draft-${contactId}`);
+                if (linkedinTextArea) {
+                    linkedinTextArea.value = data.linkedin_draft || '';
+                }
+
+                const sendBtn = document.querySelector(`.send-email-btn[data-contact-id="${contactId}"]`);
+                if (sendBtn) {
+                    sendBtn.style.display = 'inline-block';
+                }
+                showToast('Messages drafted successfully', 'success');
             } catch (error) {
                 console.error(error);
                 showToast('Error drafting email', 'error');

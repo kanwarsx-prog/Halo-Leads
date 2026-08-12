@@ -172,6 +172,11 @@ Your objective is to write a highly tailored, compelling cold outreach email to 
 6. For links, use the exact text "Presentation link" and "[Meeting Link]" as the text, or keep the existing template phrasing but use placeholders if URLs aren't provided. The backend will insert the real URLs.
 7. Sign off using the exact signature format in the template, but replace "Sushil Kanwar" with "[Your Name]".
 
+*** RULES FOR THE LINKEDIN MESSAGE ***
+1. Write a short, punchy connection request message (maximum 300 characters).
+2. It must be highly personalized using the `Contact Notes`.
+3. Do NOT pitch the product in the connection request. The goal is just to connect.
+
 *** PERSONA TEMPLATES ***
 
 [CEO]
@@ -239,7 +244,7 @@ You will be provided with:
 - Target Organisation: Name and Sector
 - Research Assessment: Key findings about their ITSM landscape and current tools.
 
-Output ONLY the email subject line and body. Do not include any meta-commentary.
+Output the results in the requested structured JSON format, including both the `email_draft` and the `linkedin_draft`. Do not include any meta-commentary.
 """
 
 DEFAULT_PROMPTS = {

@@ -82,21 +82,25 @@
             <!-- Outreach Workspace -->
             <div class="card" id="email-draft-row-{{ lead.id }}" style="min-width: 0;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                    <h2 style="margin: 0; color: var(--accent);">Outreach Draft</h2>
+                    <h2 style="margin: 0; color: var(--accent);">Multi-Channel Outreach</h2>
                     <div style="display: flex; gap: 1rem; align-items: center;">
                         <span class="text-sm draft-spinner" style="display: none; color: var(--warning);">Drafting...</span>
                         <button class="btn btn-secondary text-sm draft-email-btn" data-org-id="{{ org.id }}" data-contact-id="{{ lead.id }}">
-                            Draft Email (AI)
+                            Draft Messages (AI)
                         </button>
                     </div>
                 </div>
                 
-                <div style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                <h3 style="margin-top: 0; margin-bottom: 0.5rem; color: var(--text-primary); font-size: 1rem;">Email</h3>
+                <div style="margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
                     <span class="text-sm" style="color: var(--text-secondary);">To:</span>
                     <input type="email" id="email-to-{{ lead.id }}" value="{{ lead.email or '' }}" class="form-control" style="background: var(--bg-surface-hover); border: 1px solid var(--border); color: var(--text-primary); padding: 0.5rem; border-radius: 4px; width: 100%;">
                 </div>
                 
-                <textarea id="email-draft-{{ lead.id }}" class="email-draft-text" style="width: 100%; min-height: 300px; padding: 1rem; background: var(--bg-surface-hover); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-family: inherit; resize: vertical; margin-bottom: 1rem;">{{ lead.latest_email_draft or '' }}</textarea>
+                <textarea id="email-draft-{{ lead.id }}" class="email-draft-text" style="width: 100%; min-height: 250px; padding: 1rem; background: var(--bg-surface-hover); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-family: inherit; resize: vertical; margin-bottom: 1rem;">{{ lead.latest_email_draft or '' }}</textarea>
+
+                <h3 style="margin-top: 0; margin-bottom: 0.5rem; color: var(--text-primary); font-size: 1rem;">LinkedIn Connection Request</h3>
+                <textarea id="linkedin-draft-{{ lead.id }}" class="linkedin-draft-text" style="width: 100%; min-height: 100px; padding: 1rem; background: var(--bg-surface-hover); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-family: inherit; resize: vertical; margin-bottom: 1rem;">{{ lead.latest_linkedin_draft or '' }}</textarea>
                 
                 <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 1rem; border-top: 1px solid var(--border);">
                     <label class="text-sm" style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-secondary);">

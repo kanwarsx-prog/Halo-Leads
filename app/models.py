@@ -286,6 +286,7 @@ class ContactLead(Base):
     notes: Mapped[str | None] = mapped_column(Text)
     source_url: Mapped[str | None] = mapped_column(String(3000))
     latest_email_draft: Mapped[str | None] = mapped_column(Text)
+    latest_linkedin_draft: Mapped[str | None] = mapped_column(Text)
 
     organisation: Mapped["Organisation"] = relationship(
         back_populates="contact_leads"
