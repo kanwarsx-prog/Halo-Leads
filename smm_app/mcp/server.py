@@ -322,6 +322,124 @@ def list_schools(
         db.close()
 
 
+@mcp.tool()
+def update_school_ofsted(
+    school_id: str,
+    ofsted_rating: str | None = None,
+    ofsted_inspection_date: str | None = None,
+    ofsted_send_excerpt: str | None = None,
+) -> dict[str, Any]:
+    """Manually record or update Ofsted rating, inspection date, and SEND inspection excerpt for a school.
+
+    Args:
+        school_id: Target school ID.
+        ofsted_rating: Rating (e.g. 'Outstanding', 'Good', 'Requires Improvement', 'Inadequate').
+        ofsted_inspection_date: Date or period of inspection (e.g. 'March 2024').
+        ofsted_send_excerpt: Verbatim excerpt or notes regarding SEND provision from inspection report.
+    """
+    db = SessionLocal()
+    try:
+        school = db.get(School, school_id)
+        if not school:
+            return {"error": f"School with ID '{school_id}' not found"}
+
+        if ofsted_rating is not None:
+            school.ofsted_rating = ofsted_rating
+        if ofsted_inspection_date is not None:
+            school.ofsted_inspection_date = ofsted_inspection_date
+        if ofsted_send_excerpt is not None:
+            school.ofsted_send_excerpt = ofsted_send_excerpt
+
+        if school.pipeline_stage == SchoolPipelineStage.discovered:
+            school.pipeline_stage = SchoolPipelineStage.qualified
+
+        db.add(
+            SchoolActivity(
+                school_id=school.id,
+                activity_type="note",
+                title="Updated Ofsted Inspection Intelligence",
+                notes=f"Rating: {school.ofsted_rating or 'Unspecified'} | Date: {school.ofsted_inspection_date or 'Unspecified'}\nFindings: {school.ofsted_send_excerpt or 'None'}",
+                author="MCP Assistant",
+            )
+        )
+        db.commit()
+        return {"status": "success", "message": "Ofsted intelligence updated successfully", "school_name": school.name}
+    finally:
+        db.close()
+
+
+@mcp.tool()
+def update_school_send_provision(
+    school_id: str,
+    send_report_url: str | None = None,
+    detected_tools: str | None = None,
+    strengths_found: str | None = None,
+    challenges_found: str | None = None,
+    recommended_angle: str | None = None,
+) -> dict[str, Any]:
+    """Manually record or update statutory SEND information report link, tools used, strengths, challenges, and angle.
+
+    Args:
+        school_id: Target school ID.
+        send_report_url: URL to statutory SEND information report.
+        detected_tools: Platforms and tools used (e.g. 'Provision Map, CPOMS, Arbor').
+        strengths_found: Documented strengths in SEND provision.
+        challenges_found: Identified challenges, EHCP caseload, or inclusion pressures.
+        recommended_angle: Strategic outreach hook or internal positioning note.
+    """
+    db = SessionLocal()
+    try:
+        school = db.get(School, school_id)
+        if not school:
+            return {"error": f"School with ID '{school_id}' not found"}
+
+        run = (
+            db.query(SchoolAuditRun)
+            .filter(SchoolAuditRun.school_id == school.id)
+            .order_by(SchoolAuditRun.started_at.desc())
+            .first()
+        )
+        if not run:
+            run = SchoolAuditRun(
+                school_id=school.id,
+                status=AuditStatus.completed,
+                current_message="Manual provision entry",
+                completed_at=datetime.now(timezone.utc),
+            )
+            db.add(run)
+
+        if send_report_url is not None:
+            run.send_report_url = send_report_url
+        if detected_tools is not None:
+            run.detected_tools = detected_tools
+        if strengths_found is not None:
+            run.strengths_found = strengths_found
+        if challenges_found is not None:
+            run.challenges_found = challenges_found
+        if recommended_angle is not None:
+            run.recommended_angle = recommended_angle
+
+        run.status = AuditStatus.completed
+        run.completed_at = datetime.now(timezone.utc)
+
+        if school.pipeline_stage == SchoolPipelineStage.discovered:
+            school.pipeline_stage = SchoolPipelineStage.qualified
+
+        db.add(
+            SchoolActivity(
+                school_id=school.id,
+                activity_type="note",
+                title="Updated Statutory SEND Provision Notes",
+                notes=f"Tools: {run.detected_tools or 'None'}\nStrengths: {run.strengths_found or 'None'}\nChallenges: {run.challenges_found or 'None'}\nAngle: {run.recommended_angle or 'None'}",
+                author="MCP Assistant",
+            )
+        )
+        db.commit()
+        return {"status": "success", "message": "Statutory SEND provision updated successfully", "school_name": school.name}
+    finally:
+        db.close()
+
+
 if __name__ == "__main__":
     # Runs standard stdio MCP transport for AI assistants
     mcp.run()

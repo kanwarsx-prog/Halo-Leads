@@ -1,14 +1,14 @@
 import csv
 import io
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from smm_app.database import get_db
-from smm_app.models import School, SchoolPipelineStage, SchoolContact, ContactStatus, SchoolActivity
-from smm_app.schemas import SchoolCreate, SchoolRead, SchoolStageUpdate, SchoolContactCreate, SchoolActivityCreate, SchoolActivityRead
+from smm_app.models import School, SchoolPipelineStage, SchoolContact, ContactStatus, SchoolActivity, SchoolAuditRun, AuditStatus
+from smm_app.schemas import SchoolCreate, SchoolRead, SchoolStageUpdate, SchoolContactCreate, SchoolActivityCreate, SchoolActivityRead, OfstedUpdate, SendProvisionUpdate
 
 router = APIRouter(prefix="/schools", tags=["schools"])
 
@@ -338,3 +338,94 @@ def complete_activity_task(activity_id: str, db: Session = Depends(get_db)):
     act.follow_up_completed = True
     db.commit()
     return {"message": "Task marked as complete", "activity_id": act.id}
+
+
+@router.patch("/{school_id}/ofsted")
+def update_school_ofsted(
+    school_id: str,
+    payload: OfstedUpdate,
+    db: Session = Depends(get_db),
+):
+    school = db.get(School, school_id)
+    if not school:
+        raise HTTPException(status_code=404, detail="School not found")
+
+    if payload.ofsted_rating is not None:
+        school.ofsted_rating = payload.ofsted_rating
+    if payload.ofsted_inspection_date is not None:
+        school.ofsted_inspection_date = payload.ofsted_inspection_date
+    if payload.ofsted_send_excerpt is not None:
+        school.ofsted_send_excerpt = payload.ofsted_send_excerpt
+
+    # If school was in discovered stage, advance to qualified
+    if school.pipeline_stage == SchoolPipelineStage.discovered:
+        school.pipeline_stage = SchoolPipelineStage.qualified
+
+    db.add(
+        SchoolActivity(
+            school_id=school.id,
+            activity_type="note",
+            title="Updated Ofsted Inspection Intelligence",
+            notes=f"Rating: {school.ofsted_rating or 'Unspecified'} | Date: {school.ofsted_inspection_date or 'Unspecified'}\nFindings: {school.ofsted_send_excerpt or 'None'}",
+            author="User",
+        )
+    )
+    db.commit()
+    db.refresh(school)
+    return {"message": "Ofsted intelligence updated successfully", "school_id": school.id}
+
+
+@router.post("/{school_id}/send-provision")
+def update_send_provision(
+    school_id: str,
+    payload: SendProvisionUpdate,
+    db: Session = Depends(get_db),
+):
+    school = db.get(School, school_id)
+    if not school:
+        raise HTTPException(status_code=404, detail="School not found")
+
+    run = (
+        db.query(SchoolAuditRun)
+        .filter(SchoolAuditRun.school_id == school.id)
+        .order_by(SchoolAuditRun.started_at.desc())
+        .first()
+    )
+
+    if not run:
+        run = SchoolAuditRun(
+            school_id=school.id,
+            status=AuditStatus.completed,
+            current_message="Manual provision entry",
+            completed_at=datetime.now(timezone.utc),
+        )
+        db.add(run)
+
+    if payload.send_report_url is not None:
+        run.send_report_url = payload.send_report_url
+    if payload.detected_tools is not None:
+        run.detected_tools = payload.detected_tools
+    if payload.strengths_found is not None:
+        run.strengths_found = payload.strengths_found
+    if payload.challenges_found is not None:
+        run.challenges_found = payload.challenges_found
+    if payload.recommended_angle is not None:
+        run.recommended_angle = payload.recommended_angle
+
+    run.status = AuditStatus.completed
+    run.completed_at = datetime.now(timezone.utc)
+
+    if school.pipeline_stage == SchoolPipelineStage.discovered:
+        school.pipeline_stage = SchoolPipelineStage.qualified
+
+    db.add(
+        SchoolActivity(
+            school_id=school.id,
+            activity_type="note",
+            title="Updated Statutory SEND Provision Notes",
+            notes=f"Tools: {run.detected_tools or 'None'}\nStrengths: {run.strengths_found or 'None'}\nChallenges: {run.challenges_found or 'None'}\nAngle: {run.recommended_angle or 'None'}",
+            author="User",
+        )
+    )
+    db.commit()
+    return {"message": "SEND provision details updated successfully", "school_id": school.id}

@@ -108,85 +108,106 @@
         <div class="detail-grid">
             <!-- Left Column: Evidence & Discovery findings -->
             <div>
-                <!-- Ofsted Quote -->
+                <!-- Ofsted Quote & Inspection Intelligence -->
                 <div class="card" style="margin-bottom: 1.5rem;">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <h2>Ofsted Inspection Intelligence</h2>
-                        {% if school.ofsted_rating %}
-                        <span class="badge {% if 'Outstanding' in school.ofsted_rating %}badge-mint{% elif 'Good' in school.ofsted_rating %}badge-teal{% else %}badge-gold{% endif %}">
-                            {{ school.ofsted_rating }}
-                        </span>
-                        {% endif %}
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                        <h2 style="margin: 0; font-size: 1.15rem;">Ofsted Inspection Intelligence</h2>
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            {% if school.ofsted_rating and school.ofsted_rating != 'Pending Discovery' %}
+                            <span class="badge {% if 'Outstanding' in school.ofsted_rating %}badge-mint{% elif 'Good' in school.ofsted_rating %}badge-teal{% else %}badge-gold{% endif %}">
+                                {{ school.ofsted_rating }}
+                            </span>
+                            {% endif %}
+                            <button onclick="openEditOfstedModal()" class="btn btn-secondary btn-sm" style="font-size: 0.74rem;">
+                                {% if school.ofsted_rating or school.ofsted_send_excerpt %}✎ Edit Notes{% else %}+ Add Notes{% endif %}
+                            </button>
+                        </div>
                     </div>
 
                     {% if school.ofsted_send_excerpt %}
                     <div class="quote-box">
                         "{{ school.ofsted_send_excerpt }}"
                     </div>
-                    <p style="font-size: 0.8rem; color: var(--soft);">Source: Latest Ofsted Inspection Report (SEND Provision Section)</p>
-                    {% elif latest_run and latest_run.status.value == 'completed' %}
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.4rem; font-size: 0.8rem; color: var(--soft);">
+                        <span>Source: Latest Ofsted Inspection Report (SEND Provision Section)</span>
+                        {% if school.ofsted_inspection_date %}<span>Inspection Date: {{ school.ofsted_inspection_date }}</span>{% endif %}
+                    </div>
+                    {% elif school.ofsted_rating and school.ofsted_rating != 'Pending Discovery' %}
                     <div style="background: var(--gray-100); border-radius: 8px; padding: 0.95rem; margin-top: 0.75rem; border: 1px solid var(--line);">
                         <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.4rem;">
                             <span style="font-size: 1rem;">📋</span>
                             <strong style="color: var(--ink); font-size: 0.9rem;">
-                                Latest Inspection: {{ school.ofsted_rating or 'Assessed' }}
+                                Overall Rating: {{ school.ofsted_rating }}
                                 {% if school.ofsted_inspection_date %}<span style="color: var(--soft); font-weight: normal;">({{ school.ofsted_inspection_date }})</span>{% endif %}
                             </strong>
                         </div>
                         <p style="color: var(--soft); font-size: 0.84rem; line-height: 1.5; margin: 0;">
-                            No verbatim SEND quote was published in public inspection summaries for this school. Discovery extracted the overall rating, statutory SEND policy, and key leadership contacts.
+                            No verbatim SEND quote recorded yet. Click <strong>✎ Edit Notes</strong> to manually add inspection findings or quotes from other sources.
                         </p>
                     </div>
                     {% else %}
-                    <p style="color: var(--soft); font-size: 0.9rem; padding: 1rem 0;">
-                        Discovery not run yet. Click <strong>Run School Discovery</strong> above to research inspection findings.
-                    </p>
+                    <div style="text-align: center; padding: 1.5rem 1rem; color: var(--soft);">
+                        <p style="font-size: 0.88rem; margin-bottom: 0.75rem;">No Ofsted inspection notes recorded yet.</p>
+                        <button onclick="openEditOfstedModal()" class="btn btn-secondary btn-sm" style="font-size: 0.78rem;">
+                            + Add Ofsted Notes Manually
+                        </button>
+                    </div>
                     {% endif %}
                 </div>
 
                 <!-- Statutory SEND Information Report -->
                 <div class="card" style="margin-bottom: 1.5rem;">
-                    <h2>Statutory SEND Information Report & Provision</h2>
-                    {% if latest_run and latest_run.status.value == 'completed' %}
+                    {% set has_send_info = latest_run and (latest_run.detected_tools or latest_run.strengths_found or latest_run.challenges_found or latest_run.send_report_url or latest_run.recommended_angle) %}
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                        <h2 style="margin: 0; font-size: 1.15rem;">Statutory SEND Information Report & Provision</h2>
+                        <button onclick="openEditSendModal()" class="btn btn-secondary btn-sm" style="font-size: 0.74rem;">
+                            {% if has_send_info %}✎ Edit Details{% else %}+ Add Details{% endif %}
+                        </button>
+                    </div>
+
+                    {% if has_send_info %}
+                        {% if latest_run.detected_tools %}
                         <div style="margin-bottom: 1.25rem;">
-                            <h3>Detected Tools & Platforms</h3>
-                            <p style="font-size: 0.95rem; color: var(--ink);">
-                                {{ latest_run.detected_tools or 'None explicitly identified (likely manual spreadsheets / paper provision)' }}
-                            </p>
+                            <h3 style="font-size: 0.88rem; margin-bottom: 0.25rem;">Detected Tools & Platforms</h3>
+                            <p style="font-size: 0.92rem; color: var(--ink); margin: 0;">{{ latest_run.detected_tools }}</p>
                         </div>
+                        {% endif %}
 
                         {% if latest_run.strengths_found %}
                         <div style="margin-bottom: 1.25rem;">
-                            <h3>SEND Strengths & Current Initiatives</h3>
-                            <div style="white-space: pre-wrap; font-size: 0.9rem; color: var(--ink); line-height: 1.6;">{{ latest_run.strengths_found }}</div>
+                            <h3 style="font-size: 0.88rem; margin-bottom: 0.25rem;">SEND Strengths & Current Initiatives</h3>
+                            <div style="white-space: pre-wrap; font-size: 0.88rem; color: var(--ink); line-height: 1.6;">{{ latest_run.strengths_found }}</div>
                         </div>
                         {% endif %}
 
                         {% if latest_run.challenges_found %}
                         <div style="margin-bottom: 1.25rem;">
-                            <h3>Inclusion Challenges & Need Profile</h3>
-                            <div style="white-space: pre-wrap; font-size: 0.9rem; color: var(--ink); line-height: 1.6;">{{ latest_run.challenges_found }}</div>
+                            <h3 style="font-size: 0.88rem; margin-bottom: 0.25rem;">Inclusion Challenges & Need Profile</h3>
+                            <div style="white-space: pre-wrap; font-size: 0.88rem; color: var(--ink); line-height: 1.6;">{{ latest_run.challenges_found }}</div>
                         </div>
                         {% endif %}
 
                         {% if latest_run.recommended_angle %}
-                        <div style="background: var(--teal-light); padding: 1rem; border-radius: 8px;">
-                            <strong style="color: var(--teal); font-size: 0.85rem; text-transform: uppercase;">Recommended Outreach Angle:</strong>
-                            <p style="font-size: 0.9rem; margin-top: 0.35rem; color: var(--ink);">{{ latest_run.recommended_angle }}</p>
+                        <div style="background: var(--teal-light); padding: 0.85rem 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                            <strong style="color: var(--teal); font-size: 0.82rem; text-transform: uppercase;">Strategic Outreach Angle / Notes:</strong>
+                            <p style="font-size: 0.88rem; margin-top: 0.25rem; color: var(--ink); margin-bottom: 0;">{{ latest_run.recommended_angle }}</p>
                         </div>
                         {% endif %}
 
                         {% if latest_run.send_report_url %}
-                        <div style="margin-top: 1rem;">
-                            <a href="{{ latest_run.send_report_url }}" target="_blank" style="color: var(--teal); font-size: 0.85rem; text-decoration: underline;">
+                        <div>
+                            <a href="{{ latest_run.send_report_url }}" target="_blank" style="color: var(--teal); font-size: 0.84rem; text-decoration: underline;">
                                 View Statutory SEND Information Report &nearr;
                             </a>
                         </div>
                         {% endif %}
                     {% else %}
-                        <p style="color: var(--soft); font-size: 0.9rem; padding: 1rem 0;">
-                            Discovery has not yet been executed for this school. Click <strong>Run Discovery</strong> to search for their statutory SEND policy and contact information.
-                        </p>
+                        <div style="text-align: center; padding: 1.5rem 1rem; color: var(--soft);">
+                            <p style="font-size: 0.88rem; margin-bottom: 0.75rem;">No statutory SEND provision notes recorded yet.</p>
+                            <button onclick="openEditSendModal()" class="btn btn-secondary btn-sm" style="font-size: 0.78rem;">
+                                + Add SEND Details Manually
+                            </button>
+                        </div>
                     {% endif %}
                 </div>
             </div>
@@ -542,6 +563,88 @@
         </div>
     </div>
 
+    <!-- Modal: Edit Ofsted Intelligence -->
+    <div id="editOfstedModal" class="modal-overlay" onclick="if(event.target===this) closeModal('editOfstedModal')">
+        <div class="modal">
+            <h2 style="margin-bottom: 0.4rem;">Ofsted Inspection Notes</h2>
+            <p style="font-size: 0.82rem; color: var(--soft); margin-bottom: 1.25rem;">
+                Manually record or update Ofsted findings and SEND inspection notes for <strong>{{ school.name }}</strong>.
+            </p>
+
+            <form id="editOfstedForm" onsubmit="submitEditOfsted(event)">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1rem;">
+                    <div class="form-group">
+                        <label>Ofsted Overall Rating</label>
+                        <select name="ofsted_rating">
+                            <option value="">-- Select Rating --</option>
+                            <option value="Outstanding" {% if school.ofsted_rating == 'Outstanding' %}selected{% endif %}>Outstanding</option>
+                            <option value="Good" {% if school.ofsted_rating == 'Good' %}selected{% endif %}>Good</option>
+                            <option value="Requires Improvement" {% if school.ofsted_rating == 'Requires Improvement' %}selected{% endif %}>Requires Improvement</option>
+                            <option value="Inadequate" {% if school.ofsted_rating == 'Inadequate' %}selected{% endif %}>Inadequate</option>
+                            <option value="Pending Discovery" {% if school.ofsted_rating == 'Pending Discovery' %}selected{% endif %}>Pending Discovery</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Inspection Date</label>
+                        <input type="text" name="ofsted_inspection_date" placeholder="e.g. October 2024" value="{{ school.ofsted_inspection_date or '' }}">
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1.25rem;">
+                    <label>SEND Provision Findings & Quotes</label>
+                    <textarea name="ofsted_send_excerpt" rows="4" placeholder="Paste findings, quotes, or inspection notes regarding how the school supports SEND and inclusion..." style="width: 100%; border: 1px solid var(--line); border-radius: 6px; padding: 0.6rem; font-family: inherit; font-size: 0.85rem; resize: vertical;">{{ school.ofsted_send_excerpt or '' }}</textarea>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+                    <button type="button" onclick="closeModal('editOfstedModal')" class="btn btn-secondary">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="saveOfstedBtn">Save Notes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Edit Statutory SEND Provision Details -->
+    <div id="editSendModal" class="modal-overlay" onclick="if(event.target===this) closeModal('editSendModal')">
+        <div class="modal">
+            <h2 style="margin-bottom: 0.4rem;">Statutory SEND Provision Details</h2>
+            <p style="font-size: 0.82rem; color: var(--soft); margin-bottom: 1.25rem;">
+                Manually record SEND Information Report notes, tools used, and strengths for <strong>{{ school.name }}</strong>.
+            </p>
+
+            <form id="editSendForm" onsubmit="submitEditSend(event)">
+                <div class="form-group" style="margin-bottom: 0.85rem;">
+                    <label>Statutory SEND Information Report Link (URL)</label>
+                    <input type="url" name="send_report_url" placeholder="https://..." value="{{ latest_run.send_report_url if latest_run and latest_run.send_report_url else '' }}">
+                </div>
+
+                <div class="form-group" style="margin-bottom: 0.85rem;">
+                    <label>Detected Tools & Platforms</label>
+                    <input type="text" name="detected_tools" placeholder="e.g. Provision Map, CPOMS, SIMS, Arbor" value="{{ latest_run.detected_tools if latest_run and latest_run.detected_tools else '' }}">
+                </div>
+
+                <div class="form-group" style="margin-bottom: 0.85rem;">
+                    <label>SEND Strengths & Current Initiatives</label>
+                    <textarea name="strengths_found" rows="2" placeholder="e.g. Robust sensory quiet rooms, specialist speech & language therapist on site..." style="width: 100%; border: 1px solid var(--line); border-radius: 6px; padding: 0.5rem; font-family: inherit; font-size: 0.85rem; resize: vertical;">{{ latest_run.strengths_found if latest_run and latest_run.strengths_found else '' }}</textarea>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 0.85rem;">
+                    <label>Inclusion Challenges & Need Profile</label>
+                    <textarea name="challenges_found" rows="2" placeholder="e.g. Rising EHCP volume, high transition friction from KS2 to KS3..." style="width: 100%; border: 1px solid var(--line); border-radius: 6px; padding: 0.5rem; font-family: inherit; font-size: 0.85rem; resize: vertical;">{{ latest_run.challenges_found if latest_run and latest_run.challenges_found else '' }}</textarea>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1.25rem;">
+                    <label>Recommended Angle / Strategic Note</label>
+                    <textarea name="recommended_angle" rows="2" placeholder="e.g. Emphasize daily classroom handover notes for teaching assistants..." style="width: 100%; border: 1px solid var(--line); border-radius: 6px; padding: 0.5rem; font-family: inherit; font-size: 0.85rem; resize: vertical;">{{ latest_run.recommended_angle if latest_run and latest_run.recommended_angle else '' }}</textarea>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+                    <button type="button" onclick="closeModal('editSendModal')" class="btn btn-secondary">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="saveSendBtn">Save Details</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Modal: Add Contact to School -->
     <div id="addContactModal" class="modal-overlay" onclick="if(event.target===this) closeModal('addContactModal')">
         <div class="modal">
@@ -667,6 +770,84 @@
             }
         }
 
+
+        function openEditOfstedModal() {
+            openModal('editOfstedModal');
+        }
+
+        async function submitEditOfsted(e) {
+            e.preventDefault();
+            const form = e.target;
+            const btn = document.getElementById('saveOfstedBtn');
+            btn.disabled = true;
+            btn.innerText = 'Saving...';
+
+            const payload = {
+                ofsted_rating: form.ofsted_rating.value || null,
+                ofsted_inspection_date: form.ofsted_inspection_date.value.trim() || null,
+                ofsted_send_excerpt: form.ofsted_send_excerpt.value.trim() || null
+            };
+
+            try {
+                const res = await fetch('/seemymind/schools/{{ school.id }}/ofsted', {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (res.ok) {
+                    window.location.reload();
+                } else {
+                    alert('Failed to save Ofsted notes');
+                    btn.disabled = false;
+                    btn.innerText = 'Save Notes';
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Connection error');
+                btn.disabled = false;
+                btn.innerText = 'Save Notes';
+            }
+        }
+
+        function openEditSendModal() {
+            openModal('editSendModal');
+        }
+
+        async function submitEditSend(e) {
+            e.preventDefault();
+            const form = e.target;
+            const btn = document.getElementById('saveSendBtn');
+            btn.disabled = true;
+            btn.innerText = 'Saving...';
+
+            const payload = {
+                send_report_url: form.send_report_url.value.trim() || null,
+                detected_tools: form.detected_tools.value.trim() || null,
+                strengths_found: form.strengths_found.value.trim() || null,
+                challenges_found: form.challenges_found.value.trim() || null,
+                recommended_angle: form.recommended_angle.value.trim() || null
+            };
+
+            try {
+                const res = await fetch('/seemymind/schools/{{ school.id }}/send-provision', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (res.ok) {
+                    window.location.reload();
+                } else {
+                    alert('Failed to save SEND provision details');
+                    btn.disabled = false;
+                    btn.innerText = 'Save Details';
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Connection error');
+                btn.disabled = false;
+                btn.innerText = 'Save Details';
+            }
+        }
 
         function openDraftModal() {
             openModal('draftModal');

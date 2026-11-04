@@ -67,6 +67,20 @@ class SchoolRead(SchoolBase):
     model_config = ConfigDict(from_attributes=True)
 
 
+class OfstedUpdate(BaseModel):
+    ofsted_rating: str | None = None
+    ofsted_inspection_date: str | None = None
+    ofsted_send_excerpt: str | None = None
+
+
+class SendProvisionUpdate(BaseModel):
+    send_report_url: str | None = None
+    detected_tools: str | None = None
+    strengths_found: str | None = None
+    challenges_found: str | None = None
+    recommended_angle: str | None = None
+
+
 class SchoolStageUpdate(BaseModel):
     pipeline_stage: SchoolPipelineStage
 
