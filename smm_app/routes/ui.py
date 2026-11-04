@@ -1,3 +1,4 @@
+from datetime import datetime
 from pathlib import Path
 from fastapi import APIRouter, Depends, Request, HTTPException
 from fastapi.templating import Jinja2Templates
@@ -24,6 +25,17 @@ def dashboard(request: Request, db: Session = Depends(get_db)):
     )
     high_priority_count = sum(1 for s in schools if s.priority == "Immediate Focus")
 
+    pending_tasks = (
+        db.query(SchoolActivity)
+        .join(School)
+        .filter(
+            SchoolActivity.next_follow_up_date.isnot(None),
+            SchoolActivity.follow_up_completed.is_(False),
+        )
+        .order_by(SchoolActivity.next_follow_up_date.asc())
+        .all()
+    )
+
     return templates.TemplateResponse(
         request=request,
         name="index.html",
@@ -32,6 +44,8 @@ def dashboard(request: Request, db: Session = Depends(get_db)):
             "total_schools": len(schools),
             "contacts_count": contacts_count,
             "high_priority_count": high_priority_count,
+            "pending_tasks": pending_tasks,
+            "now": datetime.now(),
         },
     )
 
@@ -67,6 +81,17 @@ def school_detail(school_id: str, request: Request, db: Session = Depends(get_db
         .all()
     )
 
+    active_follow_up = (
+        db.query(SchoolActivity)
+        .filter(
+            SchoolActivity.school_id == school.id,
+            SchoolActivity.next_follow_up_date.isnot(None),
+            SchoolActivity.follow_up_completed.is_(False),
+        )
+        .order_by(SchoolActivity.next_follow_up_date.asc())
+        .first()
+    )
+
     return templates.TemplateResponse(
         request=request,
         name="detail.html",
@@ -80,6 +105,7 @@ def school_detail(school_id: str, request: Request, db: Session = Depends(get_db
             "has_named_head": has_named_head,
             "stages": [s.value for s in SchoolPipelineStage],
             "activities": activities,
+            "active_follow_up": active_follow_up,
         },
     )
 

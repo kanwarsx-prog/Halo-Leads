@@ -132,6 +132,9 @@ class SchoolActivityCreate(BaseModel):
     contact_name: str | None = None
     author: str | None = "Admin"
     activity_date: datetime | None = None
+    next_follow_up_date: datetime | None = None
+    follow_up_task: str | None = None
+    follow_up_completed: bool = False
 
 
 class SchoolActivityRead(BaseModel):
@@ -144,5 +147,8 @@ class SchoolActivityRead(BaseModel):
     author: str
     activity_date: datetime
     created_at: datetime
+    next_follow_up_date: datetime | None = None
+    follow_up_task: str | None = None
+    follow_up_completed: bool = False
 
     model_config = ConfigDict(from_attributes=True)

@@ -19,6 +19,18 @@ STATIC_DIR = BASE_DIR / "static"
 async def lifespan(app: FastAPI):
     # Ensure all tables exist (SQLite or Supabase PostgreSQL)
     Base.metadata.create_all(bind=engine)
+    try:
+        from sqlalchemy import text
+        with engine.connect() as conn:
+            conn.execute(text("""
+                ALTER TABLE smm_activities 
+                ADD COLUMN IF NOT EXISTS next_follow_up_date TIMESTAMP WITH TIME ZONE,
+                ADD COLUMN IF NOT EXISTS follow_up_task VARCHAR(300),
+                ADD COLUMN IF NOT EXISTS follow_up_completed BOOLEAN DEFAULT FALSE;
+            """))
+            conn.commit()
+    except Exception as e:
+        print(f"Notice on activity migration: {e}")
 
     # Clean up any stuck research runs from prior server restart
     db = SessionLocal()

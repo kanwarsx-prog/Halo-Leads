@@ -306,6 +306,9 @@ def add_school_activity(
         contact_name=payload.contact_name.strip() if payload.contact_name else None,
         author=payload.author or "Admin",
         activity_date=payload.activity_date or datetime.now(),
+        next_follow_up_date=payload.next_follow_up_date,
+        follow_up_task=payload.follow_up_task.strip() if payload.follow_up_task else None,
+        follow_up_completed=False,
     )
     db.add(activity)
     db.commit()
@@ -326,3 +329,12 @@ def delete_school_activity(activity_id: str, db: Session = Depends(get_db)):
     db.delete(act)
     db.commit()
     return {"message": "Activity deleted successfully"}
+
+@router.post("/activities/{activity_id}/complete")
+def complete_activity_task(activity_id: str, db: Session = Depends(get_db)):
+    act = db.get(SchoolActivity, activity_id)
+    if not act:
+        raise HTTPException(status_code=404, detail="Activity not found")
+    act.follow_up_completed = True
+    db.commit()
+    return {"message": "Task marked as complete", "activity_id": act.id}

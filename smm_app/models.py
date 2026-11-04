@@ -232,5 +232,11 @@ class SchoolActivity(Base):
         DateTime(timezone=True),
         server_default=func.now(),
     )
+    next_follow_up_date: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+    follow_up_task: Mapped[str | None] = mapped_column(String(300), nullable=True)
+    follow_up_completed: Mapped[bool] = mapped_column(Boolean, default=False)
 
     school: Mapped["School"] = relationship(back_populates="activities")

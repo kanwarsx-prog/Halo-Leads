@@ -29,6 +29,15 @@ async def lifespan(app: FastAPI):
     # Ensure See My Mind tables exist
     try:
         SMMBase.metadata.create_all(bind=smm_engine)
+        from sqlalchemy import text
+        with smm_engine.connect() as conn:
+            conn.execute(text("""
+                ALTER TABLE smm_activities 
+                ADD COLUMN IF NOT EXISTS next_follow_up_date TIMESTAMP WITH TIME ZONE,
+                ADD COLUMN IF NOT EXISTS follow_up_task VARCHAR(300),
+                ADD COLUMN IF NOT EXISTS follow_up_completed BOOLEAN DEFAULT FALSE;
+            """))
+            conn.commit()
     except Exception as e:
         print(f"Warning: SMM tables initialization: {e}")
 

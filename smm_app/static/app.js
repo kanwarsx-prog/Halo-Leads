@@ -121,12 +121,65 @@ function printLetter() {
   window.print();
 }
 
-// Instant Table Filter
+// Enhanced Multi-Attribute Table Filter
 function filterSchools() {
-  const query = document.getElementById('schoolFilter').value.toLowerCase();
+  const queryInput = document.getElementById('schoolFilter');
+  const stageSelect = document.getElementById('stageFilter');
+  const prioritySelect = document.getElementById('priorityFilter');
+  
+  const query = queryInput ? queryInput.value.toLowerCase().trim() : '';
+  const stage = stageSelect ? stageSelect.value : '';
+  const priority = prioritySelect ? prioritySelect.value : '';
+  
   const rows = document.querySelectorAll('#schoolsTable tbody tr');
+  let visibleCount = 0;
+
   rows.forEach(row => {
     const text = row.innerText.toLowerCase();
-    row.style.display = text.includes(query) ? '' : 'none';
+    const rowStage = row.dataset.stage || '';
+    const rowPriority = row.dataset.priority || '';
+
+    const matchesQuery = !query || text.includes(query);
+    const matchesStage = !stage || rowStage === stage;
+    const matchesPriority = !priority || rowPriority === priority;
+
+    if (matchesQuery && matchesStage && matchesPriority) {
+      row.style.display = '';
+      visibleCount++;
+    } else {
+      row.style.display = 'none';
+    }
   });
+
+  const countLabel = document.getElementById('schoolsCountLabel');
+  if (countLabel) {
+    countLabel.innerText = `Showing ${visibleCount} of ${rows.length} schools`;
+  }
+}
+
+async function markTaskDone(taskId, btn) {
+  if (btn) {
+    btn.disabled = true;
+    btn.innerText = 'Updating...';
+  }
+  try {
+    const res = await fetch(`${SMM_BASE}/schools/activities/${taskId}/complete`, {
+      method: 'POST'
+    });
+    if (res.ok) {
+      window.location.reload();
+    } else {
+      alert('Failed to update task');
+      if (btn) {
+        btn.disabled = false;
+        btn.innerText = '✓ Complete';
+      }
+    }
+  } catch (err) {
+    console.error(err);
+    if (btn) {
+      btn.disabled = false;
+      btn.innerText = '✓ Complete';
+    }
+  }
 }

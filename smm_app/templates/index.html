@@ -83,11 +83,83 @@
             </div>
         </div>
 
-        <!-- School List -->
+        <!-- Action Queue: Due Follow-Ups & Tasks -->
+        <div class="card" style="margin-bottom: 1.5rem; background: #ffffff; border-left: 4px solid var(--teal);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <span style="font-size: 1.15rem;">⏰</span>
+                    <strong style="font-size: 1rem; color: var(--ink);">Pipeline Tasks & Due Follow-Ups</strong>
+                    <span class="badge badge-teal" style="font-size: 0.76rem;">{{ pending_tasks | length }} Action Items</span>
+                </div>
+            </div>
+
+            {% if pending_tasks %}
+            <div style="display: flex; flex-direction: column; gap: 0.6rem;">
+                {% for task in pending_tasks %}
+                {% set is_overdue = task.next_follow_up_date.date() < now.date() %}
+                {% set is_today = task.next_follow_up_date.date() == now.date() %}
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background: {% if is_overdue %}#fff5f5; border: 1px solid #fed7d7{% elif is_today %}#fffbeb; border: 1px solid #fef3c7{% else %}var(--gray-100); border: 1px solid var(--line){% endif %}; border-radius: 8px; flex-wrap: wrap; gap: 0.6rem;">
+                    <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+                        <span class="badge {% if is_overdue %}badge-coral{% elif is_today %}badge-gold{% else %}badge-mint{% endif %}" style="font-weight: 700; font-size: 0.72rem;">
+                            {% if is_overdue %}⚠️ Overdue ({{ task.next_follow_up_date.strftime('%d %b') }})
+                            {% elif is_today %}⚡ Due Today
+                            {% else %}📅 {{ task.next_follow_up_date.strftime('%d %b') }}{% endif %}
+                        </span>
+                        <div>
+                            <a href="/seemymind/ui/schools/{{ task.school.id }}" style="font-weight: 600; color: var(--teal); text-decoration: none;">
+                                {{ task.school.name }}
+                            </a>
+                            <span style="color: var(--ink); font-size: 0.85rem; margin-left: 0.5rem;">
+                                {{ task.follow_up_task or task.title }}
+                            </span>
+                            {% if task.contact_name %}
+                            <span style="color: var(--soft); font-size: 0.76rem; margin-left: 0.5rem;">
+                                (👤 {{ task.contact_name }})
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <button onclick="markTaskDone('{{ task.id }}', this)" class="btn btn-secondary btn-sm" style="color: var(--success); border-color: var(--success); font-weight: 600; padding: 0.25rem 0.65rem;">
+                        ✓ Complete
+                    </button>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p style="color: var(--soft); font-size: 0.84rem; margin: 0;">
+                ✅ All pipeline follow-ups are up to date! Log next actions directly on any school page.
+            </p>
+            {% endif %}
+        </div>
+
+        <!-- School List & Filter Bar -->
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
-            <h2>Schools & Academy Trusts</h2>
-            <div style="display: flex; gap: 0.5rem; align-items: center;">
-                <input type="text" id="schoolFilter" onkeyup="filterSchools()" placeholder="Search school, trust, postcode..." style="padding: 0.38rem 0.75rem; border: 1px solid var(--line); border-radius: 6px; width: 260px; font-size: 0.82rem;">
+            <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+                <h2 style="margin: 0;">Schools & Academy Trusts</h2>
+                <span id="schoolsCountLabel" style="font-size: 0.82rem; color: var(--soft); font-weight: 500;">
+                    Showing {{ schools | length }} of {{ schools | length }} schools
+                </span>
+            </div>
+            <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+                <input type="text" id="schoolFilter" onkeyup="filterSchools()" placeholder="Search school, trust, postcode..." style="padding: 0.38rem 0.75rem; border: 1px solid var(--line); border-radius: 6px; width: 220px; font-size: 0.82rem;">
+                
+                <select id="stageFilter" onchange="filterSchools()" style="padding: 0.38rem 0.65rem; border: 1px solid var(--line); border-radius: 6px; font-size: 0.82rem; background: #fff; font-weight: 500;">
+                    <option value="">All Pipeline Stages</option>
+                    <option value="outreach_ready">Outreach Ready</option>
+                    <option value="contacted">Contacted</option>
+                    <option value="demo_booked">Demo Booked</option>
+                    <option value="partner_won">Partner Won</option>
+                    <option value="qualified">Qualified</option>
+                    <option value="discovered">Discovered</option>
+                    <option value="not_a_fit">Not a Fit</option>
+                </select>
+
+                <select id="priorityFilter" onchange="filterSchools()" style="padding: 0.38rem 0.65rem; border: 1px solid var(--line); border-radius: 6px; font-size: 0.82rem; background: #fff; font-weight: 500;">
+                    <option value="">All Priorities</option>
+                    <option value="Immediate Focus">Immediate Focus</option>
+                    <option value="Target School">Target School</option>
+                    <option value="Monitor">Monitor</option>
+                </select>
             </div>
         </div>
 
@@ -123,7 +195,7 @@
                 </thead>
                 <tbody>
                     {% for school in schools %}
-                    <tr>
+                    <tr data-stage="{{ school.pipeline_stage.value }}" data-priority="{{ school.priority }}">
                         <td>
                             <a href="/seemymind/ui/schools/{{ school.id }}" style="font-weight: 600; color: var(--teal); text-decoration: none;">
                                 {{ school.name }}
