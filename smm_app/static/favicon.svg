@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="tealGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#14b8a6"/>
+      <stop offset="100%" stop-color="#0f766e"/>
+    </linearGradient>
+    <linearGradient id="warmGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fb923c"/>
+      <stop offset="100%" stop-color="#e11d48"/>
+    </linearGradient>
+  </defs>
+  <!-- Background Disc -->
+  <rect width="64" height="64" rx="16" fill="#0f172a"/>
+  <!-- Concentric Insight Rings / Mind Symbol -->
+  <circle cx="32" cy="32" r="22" fill="none" stroke="url(#tealGrad)" stroke-width="4.5" stroke-dasharray="100 38" transform="rotate(-45 32 32)"/>
+  <circle cx="32" cy="32" r="14" fill="none" stroke="url(#warmGrad)" stroke-width="4" stroke-dasharray="60 28" transform="rotate(75 32 32)"/>
+  <!-- Core Pupil / Spark -->
+  <circle cx="32" cy="32" r="6" fill="#2dd4bf"/>
+</svg>

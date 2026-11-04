@@ -1,7 +1,7 @@
 from contextlib import asynccontextmanager
 from pathlib import Path
 from fastapi import FastAPI, Request
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
@@ -138,6 +138,14 @@ async def auth_middleware(request: Request, call_next):
 
 
 # Mount static assets
+
+@app.get("/favicon.ico", include_in_schema=False)
+def root_favicon():
+    fav = SMM_TEMPLATES_DIR.parent / "static" / "favicon.ico"
+    if fav.exists():
+        return FileResponse(fav)
+    return RedirectResponse(url="/seemymind/static/favicon.ico")
+
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 app.mount("/seemymind", smm_subapp)
 

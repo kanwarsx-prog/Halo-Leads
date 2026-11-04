@@ -1,7 +1,7 @@
 from contextlib import asynccontextmanager
 from pathlib import Path
 from fastapi import FastAPI
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from smm_app.config import get_settings
@@ -58,6 +58,14 @@ app = FastAPI(
 )
 
 # Mount static files with robust directory path
+
+@app.get("/favicon.ico", include_in_schema=False)
+def favicon():
+    fav = STATIC_DIR / "favicon.ico"
+    if fav.exists():
+        return FileResponse(fav)
+    return RedirectResponse(url="/seemymind/static/favicon.ico")
+
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
 

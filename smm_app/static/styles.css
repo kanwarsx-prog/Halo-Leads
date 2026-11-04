@@ -427,21 +427,21 @@ tr:hover td { background-color: #fafcfb; }
 .tooltip-box {
   visibility: hidden;
   opacity: 0;
-  width: 250px;
+  width: 260px;
   background-color: var(--ink);
   color: #fff;
   text-align: left;
-  border-radius: 7px;
-  padding: 0.65rem 0.8rem;
-  font-size: 0.74rem;
-  line-height: 1.4;
+  border-radius: 8px;
+  padding: 0.75rem 0.85rem;
+  font-size: 0.75rem;
+  line-height: 1.45;
   position: absolute;
-  z-index: 100;
+  z-index: 9999;
   bottom: 125%;
   left: 50%;
   transform: translateX(-50%);
   transition: opacity 0.18s ease, visibility 0.18s ease;
-  box-shadow: 0 8px 14px -2px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
   pointer-events: none;
 }
 
@@ -456,9 +456,46 @@ tr:hover td { background-color: #fafcfb; }
   border-color: var(--ink) transparent transparent transparent;
 }
 
-.tooltip-container:hover .tooltip-box {
+.tooltip-container:hover .tooltip-box,
+.tooltip-container:focus .tooltip-box,
+.tooltip-container.active .tooltip-box {
   visibility: visible;
   opacity: 1;
+  pointer-events: auto;
+}
+
+/* Table header tooltips: Must open downward and float cleanly above all table rows */
+.table-container thead th .tooltip-box,
+.table-container th .tooltip-box,
+th .tooltip-box {
+  bottom: auto !important;
+  top: calc(100% + 8px) !important;
+  left: auto !important;
+  right: -15px !important;
+  transform: none !important;
+  z-index: 99999 !important;
+}
+
+.table-container thead th .tooltip-box::after,
+.table-container th .tooltip-box::after,
+th .tooltip-box::after {
+  top: auto !important;
+  bottom: 100% !important;
+  left: auto !important;
+  right: 20px !important;
+  margin-left: 0 !important;
+  border-width: 6px !important;
+  border-color: transparent transparent var(--ink) transparent !important;
+}
+
+.table-container thead th:hover,
+.table-container thead th:focus-within {
+  z-index: 40 !important;
+}
+
+.table-container tbody tr:hover {
+  z-index: 25;
+  position: relative;
 }
 
 .tooltip-header {
