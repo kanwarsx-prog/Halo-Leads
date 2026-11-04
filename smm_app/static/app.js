@@ -129,14 +129,22 @@ let currentSortAsc = true;
 let filteredRows = [];
 
 function getFilterValues() {
+  const schoolEl = document.getElementById('colSearchSchool') || document.getElementById('schoolFilter');
+  const phaseEl = document.getElementById('colFilterPhase');
+  const trustEl = document.getElementById('colSearchTrust');
+  const senEl = document.getElementById('colFilterSen');
+  const ofstedEl = document.getElementById('colFilterOfsted');
+  const priorityEl = document.getElementById('colFilterPriority') || document.getElementById('priorityFilter');
+  const stageEl = document.getElementById('colFilterStage') || document.getElementById('stageFilter');
+
   return {
-    school: (document.getElementById('colSearchSchool')?.value || '').toLowerCase().trim(),
-    phase: document.getElementById('colFilterPhase')?.value || '',
-    trust: (document.getElementById('colSearchTrust')?.value || '').toLowerCase().trim(),
-    sen: document.getElementById('colFilterSen')?.value || '',
-    ofsted: document.getElementById('colFilterOfsted')?.value || '',
-    priority: document.getElementById('colFilterPriority')?.value || '',
-    stage: document.getElementById('colFilterStage')?.value || ''
+    school: schoolEl ? (schoolEl.value || '').toLowerCase().trim() : '',
+    phase: phaseEl ? (phaseEl.value || '').trim() : '',
+    trust: trustEl ? (trustEl.value || '').toLowerCase().trim() : '',
+    sen: senEl ? (senEl.value || '').trim() : '',
+    ofsted: ofstedEl ? (ofstedEl.value || '').trim() : '',
+    priority: priorityEl ? (priorityEl.value || '').trim() : '',
+    stage: stageEl ? (stageEl.value || '').trim() : ''
   };
 }
 
@@ -345,11 +353,19 @@ function sortTable(columnIndex, type) {
 }
 
 // Initialise pagination on page load
-document.addEventListener('DOMContentLoaded', () => {
+function initAppTable() {
   const allRows = Array.from(document.querySelectorAll('#schoolsTable tbody tr.school-row'));
-  filteredRows = allRows;
-  renderPaginatedTable();
-});
+  if (allRows.length > 0) {
+    filteredRows = allRows;
+    renderPaginatedTable();
+  }
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initAppTable);
+} else {
+  initAppTable();
+}
 
 async function markTaskDone(taskId, btn) {
   if (btn) {
