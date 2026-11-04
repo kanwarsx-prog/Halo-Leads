@@ -85,16 +85,19 @@ app.mount("/static", StaticFiles(directory="app/static"), name="static")
 app.mount("/seemymind", smm_subapp)
 
 
-# Root Hub & Switcher Entry Points
+# Default root is See My Mind Education Agent
 @app.get("/", include_in_schema=False)
-def portal_hub(request: Request):
-    """Unified entry point: Lead Intelligence Suite Portal Hub."""
-    return templates.TemplateResponse(request=request, name="hub.html")
+def root():
+    """Main page of the app is See My Mind Education Lead Agent."""
+    return RedirectResponse(url="/seemymind/ui")
 
 
+# Explicit entrance for Halo Leads (only accessible via explicit URL)
+@app.get("/halo-leads", include_in_schema=False)
+@app.get("/helo-leads", include_in_schema=False)
 @app.get("/halo", include_in_schema=False)
 def halo_shortcut():
-    """Shortcut redirect to HaloITSM dashboard."""
+    """Explicit entry point for HaloITSM Prospecting Pipeline."""
     return RedirectResponse(url="/ui")
 
 
