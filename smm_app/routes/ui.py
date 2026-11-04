@@ -86,6 +86,7 @@ def contacts_directory(request: Request, db: Session = Depends(get_db)):
         .order_by(School.name.asc(), SchoolContact.role.asc())
         .all()
     )
+    schools = db.query(School).order_by(School.name.asc()).all()
     total_contacts = len(contacts)
     sencos = [c for c in contacts if "senco" in c.role.lower()]
     verified_emails = sum(1 for c in contacts if c.email_is_verified)
@@ -95,6 +96,7 @@ def contacts_directory(request: Request, db: Session = Depends(get_db)):
         name="contacts.html",
         context={
             "contacts": contacts,
+            "schools": schools,
             "total_contacts": total_contacts,
             "senco_count": len(sencos),
             "verified_count": verified_emails,

@@ -174,12 +174,20 @@
             <div>
                 <!-- Key Contacts -->
                 <div class="card" style="margin-bottom: 1.5rem;">
-                    <h2>Key Contacts</h2>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                        <h2 style="margin: 0;">Key Contacts</h2>
+                        <button onclick="openAddContactModal()" class="btn btn-secondary btn-sm" style="color: var(--teal); border-color: var(--teal); font-weight: 600;">
+                            + Add Contact
+                        </button>
+                    </div>
                     {% for contact in named_contacts %}
                     <div style="padding: 0.85rem 0; border-bottom: 1px solid var(--line);">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <strong style="font-size: 1.05rem; color: var(--ink);">{{ contact.name }}</strong>
-                            <span class="badge badge-mint">{{ contact.role }}</span>
+                            <div>
+                                <strong style="font-size: 1.05rem; color: var(--ink);">{{ contact.name }}</strong>
+                                <span class="badge badge-mint" style="margin-left: 0.4rem;">{{ contact.role }}</span>
+                            </div>
+                            <button onclick="deleteContact('{{ contact.id }}')" style="background:none; border:none; color:var(--soft); cursor:pointer; font-size:0.9rem; padding: 2px 6px;" title="Delete contact">&times;</button>
                         </div>
                         <div style="font-size: 0.85rem; color: var(--soft); margin-top: 0.3rem;">
                             {% if contact.email %}
@@ -201,16 +209,18 @@
                     </p>
                     {% endfor %}
 
-                    {# Informative notes for unassigned roles #}
+                    {# Informative notes for unassigned roles with quick add #}
                     {% if latest_run and latest_run.status.value == 'completed' %}
                         {% if not has_named_senco %}
-                        <div style="padding: 0.65rem 0.85rem; background: var(--gray-100); border-radius: 6px; border: 1px dashed var(--line); margin-top: 0.75rem; font-size: 0.82rem; color: var(--soft);">
-                            <strong>SENCO:</strong> Direct name not published. Outreach drafted to <em>"The SENCO"</em>.
+                        <div style="padding: 0.65rem 0.85rem; background: var(--gray-100); border-radius: 6px; border: 1px dashed var(--line); margin-top: 0.75rem; font-size: 0.82rem; color: var(--soft); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+                            <span><strong>SENCO:</strong> Direct name not published.</span>
+                            <button onclick="openAddContactModal('SENCO & Inclusion Leader')" class="btn btn-secondary btn-sm" style="padding: 0.2rem 0.6rem; font-size: 0.74rem; color: var(--teal); border-color: var(--teal);">+ Assign SENCO</button>
                         </div>
                         {% endif %}
                         {% if not has_named_head %}
-                        <div style="padding: 0.65rem 0.85rem; background: var(--gray-100); border-radius: 6px; border: 1px dashed var(--line); margin-top: 0.75rem; font-size: 0.82rem; color: var(--soft);">
-                            <strong>Headteacher:</strong> Direct name not published. Outreach drafted to <em>"The Headteacher"</em>.
+                        <div style="padding: 0.65rem 0.85rem; background: var(--gray-100); border-radius: 6px; border: 1px dashed var(--line); margin-top: 0.75rem; font-size: 0.82rem; color: var(--soft); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+                            <span><strong>Headteacher:</strong> Direct name not published.</span>
+                            <button onclick="openAddContactModal('Headteacher / Principal')" class="btn btn-secondary btn-sm" style="padding: 0.2rem 0.6rem; font-size: 0.74rem; color: var(--teal); border-color: var(--teal);">+ Assign Headteacher</button>
                         </div>
                         {% endif %}
                     {% endif %}
@@ -296,6 +306,130 @@
         </div>
     </div>
 
+    <!-- Modal: Add Contact to School -->
+    <div id="addContactModal" class="modal-overlay" onclick="if(event.target===this) closeModal('addContactModal')">
+        <div class="modal">
+            <h2 style="margin-bottom: 0.4rem;">Add Contact</h2>
+            <p style="font-size: 0.82rem; color: var(--soft); margin-bottom: 1.25rem;">
+                Assign a named leadership or inclusion contact to <strong>{{ school.name }}</strong>.
+            </p>
+            
+            <form id="addContactForm" onsubmit="submitAddContact(event)">
+                <div class="form-group">
+                    <label>Full Name *</label>
+                    <input type="text" name="name" required placeholder="e.g. Mrs. Sarah Jenkins">
+                </div>
+                <div class="form-group">
+                    <label>Role / Job Title *</label>
+                    <select name="role" id="contactRoleSelect" required>
+                        <option value="SENCO & Inclusion Leader">SENCO & Inclusion Leader</option>
+                        <option value="Headteacher / Principal">Headteacher / Principal</option>
+                        <option value="Deputy Headteacher">Deputy Headteacher</option>
+                        <option value="Director of SEND / MAT Lead">Director of SEND / MAT Lead</option>
+                        <option value="Assistant Headteacher">Assistant Headteacher</option>
+                        <option value="Inclusion Lead">Inclusion Lead</option>
+                        <option value="Pastoral & SEND Support">Pastoral & SEND Support</option>
+                    </select>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                    <div class="form-group">
+                        <label>Direct Email</label>
+                        <input type="email" name="email" placeholder="e.g. s.jenkins@school.sch.uk">
+                    </div>
+                    <div class="form-group">
+                        <label>Phone / Extension</label>
+                        <input type="text" name="phone_extension" placeholder="e.g. ext 204">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Information Source</label>
+                    <input type="text" name="source" placeholder="e.g. School Website, LinkedIn, Direct Call" value="Direct Research">
+                </div>
+                <div style="margin-bottom: 1.25rem;">
+                    <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.82rem; cursor: pointer; color: var(--ink);">
+                        <input type="checkbox" name="email_is_verified" checked style="width: auto;">
+                        Mark as verified contact
+                    </label>
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+                    <button type="button" onclick="closeModal('addContactModal')" class="btn btn-secondary">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="saveContactBtn">Save & Assign Contact</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script src="/seemymind/static/app.js"></script>
+    <script>
+        function openAddContactModal(prefillRole) {
+            if (prefillRole) {
+                const select = document.getElementById('contactRoleSelect');
+                if (select) {
+                    for (let opt of select.options) {
+                        if (opt.value.toLowerCase().includes(prefillRole.toLowerCase())) {
+                            opt.selected = true;
+                            break;
+                        }
+                    }
+                }
+            }
+            openModal('addContactModal');
+        }
+
+        async function submitAddContact(e) {
+            e.preventDefault();
+            const form = e.target;
+            const btn = document.getElementById('saveContactBtn');
+            btn.disabled = true;
+            btn.innerText = 'Saving...';
+
+            const data = {
+                name: form.name.value,
+                role: form.role.value,
+                email: form.email.value || null,
+                phone_extension: form.phone_extension.value || null,
+                source: form.source.value || 'Direct Research',
+                email_is_verified: form.email_is_verified.checked
+            };
+
+            try {
+                const res = await fetch('/seemymind/schools/{{ school.id }}/contacts', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                if (res.ok) {
+                    window.location.reload();
+                } else {
+                    const err = await res.json();
+                    alert(err.detail || 'Failed to save contact');
+                    btn.disabled = false;
+                    btn.innerText = 'Save & Assign Contact';
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Connection error');
+                btn.disabled = false;
+                btn.innerText = 'Save & Assign Contact';
+            }
+        }
+
+        async function deleteContact(contactId) {
+            if (!confirm('Are you sure you want to delete this contact?')) return;
+            try {
+                const res = await fetch(`/seemymind/schools/contacts/${contactId}`, {
+                    method: 'DELETE'
+                });
+                if (res.ok) {
+                    window.location.reload();
+                } else {
+                    alert('Failed to delete contact');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Connection error');
+            }
+        }
+    </script>
 </body>
 </html>

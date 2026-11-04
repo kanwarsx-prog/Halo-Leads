@@ -6,8 +6,8 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from smm_app.database import get_db
-from smm_app.models import School, SchoolPipelineStage, SchoolContact
-from smm_app.schemas import SchoolCreate, SchoolRead, SchoolStageUpdate
+from smm_app.models import School, SchoolPipelineStage, SchoolContact, ContactStatus
+from smm_app.schemas import SchoolCreate, SchoolRead, SchoolStageUpdate, SchoolContactCreate
 
 router = APIRouter(prefix="/schools", tags=["schools"])
 
@@ -192,3 +192,78 @@ async def import_schools_csv(file: UploadFile = File(...), db: Session = Depends
 
     db.commit()
     return {"imported": imported_count}
+
+
+@router.post("/{school_id}/contacts")
+def add_school_contact(
+    school_id: str,
+    payload: SchoolContactCreate,
+    db: Session = Depends(get_db),
+):
+    school = db.get(School, school_id)
+    if not school:
+        raise HTTPException(status_code=404, detail="School not found")
+
+    # If adding a SENCO or Headteacher and a placeholder exists with drafts, transfer drafts
+    placeholder = None
+    role_lower = payload.role.lower()
+    if "senco" in role_lower or "inclusion" in role_lower:
+        placeholder = (
+            db.query(SchoolContact)
+            .filter(
+                SchoolContact.school_id == school.id,
+                SchoolContact.name.startswith("The "),
+                SchoolContact.role.ilike("%senco%"),
+            )
+            .first()
+        )
+    elif "head" in role_lower or "principal" in role_lower:
+        placeholder = (
+            db.query(SchoolContact)
+            .filter(
+                SchoolContact.school_id == school.id,
+                SchoolContact.name.startswith("The "),
+                SchoolContact.role.ilike("%head%"),
+            )
+            .first()
+        )
+
+    contact = SchoolContact(
+        id=str(uuid.uuid4()),
+        school_id=school.id,
+        name=payload.name.strip(),
+        role=payload.role.strip(),
+        email=payload.email.strip() if payload.email else None,
+        email_is_verified=payload.email_is_verified or bool(payload.email),
+        phone_extension=payload.phone_extension.strip() if payload.phone_extension else None,
+        source=payload.source or "Manual Entry",
+        status=ContactStatus.discovered,
+        email_subject=placeholder.email_subject if placeholder else None,
+        email_draft=placeholder.email_draft if placeholder else None,
+        letter_draft=placeholder.letter_draft if placeholder else None,
+        personalized_hook=placeholder.personalized_hook if placeholder else None,
+    )
+
+    if placeholder:
+        db.delete(placeholder)
+
+    db.add(contact)
+    db.commit()
+    db.refresh(contact)
+    return {
+        "message": "Contact created successfully",
+        "contact_id": contact.id,
+        "name": contact.name,
+        "role": contact.role,
+        "school_id": school.id,
+    }
+
+
+@router.delete("/contacts/{contact_id}")
+def delete_school_contact(contact_id: str, db: Session = Depends(get_db)):
+    contact = db.get(SchoolContact, contact_id)
+    if not contact:
+        raise HTTPException(status_code=404, detail="Contact not found")
+    db.delete(contact)
+    db.commit()
+    return {"message": "Contact deleted successfully"}
