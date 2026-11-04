@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login · HaloITSM Value-Gap Intelligence</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <style>
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 1rem;
+            background-color: var(--bg-dark);
+        }
+
+        .login-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 2.25rem 2rem;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.6);
+            text-align: center;
+        }
+
+        .login-badge {
+            display: inline-block;
+            background: rgba(56, 189, 248, 0.12);
+            color: #38bdf8;
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 6px;
+            border: 1px solid rgba(56, 189, 248, 0.25);
+            margin-bottom: 0.75rem;
+            letter-spacing: 0.8px;
+        }
+
+        .login-title {
+            font-size: 1.6rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.35rem;
+        }
+
+        .login-sub {
+            font-size: 0.84rem;
+            color: var(--text-secondary);
+            margin-bottom: 1.75rem;
+        }
+
+        .error-alert {
+            background: rgba(239, 68, 68, 0.15);
+            color: #fca5a5;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            padding: 0.65rem 0.85rem;
+            border-radius: 6px;
+            font-size: 0.82rem;
+            margin-bottom: 1.25rem;
+            text-align: left;
+        }
+
+        .form-group {
+            text-align: left;
+            margin-bottom: 1.15rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 0.35rem;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.7rem 0.9rem;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 0.88rem;
+            outline: none;
+            transition: border-color 0.15s;
+        }
+
+        .form-group input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 0.75rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            border-radius: 8px;
+            border: none;
+            background: var(--accent);
+            color: #ffffff;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            margin-top: 0.5rem;
+        }
+
+        .btn-submit:hover {
+            background: var(--accent-hover);
+            transform: translateY(-1px);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-card">
+        <span class="login-badge">ENTERPRISE ITSM</span>
+        <h1 class="login-title">HaloITSM Leads</h1>
+        <p class="login-sub">ServiceNow Value-Gap & Displacement Engine</p>
+
+        {% if error %}
+        <div class="error-alert">
+            ⚠️ {{ error }}
+        </div>
+        {% endif %}
+
+        <form method="POST" action="/halo-leads/login">
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" name="username" required autocomplete="username" autofocus placeholder="Enter username">
+            </div>
+
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" name="password" required autocomplete="current-password" placeholder="Enter password">
+            </div>
+
+            <button type="submit" class="btn-submit">Sign In to Halo Pipeline &rarr;</button>
+        </form>
+    </div>
+
+</body>
+</html>

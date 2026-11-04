@@ -5,6 +5,16 @@ from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
+from app.auth import (
+    HALO_AUTH_PASS,
+    HALO_AUTH_USER,
+    SESSION_MAX_AGE_SECONDS,
+    SMM_AUTH_PASS,
+    SMM_AUTH_USER,
+    create_token,
+    is_halo_authenticated,
+    is_smm_authenticated,
+)
 from app.database import SessionLocal
 from app.models import ProspectingRun, ProspectingStatus, ResearchRun, ResearchStatus
 from app.routes import organisations, prompts, research, reviews, ui
@@ -67,25 +77,157 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="LeadGen Multi-Agent Suite (HaloITSM & See My Mind)",
     version="0.2.0",
-    description=(
-        "Dual-engine lead intelligence platform featuring: "
-        "1. HaloITSM Value-Gap Prospecting Engine (/ui) "
-        "2. See My Mind UK Schools & MATs Outreach Engine (/seemymind/ui)"
-    ),
+    description="Dual-engine lead intelligence platform with portal authentication.",
     lifespan=lifespan,
 )
 
 TEMPLATES_DIR = Path(__file__).resolve().parent / "templates"
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
-# Mount Halo static files
-app.mount("/static", StaticFiles(directory="app/static"), name="static")
+SMM_TEMPLATES_DIR = Path(__file__).resolve().parent.parent / "smm_app" / "templates"
+smm_templates = Jinja2Templates(directory=str(SMM_TEMPLATES_DIR))
 
-# Mount See My Mind sub-application at /seemymind
+
+# Authentication Middleware
+@app.middleware("http")
+async def auth_middleware(request: Request, call_next):
+    path = request.url.path
+
+    # Public static assets and health check
+    if (
+        path == "/health"
+        or path.startswith("/static")
+        or path.startswith("/seemymind/static")
+        or path == "/favicon.ico"
+    ):
+        return await call_next(request)
+
+    # Public login & logout endpoints
+    if path in ["/login", "/logout", "/halo-leads/login", "/halo-leads/logout"]:
+        return await call_next(request)
+
+    # Halo Leads gate (explicit URL and sub-routes)
+    if (
+        path.startswith("/halo-leads")
+        or path.startswith("/helo-leads")
+        or path == "/halo"
+        or path.startswith("/ui")
+        or path.startswith("/organisations")
+        or path.startswith("/research")
+        or path.startswith("/prompts")
+        or path.startswith("/reviews")
+    ):
+        if not is_halo_authenticated(request):
+            return RedirectResponse(url="/halo-leads/login", status_code=303)
+        return await call_next(request)
+
+    # See My Mind gate (Default portal at "/" and "/seemymind/*")
+    if not is_smm_authenticated(request):
+        return RedirectResponse(url="/login", status_code=303)
+
+    return await call_next(request)
+
+
+# Mount static assets
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
 app.mount("/seemymind", smm_subapp)
 
 
-# Default root is See My Mind Education Agent
+# ==============================================================================
+# See My Mind Authentication Routes
+# ==============================================================================
+
+@app.get("/login", include_in_schema=False)
+def smm_login_page(request: Request):
+    """Render See My Mind branded login page."""
+    if is_smm_authenticated(request):
+        return RedirectResponse(url="/seemymind/ui")
+    return smm_templates.TemplateResponse(request=request, name="login.html")
+
+
+@app.post("/login", include_in_schema=False)
+async def smm_login_submit(request: Request):
+    """Verify credentials for See My Mind."""
+    form = await request.form()
+    username = str(form.get("username", "")).strip()
+    password = str(form.get("password", ""))
+
+    if username == SMM_AUTH_USER and password == SMM_AUTH_PASS:
+        token = create_token("smm")
+        response = RedirectResponse(url="/seemymind/ui", status_code=303)
+        response.set_cookie(
+            key="smm_session",
+            value=token,
+            max_age=SESSION_MAX_AGE_SECONDS,
+            httponly=True,
+            samesite="lax",
+        )
+        return response
+
+    return smm_templates.TemplateResponse(
+        request=request,
+        name="login.html",
+        context={"error": "Invalid username or password. Please try again."},
+        status_code=401,
+    )
+
+
+@app.get("/logout", include_in_schema=False)
+def smm_logout():
+    """Sign out of See My Mind."""
+    response = RedirectResponse(url="/login", status_code=303)
+    response.delete_cookie("smm_session")
+    return response
+
+
+# ==============================================================================
+# Halo Leads Authentication & Entry Routes
+# ==============================================================================
+
+@app.get("/halo-leads/login", include_in_schema=False)
+def halo_login_page(request: Request):
+    """Render HaloITSM branded login page."""
+    if is_halo_authenticated(request):
+        return RedirectResponse(url="/ui")
+    return templates.TemplateResponse(request=request, name="halo_login.html")
+
+
+@app.post("/halo-leads/login", include_in_schema=False)
+async def halo_login_submit(request: Request):
+    """Verify credentials for Halo Leads."""
+    form = await request.form()
+    username = str(form.get("username", "")).strip()
+    password = str(form.get("password", ""))
+
+    if username == HALO_AUTH_USER and password == HALO_AUTH_PASS:
+        token = create_token("halo")
+        response = RedirectResponse(url="/ui", status_code=303)
+        response.set_cookie(
+            key="halo_session",
+            value=token,
+            max_age=SESSION_MAX_AGE_SECONDS,
+            httponly=True,
+            samesite="lax",
+        )
+        return response
+
+    return templates.TemplateResponse(
+        request=request,
+        name="halo_login.html",
+        context={"error": "Invalid username or password. Please try again."},
+        status_code=401,
+    )
+
+
+@app.get("/halo-leads/logout", include_in_schema=False)
+def halo_logout():
+    """Sign out of Halo Leads."""
+    response = RedirectResponse(url="/halo-leads/login", status_code=303)
+    response.delete_cookie("halo_session")
+    return response
+
+
+# Default root redirects to See My Mind dashboard (if authenticated)
 @app.get("/", include_in_schema=False)
 def root():
     """Main page of the app is See My Mind Education Lead Agent."""
