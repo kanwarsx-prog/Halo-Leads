@@ -18,6 +18,8 @@ __pycache__/
 
 # SQLite
 *.sqlite3
+*.db
+*.db-journal
 
 # Git
 .git/

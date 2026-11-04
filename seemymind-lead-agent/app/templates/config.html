@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prompt Configuration · See My Mind Lead Agent</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <a href="/ui" class="brand-title">
+                <img src="/static/logos/seemymind-mark.png" alt="See My Mind" class="brand-icon">
+                <span class="brand-title-text smm-title">See My Mind</span>
+                <span class="brand-badge"><span class="live-dot"></span> Education Intelligence</span>
+            </a>
+            <nav>
+                <a href="/ui" class="btn btn-secondary">&larr; Back to Dashboard</a>
+                <a href="/ui/contacts" class="btn btn-secondary"><span>👥</span> Contacts</a>
+            </nav>
+        </header>
+
+        <div style="margin-bottom: 2rem;">
+            <h2>Education AI Prompt Configuration</h2>
+            <p style="color: var(--soft); font-size: 0.95rem;">
+                Customize the system prompts that guide the school researcher, extraction agent, and outreach drafting engine.
+            </p>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 1.75rem;">
+            {% for prompt in prompts %}
+            <div class="card">
+                <form class="prompt-form" data-name="{{ prompt.name }}" onsubmit="savePrompt(event)">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                        <h3 style="font-family: monospace; font-size: 1.15rem; color: var(--teal);">{{ prompt.name }}</h3>
+                        <button type="submit" class="btn btn-primary btn-sm">Save Changes</button>
+                    </div>
+                    {% if prompt.description %}
+                    <p style="color: var(--soft); font-size: 0.85rem; margin-bottom: 0.75rem;">{{ prompt.description }}</p>
+                    {% endif %}
+                    <textarea name="content" rows="14" style="width: 100%; font-family: monospace; font-size: 0.88rem; padding: 0.75rem; border: 1px solid var(--line); border-radius: 6px; line-height: 1.5;">{{ prompt.content }}</textarea>
+                </form>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <script>
+        async function savePrompt(e) {
+            e.preventDefault();
+            const form = e.target;
+            const name = form.dataset.name;
+            const content = form.querySelector('textarea').value;
+            const btn = form.querySelector('button[type="submit"]');
+
+            const oldText = btn.innerText;
+            btn.innerText = 'Saving...';
+            btn.disabled = true;
+
+            try {
+                const res = await fetch(`/prompts/${name}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ content })
+                });
+
+                if (res.ok) {
+                    btn.innerText = 'Saved!';
+                    btn.style.backgroundColor = 'var(--success)';
+                    setTimeout(() => {
+                        btn.innerText = oldText;
+                        btn.style.backgroundColor = '';
+                        btn.disabled = false;
+                    }, 2000);
+                } else {
+                    alert('Failed to save prompt');
+                    btn.innerText = oldText;
+                    btn.disabled = false;
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Connection error');
+                btn.innerText = oldText;
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>

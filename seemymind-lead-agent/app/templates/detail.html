@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ school.name }} · See My Mind Lead Intelligence</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <a href="/ui" class="brand-title">
+                <img src="/static/logos/seemymind-mark.png" alt="See My Mind" class="brand-icon">
+                <span class="brand-title-text smm-title">See My Mind</span>
+                <span class="brand-badge"><span class="live-dot"></span> Education Intelligence</span>
+            </a>
+            <nav>
+                <a href="/ui" class="btn btn-secondary">&larr; Back to Dashboard</a>
+                <a href="/ui/contacts" class="btn btn-secondary"><span>👥</span> All Contacts</a>
+            </nav>
+        </header>
+
+        <!-- Compact School Header Card -->
+        <div class="card" style="margin-bottom: 1rem; padding: 0.9rem 1.15rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+                <div>
+                    <div style="display: flex; align-items: center; gap: 0.65rem; margin-bottom: 0.2rem;">
+                        <h1 style="font-size: 1.45rem; line-height: 1.25; margin: 0;">{{ school.name }}</h1>
+                        {% if school.overall_score > 0 %}
+                        <span class="tooltip-container">
+                            <span class="badge {% if school.priority == 'Immediate Focus' %}badge-coral{% elif school.priority == 'Target School' %}badge-mint{% else %}badge-gray{% endif %}">
+                                {{ school.overall_score }}/100 · {{ school.priority }}
+                            </span>
+                            <div class="tooltip-box">
+                                <div class="tooltip-header">{{ school.priority }} · {{ school.overall_score }}/100</div>
+                                <div class="tooltip-row"><span>SEN Need (35%):</span><strong>{% if school.sen_percentage and school.sen_percentage >= 16 %}{{ "%.1f"|format(school.sen_percentage) }}% (High){% elif school.sen_percentage %}{{ "%.1f"|format(school.sen_percentage) }}%{% else %}Assessed{% endif %}</strong></div>
+                                <div class="tooltip-row"><span>Product Fit (25%):</span><strong>High Need Profile</strong></div>
+                                <div class="tooltip-row"><span>Named SENCO (20%):</span><strong>{% if school.contacts %}Verified{% else %}Pending{% endif %}</strong></div>
+                                <div class="tooltip-row"><span>Trust Scale (10%):</span><strong>{% if school.mat_name %}MAT Hub{% else %}Single School{% endif %}</strong></div>
+                                <div class="tooltip-row"><span>Ofsted Context (10%):</span><strong>{% if school.ofsted_send_excerpt %}Quote Verified{% else %}General{% endif %}</strong></div>
+                            </div>
+                        </span>
+                        {% else %}
+                        <span class="tooltip-container">
+                            <span class="badge badge-gray">Pending Audit</span>
+                            <div class="tooltip-box">
+                                <div class="tooltip-header">Not Audited</div>
+                                <div>Click 'Audit School' to calculate priority based on statutory reports and Ofsted.</div>
+                            </div>
+                        </span>
+                        {% endif %}
+                    </div>
+                    <div style="color: var(--soft); font-size: 0.82rem; display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 0.3rem;">
+                        {% if school.phase %}<span><strong>Phase:</strong> {{ school.phase }}</span>{% endif %}
+                        {% if school.mat_name %}<span><strong>Trust:</strong> {{ school.mat_name }}</span>{% endif %}
+                        {% if school.postcode %}<span><strong>Postcode:</strong> {{ school.postcode }}</span>{% endif %}
+                        {% if school.urn %}<span><strong>URN:</strong> {{ school.urn }}</span>{% endif %}
+                        {% if school.website %}
+                            <span><a href="{{ school.website }}" target="_blank" style="color: var(--teal); font-weight: 600;">Visit Website &nearr;</a></span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Stage & Actions -->
+                <div style="display: flex; align-items: flex-end; gap: 0.5rem; flex-wrap: wrap;">
+                    <div>
+                        <label style="font-size: 0.72rem; font-weight: 600; color: var(--soft); display: block; margin-bottom: 0.2rem;">Pipeline Stage</label>
+                        <select onchange="updateStage('{{ school.id }}', this.value)" style="padding: 0.38rem 0.65rem; border-radius: 6px; border: 1px solid var(--line); font-weight: 600; font-size: 0.8rem; background: #fff;">
+                            {% for stage in stages %}
+                            <option value="{{ stage }}" {% if school.pipeline_stage.value == stage %}selected{% endif %}>
+                                {{ stage | replace('_', ' ') | title }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button onclick="triggerAudit('{{ school.id }}', this)" class="btn btn-primary btn-sm">
+                        {% if latest_run and latest_run.status.value == 'completed' %}Re-run SEND Audit{% else %}Audit School & SEND Report{% endif %}
+                    </button>
+                    <button onclick="if(confirm('Are you sure you want to remove this school from your targets?')) { fetch('/schools/{{ school.id }}', {method: 'DELETE'}).then(() => window.location.href='/ui'); }" class="btn btn-secondary btn-sm" style="color: var(--danger);" title="Remove School">
+                        🗑️ Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="detail-grid">
+            <!-- Left Column: Evidence & Audit findings -->
+            <div>
+                <!-- Ofsted Quote -->
+                <div class="card" style="margin-bottom: 1.5rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <h2>Ofsted Inspection Intelligence</h2>
+                        {% if school.ofsted_rating %}
+                        <span class="badge {% if 'Outstanding' in school.ofsted_rating %}badge-mint{% elif 'Good' in school.ofsted_rating %}badge-teal{% else %}badge-gold{% endif %}">
+                            {{ school.ofsted_rating }}
+                        </span>
+                        {% endif %}
+                    </div>
+
+                    {% if school.ofsted_send_excerpt %}
+                    <div class="quote-box">
+                        "{{ school.ofsted_send_excerpt }}"
+                    </div>
+                    <p style="font-size: 0.8rem; color: var(--soft);">Source: Latest Ofsted Inspection Report (SEND Provision Section)</p>
+                    {% else %}
+                    <p style="color: var(--soft); font-size: 0.9rem; padding: 1rem 0;">
+                        No Ofsted quote extracted yet. Click <strong>Audit School</strong> to scan their latest inspection findings.
+                    </p>
+                    {% endif %}
+                </div>
+
+                <!-- Statutory SEND Information Report -->
+                <div class="card" style="margin-bottom: 1.5rem;">
+                    <h2>Statutory SEND Information Report & Provision</h2>
+                    {% if latest_run and latest_run.status.value == 'completed' %}
+                        <div style="margin-bottom: 1.25rem;">
+                            <h3>Detected Tools & Platforms</h3>
+                            <p style="font-size: 0.95rem; color: var(--ink);">
+                                {{ latest_run.detected_tools or 'None explicitly identified (likely manual spreadsheets / paper provision)' }}
+                            </p>
+                        </div>
+
+                        {% if latest_run.strengths_found %}
+                        <div style="margin-bottom: 1.25rem;">
+                            <h3>SEND Strengths & Current Initiatives</h3>
+                            <div style="white-space: pre-wrap; font-size: 0.9rem; color: var(--ink); line-height: 1.6;">{{ latest_run.strengths_found }}</div>
+                        </div>
+                        {% endif %}
+
+                        {% if latest_run.challenges_found %}
+                        <div style="margin-bottom: 1.25rem;">
+                            <h3>Inclusion Challenges & Need Profile</h3>
+                            <div style="white-space: pre-wrap; font-size: 0.9rem; color: var(--ink); line-height: 1.6;">{{ latest_run.challenges_found }}</div>
+                        </div>
+                        {% endif %}
+
+                        {% if latest_run.recommended_angle %}
+                        <div style="background: var(--teal-light); padding: 1rem; border-radius: 8px;">
+                            <strong style="color: var(--teal); font-size: 0.85rem; text-transform: uppercase;">Recommended Outreach Angle:</strong>
+                            <p style="font-size: 0.9rem; margin-top: 0.35rem; color: var(--ink);">{{ latest_run.recommended_angle }}</p>
+                        </div>
+                        {% endif %}
+
+                        {% if latest_run.send_report_url %}
+                        <div style="margin-top: 1rem;">
+                            <a href="{{ latest_run.send_report_url }}" target="_blank" style="color: var(--teal); font-size: 0.85rem; text-decoration: underline;">
+                                View Statutory SEND Information Report &nearr;
+                            </a>
+                        </div>
+                        {% endif %}
+                    {% else %}
+                        <p style="color: var(--soft); font-size: 0.9rem; padding: 1rem 0;">
+                            Audit has not yet been executed for this school. Click <strong>Audit School</strong> to search for their statutory SEND policy and contact information.
+                        </p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Right Column: Named Contacts & Outreach Generator -->
+            <div>
+                <!-- Key Contacts -->
+                <div class="card" style="margin-bottom: 1.5rem;">
+                    <h2>Key Contacts</h2>
+                    {% for contact in contacts %}
+                    <div style="padding: 0.85rem 0; border-bottom: 1px solid var(--line);">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <strong style="font-size: 1.05rem; color: var(--ink);">{{ contact.name }}</strong>
+                            <span class="badge badge-mint">{{ contact.role }}</span>
+                        </div>
+                        <div style="font-size: 0.85rem; color: var(--soft); margin-top: 0.3rem;">
+                            {% if contact.email %}
+                                <div>Email: <a href="mailto:{{ contact.email }}" style="color: var(--teal); font-weight: 500;">{{ contact.email }}</a>
+                                {% if contact.email_is_verified %}<span style="color: var(--success); font-size: 0.75rem;">(Verified from SEND Report)</span>{% endif %}
+                                </div>
+                            {% endif %}
+                            {% if contact.phone_extension %}
+                                <div>Tel Ext: {{ contact.phone_extension }}</div>
+                            {% endif %}
+                            {% if contact.source %}
+                                <div style="font-size: 0.75rem; color: var(--gray-500); margin-top: 0.2rem;">Source: {{ contact.source }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% else %}
+                    <p style="color: var(--soft); font-size: 0.9rem; padding: 0.5rem 0;">
+                        No staff contacts found yet. The audit agent will locate the named SENCO and Headteacher.
+                    </p>
+                    {% endfor %}
+                </div>
+
+                <!-- Tailored Outreach Drafts -->
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h2>Tailored Outreach</h2>
+                        <button onclick="fetch('/research/schools/{{ school.id }}/redraft', {method:'POST'}).then(()=>window.location.reload())" class="btn btn-secondary btn-sm">
+                            Re-generate Drafts
+                        </button>
+                    </div>
+
+                    {% set ns = namespace(senco=None, head=None) %}
+                    {% for c in contacts %}
+                        {% if not ns.senco and ('senco' in c.role.lower() or 'inclusion' in c.role.lower()) %}
+                            {% set ns.senco = c %}
+                        {% elif not ns.head and ('head' in c.role.lower() or 'principal' in c.role.lower()) %}
+                            {% set ns.head = c %}
+                        {% endif %}
+                    {% endfor %}
+                    {% if not ns.senco and contacts %}{% set ns.senco = contacts[0] %}{% endif %}
+                    {% if not ns.head and contacts | length > 1 %}{% set ns.head = contacts[1] %}{% endif %}
+                    {% set senco_contact = ns.senco %}
+                    {% set head_contact = ns.head %}
+
+                    <div class="tabs">
+                        <button class="tab-btn active" onclick="switchTab(event, 'tabSenco')">SENCO Email</button>
+                        <button class="tab-btn" onclick="switchTab(event, 'tabHead')">Headteacher Email</button>
+                        <button class="tab-btn" onclick="switchTab(event, 'tabLetter')">Physical Letter</button>
+                    </div>
+
+                    <!-- SENCO Email Tab -->
+                    <div id="tabSenco" class="tab-content active">
+                        {% if senco_contact and senco_contact.email_draft %}
+                            <div style="margin-bottom: 0.75rem;">
+                                <label style="font-size: 0.75rem; font-weight: 700; color: var(--soft); text-transform: uppercase;">Subject Line:</label>
+                                <div id="sencoSubject" style="font-weight: 600; color: var(--ink); margin-top: 0.2rem;">{{ senco_contact.email_subject }}</div>
+                            </div>
+                            <div style="display: flex; justify-content: flex-end; margin-bottom: 0.5rem;">
+                                <button onclick="copyText('sencoBody', this)" class="btn btn-secondary btn-sm">Copy Email Body</button>
+                            </div>
+                            <div id="sencoBody" class="outreach-box">{{ senco_contact.email_draft }}</div>
+                        {% else %}
+                            <p style="color: var(--soft); font-size: 0.9rem;">Run the school audit to generate an empathetic email drafted specifically for the SENCO.</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Headteacher Email Tab -->
+                    <div id="tabHead" class="tab-content">
+                        {% if head_contact and head_contact.email_draft %}
+                            <div style="margin-bottom: 0.75rem;">
+                                <label style="font-size: 0.75rem; font-weight: 700; color: var(--soft); text-transform: uppercase;">Subject Line:</label>
+                                <div id="headSubject" style="font-weight: 600; color: var(--ink); margin-top: 0.2rem;">{{ head_contact.email_subject }}</div>
+                            </div>
+                            <div style="display: flex; justify-content: flex-end; margin-bottom: 0.5rem;">
+                                <button onclick="copyText('headBody', this)" class="btn btn-secondary btn-sm">Copy Email Body</button>
+                            </div>
+                            <div id="headBody" class="outreach-box">{{ head_contact.email_draft }}</div>
+                        {% else %}
+                            <p style="color: var(--soft); font-size: 0.9rem;">Run the school audit to generate a whole-school inclusion oversight message for the Headteacher.</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Physical Postal Letter Tab -->
+                    <div id="tabLetter" class="tab-content">
+                        {% if senco_contact and senco_contact.letter_draft %}
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                                <span style="font-size: 0.8rem; color: var(--soft);">Ready for A4 Envelope Post ("Lumpy Mail")</span>
+                                <div style="display: flex; gap: 0.5rem;">
+                                    <button onclick="copyText('letterText', this)" class="btn btn-secondary btn-sm">Copy Text</button>
+                                    <button onclick="printLetter()" class="btn btn-coral btn-sm">🖨️ Print 1-Page Letter</button>
+                                </div>
+                            </div>
+                            <div id="letterText" class="letter-paper">{{ senco_contact.letter_draft }}</div>
+                        {% else %}
+                            <p style="color: var(--soft); font-size: 0.9rem;">Run the school audit to generate a print-ready physical letter addressed to the named SENCO.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
