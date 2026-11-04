@@ -22,7 +22,7 @@
         </header>
 
         <!-- Metrics Dashboard -->
-        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-top: 2rem; margin-bottom: 2rem;">
+        <div class="contacts-metrics-grid">
             <div class="card" style="text-align: center; padding: 1.5rem;">
                 <h3 style="margin: 0; font-size: 2rem; color: var(--accent);">{{ metrics.total_orgs }}</h3>
                 <div style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 0.5rem; text-transform: uppercase; letter-spacing: 1px;">Target Orgs</div>
@@ -43,7 +43,7 @@
 
         <h2 class="mb-4">Prospecting Pipeline</h2>
         
-        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; align-items: start; overflow-x: auto; padding-bottom: 1rem;">
+        <div class="pipeline-kanban-board">
             
             {% set statuses = [('discovered', 'New Leads'), ('researched', 'Researched'), ('emailed', 'Outreach Active'), ('replied', 'Engaged')] %}
             

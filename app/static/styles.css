@@ -285,3 +285,143 @@ a:hover {
     font-family: inherit;
     font-size: inherit;
 }
+
+
+/* ==========================================================================
+   Comprehensive Mobile & Tablet Responsiveness (HaloITSM)
+   ========================================================================== */
+
+.contacts-metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1rem;
+    margin-top: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.pipeline-kanban-board {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.25rem;
+    align-items: start;
+    padding-bottom: 1rem;
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 0.85rem 0.65rem;
+    }
+
+    header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.85rem;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.75rem;
+    }
+
+    header > div {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+        width: 100%;
+    }
+
+    header .btn {
+        flex: 1 1 auto;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.8rem;
+        text-align: center;
+    }
+
+    h1 {
+        font-size: 1.35rem;
+    }
+
+    h2 {
+        font-size: 1.15rem;
+    }
+
+    .grid-2 {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .org-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .metrics-row {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.5rem;
+    }
+
+    .metric-card {
+        padding: 0.75rem 0.5rem !important;
+    }
+
+    .metric-value {
+        font-size: 1.2rem !important;
+    }
+
+    .table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        width: 100%;
+        margin-bottom: 1.5rem;
+    }
+
+    .crm-table {
+        min-width: 600px;
+    }
+
+    .crm-table th, .crm-table td {
+        padding: 0.65rem 0.75rem;
+        font-size: 0.8rem;
+    }
+
+    .contacts-metrics-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.5rem;
+    }
+
+    .contacts-metrics-grid .card {
+        padding: 1rem !important;
+    }
+
+    .contacts-metrics-grid h3 {
+        font-size: 1.4rem !important;
+    }
+
+    .pipeline-kanban-board {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .card {
+        padding: 1rem;
+    }
+
+    #toast-container {
+        bottom: 1rem;
+        right: 1rem;
+        left: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .metrics-row {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.4rem;
+    }
+
+    .metric-title {
+        font-size: 0.7rem !important;
+    }
+
+    header .btn {
+        padding: 0.45rem 0.6rem;
+        font-size: 0.75rem;
+    }
+}

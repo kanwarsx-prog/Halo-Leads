@@ -504,3 +504,145 @@ tr:hover td { background-color: #fafcfb; }
   font-size: 0.82rem;
   font-family: inherit;
 }
+
+
+/* ==========================================================================
+   Comprehensive Mobile & Tablet Responsiveness
+   ========================================================================== */
+
+@media (max-width: 768px) {
+  .container {
+    padding: 0.65rem 0.5rem;
+  }
+
+  header {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 0.75rem;
+    gap: 0.65rem;
+    border-radius: 10px;
+  }
+
+  .brand-title {
+    justify-content: flex-start;
+  }
+
+  nav {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.4rem;
+    width: 100%;
+  }
+
+  nav .btn {
+    justify-content: center;
+    width: 100%;
+    text-align: center;
+    padding: 0.45rem 0.6rem;
+    font-size: 0.78rem;
+  }
+
+  .grid-metrics {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .metric-card {
+    padding: 0.65rem 0.75rem;
+  }
+
+  .metric-value {
+    font-size: 1.25rem;
+  }
+
+  /* Tables horizontal touch scrolling */
+  .table-container {
+    -webkit-overflow-scrolling: touch;
+    overflow-x: auto;
+    width: 100%;
+    margin-bottom: 1rem;
+  }
+
+  table {
+    min-width: 600px;
+  }
+
+  /* Modals */
+  .modal {
+    width: 95vw;
+    padding: 1.15rem;
+    max-height: 85vh;
+    overflow-y: auto;
+  }
+
+  .form-grid-2,
+  .modal form div[style*="grid-template-columns: 1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+    gap: 0.5rem !important;
+  }
+
+  /* Detail Screen */
+  .detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap;
+    padding-bottom: 4px;
+  }
+
+  .tab-btn {
+    flex-shrink: 0;
+    white-space: nowrap;
+    padding: 0.4rem 0.65rem;
+    font-size: 0.76rem;
+  }
+
+  .letter-paper {
+    padding: 1rem;
+    font-size: 0.82rem;
+  }
+
+  .tooltip-box {
+    max-width: 82vw;
+    left: auto;
+    right: 0;
+    transform: none;
+  }
+
+  .tooltip-box::after {
+    left: auto;
+    right: 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .brand-title-text {
+    font-size: 1.1rem;
+  }
+
+  .brand-badge {
+    font-size: 0.6rem;
+    padding: 0.15rem 0.4rem;
+  }
+
+  nav {
+    grid-template-columns: 1fr;
+  }
+
+  .grid-metrics {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.4rem;
+  }
+
+  .metric-title {
+    font-size: 0.6rem;
+  }
+
+  .metric-subtitle {
+    display: none;
+  }
+}
