@@ -247,14 +247,27 @@
                     {% endif %}
                 </div>
 
-                <!-- Tailored Outreach Drafts -->
-                <div class="card">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                        <h2>Tailored Outreach</h2>
-                        <button onclick="fetch('/seemymind/research/schools/{{ school.id }}/redraft', {method:'POST'}).then(()=>window.location.reload())" class="btn btn-secondary btn-sm">
-                            Re-generate Drafts
-                        </button>
+                <!-- Tailored Outreach Drafts (Collapsible) -->
+                <div class="card" id="outreachCard">
+                    <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none;" onclick="toggleOutreach()">
+                        <div style="display: flex; align-items: center; gap: 0.6rem;">
+                            <span id="outreachArrow" style="display: inline-block; transition: transform 0.2s; font-size: 0.8rem; color: var(--soft);">▶</span>
+                            <h2 style="margin: 0; font-size: 1.15rem;">Tailored Outreach</h2>
+                            {% if latest_run and latest_run.status.value == 'completed' %}
+                            <span class="badge badge-mint" style="font-size: 0.72rem;">3 Drafts Ready</span>
+                            {% endif %}
+                        </div>
+                        <div style="display: flex; gap: 0.4rem; align-items: center;" onclick="event.stopPropagation()">
+                            <button type="button" onclick="toggleOutreach()" class="btn btn-secondary btn-sm" id="outreachToggleBtn" style="font-size: 0.76rem; font-weight: 600; color: var(--teal); border-color: var(--teal);">
+                                Expand Drafts ▼
+                            </button>
+                            <button onclick="fetch('/seemymind/research/schools/{{ school.id }}/redraft', {method:'POST'}).then(()=>window.location.reload())" class="btn btn-secondary btn-sm" style="font-size: 0.76rem;">
+                                Re-generate Drafts
+                            </button>
+                        </div>
                     </div>
+
+                    <div id="outreachBody" style="display: none; margin-top: 1rem; border-top: 1px solid var(--line); padding-top: 1rem;">
 
                     {% set ns = namespace(senco=None, head=None) %}
                     {% for c in contacts %}
@@ -325,6 +338,7 @@
                         {% endif %}
                     </div>
                 </div>
+            </div>
             </div>
         </div>
 
@@ -611,6 +625,25 @@
             } catch (err) {
                 console.error(err);
                 alert('Connection error');
+            }
+        }
+
+
+        function toggleOutreach() {
+            const body = document.getElementById('outreachBody');
+            const arrow = document.getElementById('outreachArrow');
+            const btn = document.getElementById('outreachToggleBtn');
+            if (!body) return;
+
+            const isHidden = (body.style.display === 'none' || !body.style.display);
+            if (isHidden) {
+                body.style.display = 'block';
+                if (arrow) arrow.style.transform = 'rotate(90deg)';
+                if (btn) btn.innerText = 'Collapse Drafts ▲';
+            } else {
+                body.style.display = 'none';
+                if (arrow) arrow.style.transform = 'rotate(0deg)';
+                if (btn) btn.innerText = 'Expand Drafts ▼';
             }
         }
 
