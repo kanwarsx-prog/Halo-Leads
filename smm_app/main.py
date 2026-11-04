@@ -1,14 +1,18 @@
 from contextlib import asynccontextmanager
+from pathlib import Path
 from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
-from app.config import get_settings
-from app.database import Base, SessionLocal, engine
-from app.models import AuditStatus, SchoolAuditRun
-from app.routes import prompts, research, schools, ui
+from smm_app.config import get_settings
+from smm_app.database import Base, SessionLocal, engine
+from smm_app.models import AuditStatus, SchoolAuditRun
+from smm_app.routes import prompts, research, schools, ui
 
 settings = get_settings()
+
+BASE_DIR = Path(__file__).resolve().parent
+STATIC_DIR = BASE_DIR / "static"
 
 
 @asynccontextmanager
@@ -41,13 +45,13 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# Mount static files
-app.mount("/static", StaticFiles(directory="app/static"), name="static")
+# Mount static files with robust directory path
+app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
 
 @app.get("/", include_in_schema=False)
 def root():
-    return RedirectResponse(url="/ui")
+    return RedirectResponse(url="/seemymind/ui")
 
 
 # Register routers

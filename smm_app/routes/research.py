@@ -2,15 +2,15 @@ import uuid
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from app.database import get_db
-from app.models import AuditStatus, School, SchoolAuditRun, SchoolContact
-from app.school_research import audit_school, draft_outreach_for_school
+from smm_app.database import get_db
+from smm_app.models import AuditStatus, School, SchoolAuditRun, SchoolContact
+from smm_app.school_research import audit_school, draft_outreach_for_school
 
 router = APIRouter(prefix="/research", tags=["research"])
 
 
 def background_audit_runner(run_id: str):
-    from app.database import SessionLocal
+    from smm_app.database import SessionLocal
     db = SessionLocal()
     try:
         audit_school(db, run_id)

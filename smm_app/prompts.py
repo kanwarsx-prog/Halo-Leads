@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from app.models import PromptConfig
+from smm_app.models import PromptConfig
 
 PROMPT_VERSION = "smm-education-v1"
 

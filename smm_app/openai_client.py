@@ -1,5 +1,5 @@
 from openai import OpenAI
-from app.config import get_settings
+from smm_app.config import get_settings
 
 settings = get_settings()
 

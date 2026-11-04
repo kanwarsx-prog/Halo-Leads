@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 
-from app.models import SchoolPipelineStage, ContactStatus, AuditStatus
+from smm_app.models import SchoolPipelineStage, ContactStatus, AuditStatus
 
 
 class SchoolContactBase(BaseModel):

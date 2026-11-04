@@ -4,19 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SENCO & Education Contacts Directory · See My Mind</title>
-    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="/seemymind/static/styles.css">
 </head>
 <body>
     <div class="container">
         <header>
-            <a href="/ui" class="brand-title">
-                <img src="/static/logos/seemymind-mark.png" alt="See My Mind" class="brand-icon">
+            <a href="/seemymind/ui" class="brand-title">
+                <img src="/seemymind/static/logos/seemymind-mark.png" alt="See My Mind" class="brand-icon">
                 <span class="brand-title-text smm-title">See My Mind</span>
                 <span class="brand-badge"><span class="live-dot"></span> Education Intelligence</span>
             </a>
             <nav>
-                <a href="/ui" class="btn btn-secondary">&larr; Back to Schools Dashboard</a>
-                <a href="/ui/config" class="btn btn-secondary"><span>⚙️</span> Prompts</a>
+            <a href="/" class="btn btn-secondary" style="color: var(--soft);">⬡ Hub</a>
+            <a href="/ui" class="btn btn-secondary" style="border-color: #38bdf8; color: #0284c7; font-weight: 600;">💼 Switch to Halo</a>
+                <a href="/seemymind/ui" class="btn btn-secondary">&larr; Back to Schools Dashboard</a>
+                <a href="/seemymind/ui/config" class="btn btn-secondary"><span>⚙️</span> Prompts</a>
             </nav>
         </header>
 
@@ -71,7 +73,7 @@
                             </span>
                         </td>
                         <td>
-                            <a href="/ui/schools/{{ contact.school.id }}" style="color: var(--teal); font-weight: 500; text-decoration: none;">
+                            <a href="/seemymind/ui/schools/{{ contact.school.id }}" style="color: var(--teal); font-weight: 500; text-decoration: none;">
                                 {{ contact.school.name }}
                             </a>
                             {% if contact.school.postcode %}
@@ -101,7 +103,7 @@
                         </td>
                         <td>
                             <div style="display: flex; gap: 0.35rem;">
-                                <a href="/ui/schools/{{ contact.school.id }}" class="btn btn-secondary btn-sm">View School</a>
+                                <a href="/seemymind/ui/schools/{{ contact.school.id }}" class="btn btn-secondary btn-sm">View School</a>
                                 {% if contact.email %}
                                     <button onclick="navigator.clipboard.writeText('{{ contact.email }}'); alert('Copied {{ contact.email }} to clipboard!');" class="btn btn-secondary btn-sm">Copy Email</button>
                                 {% endif %}

@@ -5,8 +5,8 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
-from app.config import get_settings
-from app.models import (
+from smm_app.config import get_settings
+from smm_app.models import (
     AuditStatus,
     ContactStatus,
     School,
@@ -14,10 +14,10 @@ from app.models import (
     SchoolContact,
     SchoolPipelineStage,
 )
-from app.openai_client import client
-from app.prompts import get_prompt
-from app.schemas import OutreachDraftResult, SchoolAuditExtraction
-from app.scoring import calculate_school_score
+from smm_app.openai_client import client
+from smm_app.prompts import get_prompt
+from smm_app.schemas import OutreachDraftResult, SchoolAuditExtraction
+from smm_app.scoring import calculate_school_score
 
 settings = get_settings()
 

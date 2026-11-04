@@ -5,9 +5,9 @@ from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.database import get_db
-from app.models import School, SchoolPipelineStage, SchoolContact
-from app.schemas import SchoolCreate, SchoolRead, SchoolStageUpdate
+from smm_app.database import get_db
+from smm_app.models import School, SchoolPipelineStage, SchoolContact
+from smm_app.schemas import SchoolCreate, SchoolRead, SchoolStageUpdate
 
 router = APIRouter(prefix="/schools", tags=["schools"])
 

@@ -4,21 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>See My Mind · Schools & MATs Lead Agent</title>
-    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="/seemymind/static/styles.css">
 </head>
 <body>
     <div class="container">
         <header>
-            <a href="/ui" class="brand-title">
-                <img src="/static/logos/seemymind-mark.png" alt="See My Mind" class="brand-icon">
+            <a href="/seemymind/ui" class="brand-title">
+                <img src="/seemymind/static/logos/seemymind-mark.png" alt="See My Mind" class="brand-icon">
                 <span class="brand-title-text smm-title">See My Mind</span>
                 <span class="brand-badge"><span class="live-dot"></span> Education Intelligence</span>
             </a>
             <nav>
-                <a href="/ui/contacts" class="btn btn-secondary">
+            <a href="/" class="btn btn-secondary" style="color: var(--soft);">⬡ Hub</a>
+            <a href="/ui" class="btn btn-secondary" style="border-color: #38bdf8; color: #0284c7; font-weight: 600;">💼 Switch to Halo</a>
+                <a href="/seemymind/ui/contacts" class="btn btn-secondary">
                     <span>👥</span> Contacts ({{ contacts_count }})
                 </a>
-                <a href="/ui/config" class="btn btn-secondary">
+                <a href="/seemymind/ui/config" class="btn btn-secondary">
                     <span>⚙️</span> Prompts
                 </a>
                 <button onclick="openModal('importCsvModal')" class="btn btn-secondary">
@@ -124,7 +126,7 @@
                     {% for school in schools %}
                     <tr>
                         <td>
-                            <a href="/ui/schools/{{ school.id }}" style="font-weight: 600; color: var(--teal); text-decoration: none;">
+                            <a href="/seemymind/ui/schools/{{ school.id }}" style="font-weight: 600; color: var(--teal); text-decoration: none;">
                                 {{ school.name }}
                             </a>
                             {% if school.postcode %}
@@ -207,7 +209,7 @@
                         </td>
                         <td>
                             <div style="display: flex; gap: 0.4rem;">
-                                <a href="/ui/schools/{{ school.id }}" class="btn btn-secondary btn-sm">View</a>
+                                <a href="/seemymind/ui/schools/{{ school.id }}" class="btn btn-secondary btn-sm">View</a>
                                 <button onclick="triggerAudit('{{ school.id }}', this)" class="btn btn-primary btn-sm">Audit SEND</button>
                             </div>
                         </td>
@@ -290,7 +292,7 @@
         </div>
     </div>
 
-    <script src="/static/app.js"></script>
+    <script src="/seemymind/static/app.js"></script>
     <script>
         async function submitAddSchool(e) {
             e.preventDefault();
@@ -304,7 +306,7 @@
                 sen_percentage: parseFloat(form.sen_percentage.value) || 0.0
             };
             try {
-                const res = await fetch('/schools', {
+                const res = await fetch('/seemymind/schools', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
@@ -328,7 +330,7 @@
 
             const formData = new FormData(e.target);
             try {
-                const res = await fetch('/schools/import-csv', {
+                const res = await fetch('/seemymind/schools/import-csv', {
                     method: 'POST',
                     body: formData
                 });

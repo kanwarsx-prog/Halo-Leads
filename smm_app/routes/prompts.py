@@ -2,10 +2,10 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.database import get_db
-from app.models import PromptConfig
-from app.prompts import DEFAULT_PROMPTS, get_prompt
-from app.schemas import PromptConfigRead, PromptConfigUpdate
+from smm_app.database import get_db
+from smm_app.models import PromptConfig
+from smm_app.prompts import DEFAULT_PROMPTS, get_prompt
+from smm_app.schemas import PromptConfigRead, PromptConfigUpdate
 
 router = APIRouter(prefix="/prompts", tags=["prompts"])
 

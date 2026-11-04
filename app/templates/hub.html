@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lead Intelligence Suite · Outbound Prospecting Engines</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: #090d16;
+            --bg-card: rgba(18, 24, 38, 0.7);
+            --bg-card-hover: rgba(26, 34, 52, 0.85);
+            --border: rgba(255, 255, 255, 0.08);
+            --border-hover: rgba(255, 255, 255, 0.2);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --halo-accent: #38bdf8;
+            --halo-glow: rgba(56, 189, 248, 0.25);
+            --smm-accent: #10b981;
+            --smm-glow: rgba(16, 185, 129, 0.25);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-image: 
+                radial-gradient(circle at 20% 20%, rgba(56, 189, 248, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 80% 80%, rgba(16, 185, 129, 0.08) 0%, transparent 40%);
+            background-attachment: fixed;
+        }
+
+        .header {
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            backdrop-filter: blur(12px);
+            background: rgba(9, 13, 22, 0.6);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .brand-badge-group {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .brand-logo {
+            font-weight: 800;
+            font-size: 1.15rem;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, #fff 30%, #94a3b8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.25);
+            color: #34d399;
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 3px 10px;
+            border-radius: 9999px;
+        }
+
+        .status-dot {
+            width: 7px;
+            height: 7px;
+            background-color: #34d399;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #34d399;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.9); }
+        }
+
+        .hero {
+            max-width: 900px;
+            margin: 3.5rem auto 2.5rem;
+            text-align: center;
+            padding: 0 1.5rem;
+        }
+
+        .hero h1 {
+            font-size: 2.75rem;
+            font-weight: 800;
+            letter-spacing: -1px;
+            line-height: 1.15;
+            margin-bottom: 1rem;
+        }
+
+        .hero h1 span.halo-text {
+            color: var(--halo-accent);
+        }
+
+        .hero h1 span.smm-text {
+            color: var(--smm-accent);
+        }
+
+        .hero p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            line-height: 1.6;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 1.5rem 4rem;
+            width: 100%;
+        }
+
+        .engines-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-top: 1rem;
+        }
+
+        @media (max-width: 840px) {
+            .engines-grid {
+                grid-template-columns: 1fr;
+            }
+            .hero h1 {
+                font-size: 2.1rem;
+            }
+        }
+
+        .engine-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2.25rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            backdrop-filter: blur(16px);
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .engine-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            opacity: 0.8;
+        }
+
+        .card-halo::before {
+            background: linear-gradient(90deg, #38bdf8, #0284c7);
+        }
+
+        .card-smm::before {
+            background: linear-gradient(90deg, #10b981, #059669);
+        }
+
+        .engine-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--border-hover);
+            background: var(--bg-card-hover);
+        }
+
+        .card-halo:hover {
+            box-shadow: 0 16px 36px -12px var(--halo-glow);
+        }
+
+        .card-smm:hover {
+            box-shadow: 0 16px 36px -12px var(--smm-glow);
+        }
+
+        .card-badge {
+            display: inline-block;
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            padding: 4px 10px;
+            border-radius: 6px;
+            margin-bottom: 1.25rem;
+        }
+
+        .badge-halo {
+            background: rgba(56, 189, 248, 0.12);
+            color: #38bdf8;
+            border: 1px solid rgba(56, 189, 248, 0.25);
+        }
+
+        .badge-smm {
+            background: rgba(16, 185, 129, 0.12);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.25);
+        }
+
+        .engine-title {
+            font-size: 1.65rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: #fff;
+        }
+
+        .engine-tagline {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            line-height: 1.5;
+            margin-bottom: 1.5rem;
+        }
+
+        .feature-list {
+            list-style: none;
+            margin-bottom: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.7rem;
+        }
+
+        .feature-list li {
+            font-size: 0.88rem;
+            color: #cbd5e1;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .btn-launch {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.9rem 1.5rem;
+            font-weight: 600;
+            font-size: 0.95rem;
+            border-radius: 10px;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .btn-halo {
+            background: #0284c7;
+            color: #ffffff;
+            box-shadow: 0 4px 14px rgba(2, 132, 199, 0.4);
+        }
+
+        .btn-halo:hover {
+            background: #0369a1;
+            transform: translateY(-1px);
+        }
+
+        .btn-smm {
+            background: #059669;
+            color: #ffffff;
+            box-shadow: 0 4px 14px rgba(5, 150, 105, 0.4);
+        }
+
+        .btn-smm:hover {
+            background: #047857;
+            transform: translateY(-1px);
+        }
+
+        .quick-links {
+            margin-top: 1rem;
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            font-size: 0.8rem;
+        }
+
+        .quick-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: color 0.15s;
+        }
+
+        .quick-links a:hover {
+            color: #ffffff;
+        }
+
+        .footer {
+            margin-top: auto;
+            border-top: 1px solid var(--border);
+            padding: 1.5rem;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <div class="brand-badge-group">
+            <span class="brand-logo">⚡ LeadGen Multi-Agent Suite</span>
+            <span class="status-pill">
+                <span class="status-dot"></span>
+                2 Engines Live · Supabase Connected
+            </span>
+        </div>
+        <div style="display: flex; gap: 0.75rem;">
+            <a href="/docs" target="_blank" style="color: var(--text-muted); text-decoration: none; font-size: 0.85rem; padding: 6px 12px; border: 1px solid var(--border); border-radius: 6px;">Swagger API</a>
+        </div>
+    </header>
+
+    <div class="hero">
+        <h1>Autonomous Lead Intelligence for <span class="halo-text">ITSM</span> & <span class="smm-text">Education</span></h1>
+        <p>
+            Choose your prospecting pipeline below. Each engine runs evidence-based web research, ICP qualification scoring, and executive outreach drafting.
+        </p>
+    </div>
+
+    <div class="container">
+        <div class="engines-grid">
+            <!-- Engine 1: HaloITSM -->
+            <div class="engine-card card-halo">
+                <div>
+                    <span class="card-badge badge-halo">B2B Enterprise ITSM</span>
+                    <h2 class="engine-title">💼 HaloITSM Value-Gap</h2>
+                    <p class="engine-tagline">
+                        Identifies enterprises paying excessive license fees for basic ServiceNow setups. Calculates 5-year value gaps and drafts displacement emails.
+                    </p>
+                    <ul class="feature-list">
+                        <li><span>🔍</span> <strong>Tech Stack Profiling:</strong> ServiceNow & legacy ITSM footprint</li>
+                        <li><span>📊</span> <strong>Value Gap Calculator:</strong> Multi-dimensional scoring model</li>
+                        <li><span>✉️</span> <strong>Executive Hooks:</strong> Cold drafts for CIOs and IT Directors</li>
+                        <li><span>🔄</span> <strong>Status:</strong> Discovered · Researched · Qualified</li>
+                    </ul>
+                </div>
+                <div>
+                    <a href="/ui" class="btn-launch btn-halo">
+                        Launch HaloITSM Portal <span>&rarr;</span>
+                    </a>
+                    <div class="quick-links">
+                        <a href="/ui">Dashboard</a>
+                        <span>&bull;</span>
+                        <a href="/ui/contacts">Contacts</a>
+                        <span>&bull;</span>
+                        <a href="/ui/config">Prompts</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Engine 2: See My Mind -->
+            <div class="engine-card card-smm">
+                <div>
+                    <span class="card-badge badge-smm">UK Education & Trusts</span>
+                    <h2 class="engine-title">🏫 See My Mind Schools</h2>
+                    <p class="engine-tagline">
+                        Prospecting engine for UK Schools, Multi-Academy Trusts, and SENCOs. Audits statutory SEND reports and writes empathetic outreach.
+                    </p>
+                    <ul class="feature-list">
+                        <li><span>📥</span> <strong>GIAS DfE Import:</strong> Automatic URN & trust deduplication</li>
+                        <li><span>📄</span> <strong>Statutory SEND Audit:</strong> Scrapes SEND reports & Ofsted quotes</li>
+                        <li><span>🤝</span> <strong>Dual Outreach:</strong> SENCO email + Headteacher postal letter</li>
+                        <li><span>🎯</span> <strong>Scoring:</strong> 35% Need · 25% Trust · 20% SEND · 10% Tool</li>
+                    </ul>
+                </div>
+                <div>
+                    <a href="/seemymind/ui" class="btn-launch btn-smm">
+                        Launch See My Mind Portal <span>&rarr;</span>
+                    </a>
+                    <div class="quick-links">
+                        <a href="/seemymind/ui">Dashboard</a>
+                        <span>&bull;</span>
+                        <a href="/seemymind/ui/contacts">SENCO Directory</a>
+                        <span>&bull;</span>
+                        <a href="/seemymind/ui/config">Prompts</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        LeadGen Multi-Agent Suite &bull; DigitalOcean Deployment Ready &bull; PostgreSQL (Supabase) Database
+    </footer>
+
+</body>
+</html>

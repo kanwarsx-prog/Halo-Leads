@@ -1,13 +1,16 @@
+from pathlib import Path
 from fastapi import APIRouter, Depends, Request, HTTPException
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 
-from app.database import get_db
-from app.models import School, SchoolContact, SchoolAuditRun, PromptConfig, SchoolPipelineStage, ContactStatus
-from app.prompts import DEFAULT_PROMPTS, get_prompt
+from smm_app.database import get_db
+from smm_app.models import School, SchoolContact, SchoolAuditRun, PromptConfig, SchoolPipelineStage, ContactStatus
+from smm_app.prompts import DEFAULT_PROMPTS, get_prompt
+
+TEMPLATES_DIR = Path(__file__).resolve().parent.parent / "templates"
+templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
 router = APIRouter(prefix="/ui", tags=["ui"])
-templates = Jinja2Templates(directory="app/templates")
 
 
 @router.get("/")

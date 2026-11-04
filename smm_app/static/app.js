@@ -1,4 +1,5 @@
 // See My Mind Education Lead Agent Frontend JS
+const SMM_BASE = window.SMM_BASE || '/seemymind';
 
 function openModal(id) {
   const el = document.getElementById(id);
@@ -13,7 +14,7 @@ function closeModal(id) {
 // Stage change
 async function updateStage(schoolId, stage) {
   try {
-    const res = await fetch(`/schools/${schoolId}/stage`, {
+    const res = await fetch(`${SMM_BASE}/schools/${schoolId}/stage`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ pipeline_stage: stage })
@@ -38,7 +39,7 @@ async function triggerAudit(schoolId, btnElement) {
   }
 
   try {
-    const res = await fetch(`/research/schools/${schoolId}`, { method: 'POST' });
+    const res = await fetch(`${SMM_BASE}/research/schools/${schoolId}`, { method: 'POST' });
     const data = await res.json();
     if (res.ok) {
       pollAudit(data.run_id, btnElement, originalText);
@@ -62,7 +63,7 @@ async function triggerAudit(schoolId, btnElement) {
 function pollAudit(runId, btnElement, originalText) {
   const interval = setInterval(async () => {
     try {
-      const res = await fetch(`/research/runs/${runId}`);
+      const res = await fetch(`${SMM_BASE}/research/runs/${runId}`);
       const data = await res.json();
       if (btnElement && data.current_message) {
         btnElement.innerHTML = `<span style="animation: pulse 1.5s infinite;">⏳ ${data.current_message}</span>`;

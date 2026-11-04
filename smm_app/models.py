@@ -16,7 +16,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.database import Base
+from smm_app.database import Base
 
 
 class SchoolPipelineStage(str, enum.Enum):
@@ -75,7 +75,7 @@ class School(Base):
 
     # Lead qualification
     pipeline_stage: Mapped[SchoolPipelineStage] = mapped_column(
-        Enum(SchoolPipelineStage),
+        Enum(SchoolPipelineStage, native_enum=False),
         nullable=False,
         default=SchoolPipelineStage.discovered,
     )
@@ -126,7 +126,7 @@ class SchoolContact(Base):
     source: Mapped[str | None] = mapped_column(String(300))  # e.g., "SEND Info Report 2025/26"
 
     status: Mapped[ContactStatus] = mapped_column(
-        Enum(ContactStatus),
+        Enum(ContactStatus, native_enum=False),
         nullable=False,
         default=ContactStatus.discovered,
     )
@@ -163,7 +163,7 @@ class SchoolAuditRun(Base):
         index=True,
     )
     status: Mapped[AuditStatus] = mapped_column(
-        Enum(AuditStatus),
+        Enum(AuditStatus, native_enum=False),
         nullable=False,
         default=AuditStatus.queued,
     )

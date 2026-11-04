@@ -1,0 +1,29 @@
+name: halo-leads-suite
+region: lon1
+services:
+- name: web
+  github:
+    branch: main
+    deploy_on_push: true
+    repo: kanwarsx-prog/Halo-Leads
+  dockerfile_path: Dockerfile
+  http_port: 8080
+  instance_count: 1
+  instance_size_slug: basic-xxs
+  health_check:
+    http_path: /health
+    initial_delay_seconds: 15
+    period_seconds: 20
+    timeout_seconds: 5
+    failure_threshold: 4
+  envs:
+  - key: APP_ENV
+    value: production
+  - key: OPENAI_RESEARCH_MODEL
+    value: gpt-4o-mini
+  - key: OPENAI_EXTRACTION_MODEL
+    value: gpt-4o-mini
+  - key: DATABASE_URL
+    type: SECRET
+  - key: OPENAI_API_KEY
+    type: SECRET

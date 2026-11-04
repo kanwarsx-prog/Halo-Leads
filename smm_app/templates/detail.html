@@ -4,19 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ school.name }} · See My Mind Lead Intelligence</title>
-    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="/seemymind/static/styles.css">
 </head>
 <body>
     <div class="container">
         <header>
-            <a href="/ui" class="brand-title">
-                <img src="/static/logos/seemymind-mark.png" alt="See My Mind" class="brand-icon">
+            <a href="/seemymind/ui" class="brand-title">
+                <img src="/seemymind/static/logos/seemymind-mark.png" alt="See My Mind" class="brand-icon">
                 <span class="brand-title-text smm-title">See My Mind</span>
                 <span class="brand-badge"><span class="live-dot"></span> Education Intelligence</span>
             </a>
             <nav>
-                <a href="/ui" class="btn btn-secondary">&larr; Back to Dashboard</a>
-                <a href="/ui/contacts" class="btn btn-secondary"><span>👥</span> All Contacts</a>
+            <a href="/" class="btn btn-secondary" style="color: var(--soft);">⬡ Hub</a>
+            <a href="/ui" class="btn btn-secondary" style="border-color: #38bdf8; color: #0284c7; font-weight: 600;">💼 Switch to Halo</a>
+                <a href="/seemymind/ui" class="btn btn-secondary">&larr; Back to Dashboard</a>
+                <a href="/seemymind/ui/contacts" class="btn btn-secondary"><span>👥</span> All Contacts</a>
             </nav>
         </header>
 
@@ -76,7 +78,7 @@
                     <button onclick="triggerAudit('{{ school.id }}', this)" class="btn btn-primary btn-sm">
                         {% if latest_run and latest_run.status.value == 'completed' %}Re-run SEND Audit{% else %}Audit School & SEND Report{% endif %}
                     </button>
-                    <button onclick="if(confirm('Are you sure you want to remove this school from your targets?')) { fetch('/schools/{{ school.id }}', {method: 'DELETE'}).then(() => window.location.href='/ui'); }" class="btn btn-secondary btn-sm" style="color: var(--danger);" title="Remove School">
+                    <button onclick="if(confirm('Are you sure you want to remove this school from your targets?')) { fetch('/seemymind/schools/{{ school.id }}', {method: 'DELETE'}).then(() => window.location.href='/ui'); }" class="btn btn-secondary btn-sm" style="color: var(--danger);" title="Remove School">
                         🗑️ Delete
                     </button>
                 </div>
@@ -192,7 +194,7 @@
                 <div class="card">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
                         <h2>Tailored Outreach</h2>
-                        <button onclick="fetch('/research/schools/{{ school.id }}/redraft', {method:'POST'}).then(()=>window.location.reload())" class="btn btn-secondary btn-sm">
+                        <button onclick="fetch('/seemymind/research/schools/{{ school.id }}/redraft', {method:'POST'}).then(()=>window.location.reload())" class="btn btn-secondary btn-sm">
                             Re-generate Drafts
                         </button>
                     </div>
@@ -268,6 +270,6 @@
         </div>
     </div>
 
-    <script src="/static/app.js"></script>
+    <script src="/seemymind/static/app.js"></script>
 </body>
 </html>

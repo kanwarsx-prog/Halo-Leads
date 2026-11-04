@@ -1,8 +1,8 @@
 import uuid
 from datetime import datetime, timezone
 
-from app.database import Base, SessionLocal, engine
-from app.models import (
+from smm_app.database import Base, SessionLocal, engine
+from smm_app.models import (
     AuditStatus,
     ContactStatus,
     School,
@@ -10,7 +10,7 @@ from app.models import (
     SchoolContact,
     SchoolPipelineStage,
 )
-from app.prompts import DEFAULT_PROMPTS, get_prompt
+from smm_app.prompts import DEFAULT_PROMPTS, get_prompt
 
 
 def seed():
