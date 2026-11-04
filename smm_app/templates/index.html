@@ -24,9 +24,6 @@
                 <a href="/seemymind/ui/contacts" class="btn btn-secondary">
                     <span>👥</span> Contacts ({{ contacts_count }})
                 </a>
-                <a href="/seemymind/ui/config" class="btn btn-secondary">
-                    <span>⚙️</span> Prompts
-                </a>
                 <button onclick="openModal('importCsvModal')" class="btn btn-secondary">
                     <span>📥</span> Import GIAS
                 </button>
@@ -380,6 +377,15 @@
                 <button id="lastPageBtn" onclick="goToPage(totalPages)" class="page-btn" title="Last Page">&raquo;</button>
             </div>
         </div>
+        <!-- Discreet Footer -->
+        <footer style="margin-top: 3.5rem; padding: 1.5rem 0 2rem 0; border-top: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; font-size: 0.74rem; color: var(--soft); flex-wrap: wrap; gap: 0.5rem;">
+            <div>See My Mind &middot; Education Intelligence</div>
+            <div>
+                <a href="/seemymind/ui/config" style="color: var(--soft); text-decoration: none; opacity: 0.35; font-size: 0.72rem; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='0.35'" title="Admin Prompt Settings">
+                    ⚙️ Prompts
+                </a>
+            </div>
+        </footer>
     </div>
 
     <!-- Modal: Add Single School -->

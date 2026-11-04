@@ -23,8 +23,7 @@
             <nav>
                 <a href="/seemymind/ui" class="btn btn-secondary">&larr; Back to Schools Dashboard</a>
                 <button onclick="openModal('addGlobalContactModal')" class="btn btn-primary"><span>+</span> Add Contact</button>
-                <a href="/seemymind/ui/config" class="btn btn-secondary"><span>⚙️</span> Prompts</a>
-                <a href="/logout" class="btn btn-secondary" style="color: var(--soft);" title="Sign out">Log out</a>
+                                <a href="/logout" class="btn btn-secondary" style="color: var(--soft);" title="Sign out">Log out</a>
             </nav>
         </header>
 
@@ -220,6 +219,15 @@
                 <button id="lastPageBtn" onclick="goToContactPage(totalPages)" class="page-btn" title="Last Page">&raquo;</button>
             </div>
         </div>
+        <!-- Discreet Footer -->
+        <footer style="margin-top: 3.5rem; padding: 1.5rem 0 2rem 0; border-top: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; font-size: 0.74rem; color: var(--soft); flex-wrap: wrap; gap: 0.5rem;">
+            <div>See My Mind &middot; Education Intelligence</div>
+            <div>
+                <a href="/seemymind/ui/config" style="color: var(--soft); text-decoration: none; opacity: 0.35; font-size: 0.72rem; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='0.35'" title="Admin Prompt Settings">
+                    ⚙️ Prompts
+                </a>
+            </div>
+        </footer>
     </div>
 
     <!-- Modal: Add Contact (Global) -->
