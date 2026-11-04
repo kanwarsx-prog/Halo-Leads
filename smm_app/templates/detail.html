@@ -36,7 +36,7 @@
                                 <div class="tooltip-header">{{ school.priority }} · {{ school.overall_score }}/100</div>
                                 <div class="tooltip-row"><span>SEN Need (35%):</span><strong>{% if school.sen_percentage and school.sen_percentage >= 16 %}{{ "%.1f"|format(school.sen_percentage) }}% (High){% elif school.sen_percentage %}{{ "%.1f"|format(school.sen_percentage) }}%{% else %}Assessed{% endif %}</strong></div>
                                 <div class="tooltip-row"><span>Product Fit (25%):</span><strong>High Need Profile</strong></div>
-                                <div class="tooltip-row"><span>Named SENCO (20%):</span><strong>{% if school.contacts %}Verified{% else %}Pending{% endif %}</strong></div>
+                                <div class="tooltip-row"><span>Named SENCO (20%):</span><strong>{% if has_named_senco %}Verified{% else %}Not Published{% endif %}</strong></div>
                                 <div class="tooltip-row"><span>Trust Scale (10%):</span><strong>{% if school.mat_name %}MAT Hub{% else %}Single School{% endif %}</strong></div>
                                 <div class="tooltip-row"><span>Ofsted Context (10%):</span><strong>{% if school.ofsted_send_excerpt %}Quote Verified{% else %}General{% endif %}</strong></div>
                             </div>
@@ -175,7 +175,7 @@
                 <!-- Key Contacts -->
                 <div class="card" style="margin-bottom: 1.5rem;">
                     <h2>Key Contacts</h2>
-                    {% for contact in contacts %}
+                    {% for contact in named_contacts %}
                     <div style="padding: 0.85rem 0; border-bottom: 1px solid var(--line);">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
                             <strong style="font-size: 1.05rem; color: var(--ink);">{{ contact.name }}</strong>
@@ -184,7 +184,7 @@
                         <div style="font-size: 0.85rem; color: var(--soft); margin-top: 0.3rem;">
                             {% if contact.email %}
                                 <div>Email: <a href="mailto:{{ contact.email }}" style="color: var(--teal); font-weight: 500;">{{ contact.email }}</a>
-                                {% if contact.email_is_verified %}<span style="color: var(--success); font-size: 0.75rem;">(Verified from SEND Report)</span>{% endif %}
+                                {% if contact.email_is_verified %}<span style="color: var(--success); font-size: 0.75rem; font-weight: 600;">(Verified from Website/Report)</span>{% endif %}
                                 </div>
                             {% endif %}
                             {% if contact.phone_extension %}
@@ -197,9 +197,23 @@
                     </div>
                     {% else %}
                     <p style="color: var(--soft); font-size: 0.9rem; padding: 0.5rem 0;">
-                        No staff contacts found yet. Click 'Run Discovery' to locate the named SENCO and Headteacher.
+                        No named individuals published on the school website or statutory SEND report yet.
                     </p>
                     {% endfor %}
+
+                    {# Informative notes for unassigned roles #}
+                    {% if latest_run and latest_run.status.value == 'completed' %}
+                        {% if not has_named_senco %}
+                        <div style="padding: 0.65rem 0.85rem; background: var(--gray-100); border-radius: 6px; border: 1px dashed var(--line); margin-top: 0.75rem; font-size: 0.82rem; color: var(--soft);">
+                            <strong>SENCO:</strong> Direct name not published. Outreach drafted to <em>"The SENCO"</em>.
+                        </div>
+                        {% endif %}
+                        {% if not has_named_head %}
+                        <div style="padding: 0.65rem 0.85rem; background: var(--gray-100); border-radius: 6px; border: 1px dashed var(--line); margin-top: 0.75rem; font-size: 0.82rem; color: var(--soft);">
+                            <strong>Headteacher:</strong> Direct name not published. Outreach drafted to <em>"The Headteacher"</em>.
+                        </div>
+                        {% endif %}
+                    {% endif %}
                 </div>
 
                 <!-- Tailored Outreach Drafts -->

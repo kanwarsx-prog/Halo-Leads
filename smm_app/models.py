@@ -104,6 +104,10 @@ class School(Base):
         order_by="desc(SchoolAuditRun.started_at)",
     )
 
+    @property
+    def named_contacts(self) -> list["SchoolContact"]:
+        return [c for c in self.contacts if not c.name.startswith("The ")]
+
 
 class SchoolContact(Base):
     __tablename__ = "smm_contacts"

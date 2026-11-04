@@ -16,7 +16,12 @@ router = APIRouter(prefix="/ui", tags=["ui"])
 @router.get("/")
 def dashboard(request: Request, db: Session = Depends(get_db)):
     schools = db.query(School).order_by(School.created_at.desc()).all()
-    contacts_count = db.query(SchoolContact).count()
+    # Exclude role placeholders from named contacts metric
+    contacts_count = (
+        db.query(SchoolContact)
+        .filter(~SchoolContact.name.startswith("The "))
+        .count()
+    )
     high_priority_count = sum(1 for s in schools if s.priority == "Immediate Focus")
 
     return templates.TemplateResponse(
@@ -51,6 +56,9 @@ def school_detail(school_id: str, request: Request, db: Session = Depends(get_db
         .order_by(SchoolContact.created_at.asc())
         .all()
     )
+    named_contacts = [c for c in contacts if not c.name.startswith("The ")]
+    has_named_senco = any("senco" in c.role.lower() or "inclusion" in c.role.lower() for c in named_contacts)
+    has_named_head = any("head" in c.role.lower() or "principal" in c.role.lower() for c in named_contacts)
 
     return templates.TemplateResponse(
         request=request,
@@ -60,6 +68,9 @@ def school_detail(school_id: str, request: Request, db: Session = Depends(get_db
             "runs": runs,
             "latest_run": latest_run,
             "contacts": contacts,
+            "named_contacts": named_contacts,
+            "has_named_senco": has_named_senco,
+            "has_named_head": has_named_head,
             "stages": [s.value for s in SchoolPipelineStage],
         },
     )
@@ -67,9 +78,11 @@ def school_detail(school_id: str, request: Request, db: Session = Depends(get_db
 
 @router.get("/contacts")
 def contacts_directory(request: Request, db: Session = Depends(get_db)):
+    # Only list actual named individuals, exclude role placeholders
     contacts = (
         db.query(SchoolContact)
         .join(School)
+        .filter(~SchoolContact.name.startswith("The "))
         .order_by(School.name.asc(), SchoolContact.role.asc())
         .all()
     )

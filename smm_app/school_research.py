@@ -225,15 +225,16 @@ def draft_outreach_for_school(db: Session, school_id: str, extraction: SchoolAud
     if not senco:
         senco = next((c for c in contacts if "head" not in c.role.lower() and "principal" not in c.role.lower()), None)
     if not senco:
-        senco_name = extraction.named_senco if extraction and extraction.named_senco else "The SENCO / Inclusion Lead"
+        is_named = bool(extraction and extraction.named_senco)
+        senco_name = extraction.named_senco if is_named else "The SENCO / Inclusion Lead"
         senco = SchoolContact(
             school_id=school.id,
             name=senco_name,
             role="SENCO",
-            email=extraction.senco_email if extraction else school.general_email,
-            email_is_verified=bool(extraction and extraction.senco_email),
-            phone_extension=extraction.senco_phone if extraction else None,
-            source="Statutory SEND Information Report",
+            email=extraction.senco_email if is_named else None,
+            email_is_verified=bool(is_named and extraction.senco_email),
+            phone_extension=extraction.senco_phone if is_named else None,
+            source="Statutory SEND Information Report" if is_named else "Unassigned Role",
             personalized_hook=extraction.recommended_angle if extraction else None,
         )
         db.add(senco)
@@ -241,14 +242,15 @@ def draft_outreach_for_school(db: Session, school_id: str, extraction: SchoolAud
 
     head = next((c for c in contacts if "head" in c.role.lower() or "principal" in c.role.lower()), None)
     if not head:
-        head_name = extraction.headteacher_name if extraction and extraction.headteacher_name else "The Headteacher / Principal"
+        is_named_head = bool(extraction and extraction.headteacher_name)
+        head_name = extraction.headteacher_name if is_named_head else "The Headteacher / Principal"
         head = SchoolContact(
             school_id=school.id,
             name=head_name,
             role="Headteacher",
-            email=extraction.headteacher_email if extraction else school.general_email,
-            email_is_verified=bool(extraction and extraction.headteacher_email),
-            source="School Leadership",
+            email=extraction.headteacher_email if is_named_head else None,
+            email_is_verified=bool(is_named_head and extraction.headteacher_email),
+            source="School Leadership" if is_named_head else "Unassigned Role",
             personalized_hook=extraction.recommended_angle if extraction else None,
         )
         db.add(head)
