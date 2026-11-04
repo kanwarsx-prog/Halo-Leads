@@ -7,7 +7,7 @@ from fastapi.staticfiles import StaticFiles
 from smm_app.config import get_settings
 from smm_app.database import Base, SessionLocal, engine
 from smm_app.models import AuditStatus, SchoolAuditRun
-from smm_app.routes import prompts, research, schools, ui
+from smm_app.routes import prompts, research, schools, ui, mcp_route
 
 settings = get_settings()
 
@@ -71,3 +71,4 @@ app.include_router(ui.router)
 app.include_router(schools.router)
 app.include_router(research.router)
 app.include_router(prompts.router)
+app.include_router(mcp_route.router)

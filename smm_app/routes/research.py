@@ -1,3 +1,4 @@
+from pydantic import BaseModel
 import uuid
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -67,11 +68,24 @@ def get_audit_status(run_id: str, db: Session = Depends(get_db)):
     }
 
 
+class DraftRequest(BaseModel):
+    instructions: str | None = None
+
+
+@router.post("/schools/{school_id}/draft")
 @router.post("/schools/{school_id}/redraft")
-def trigger_redraft(school_id: str, db: Session = Depends(get_db)):
+def trigger_draft(
+    school_id: str,
+    payload: DraftRequest | None = None,
+    db: Session = Depends(get_db),
+):
     school = db.get(School, school_id)
     if not school:
         raise HTTPException(status_code=404, detail="School not found")
 
-    draft_outreach_for_school(db, school.id)
-    return {"message": "Outreach drafts re-generated"}
+    custom_instructions = payload.instructions if payload else None
+    result = draft_outreach_for_school(db, school.id, custom_instructions=custom_instructions)
+    return {
+        "message": "Outreach drafts generated successfully",
+        "result": result,
+    }

@@ -13,6 +13,7 @@ from smm_app.models import (
     SchoolAuditRun,
     SchoolContact,
     SchoolPipelineStage,
+    SchoolActivity,
 )
 from smm_app.openai_client import client
 from smm_app.prompts import get_prompt
@@ -188,10 +189,8 @@ Please investigate:
 
         db.flush()
 
-        # Step 5: Draft Outreach (Email + Physical Letter)
-        update_audit_message(db, run.id, "Drafting empathetic SENCO/Headteacher messages and postal letter...")
-        draft_outreach_for_school(db, school.id, extraction)
-
+        # Step 5: Complete Discovery (Drafts generated on-demand)
+        update_audit_message(db, run.id, "Discovery complete! Key contacts & SEND intelligence ready.")
         run.status = AuditStatus.completed
         run.completed_at = datetime.now(timezone.utc)
         db.commit()
@@ -208,16 +207,18 @@ Please investigate:
         raise
 
 
-def draft_outreach_for_school(db: Session, school_id: str, extraction: SchoolAuditExtraction | None = None):
-    """Generate both empathetic email drafts and 1-page physical letters."""
+def draft_outreach_for_school(
+    db: Session,
+    school_id: str,
+    extraction: SchoolAuditExtraction | None = None,
+    custom_instructions: str | None = None,
+) -> dict[str, Any]:
+    """Generate on-demand empathetic email drafts and 1-page physical letters, factoring in CRM activities & notes."""
     school = db.get(School, school_id)
     if not school:
-        return
+        raise ValueError(f"School {school_id} not found")
 
     contacts = db.query(SchoolContact).filter(SchoolContact.school_id == school.id).all()
-    if not contacts:
-        return
-
     outreach_prompt_instructions = get_prompt(db, "OUTREACH_DRAFTING_PROMPT")
 
     # Ensure both SENCO and Headteacher contacts exist
@@ -256,9 +257,63 @@ def draft_outreach_for_school(db: Session, school_id: str, extraction: SchoolAud
         db.add(head)
         db.flush()
 
+    # Retrieve all recorded pipeline activities and discussion notes
+    activities = (
+        db.query(SchoolActivity)
+        .filter(SchoolActivity.school_id == school.id)
+        .order_by(SchoolActivity.activity_date.desc(), SchoolActivity.created_at.desc())
+        .all()
+    )
+
+    if activities:
+        act_items = []
+        for a in activities:
+            dt_str = a.activity_date.strftime("%d %b %Y") if a.activity_date else "Recently"
+            who = f" (Staff: {a.contact_name})" if a.contact_name else ""
+            act_items.append(f"• [{dt_str}] Type: {a.activity_type.upper()}{who} | Title: {a.title}")
+            if a.notes:
+                act_items.append(f"  Discussion Notes: {a.notes.strip()}")
+            if a.follow_up_task and not a.follow_up_completed:
+                act_items.append(f"  Open Follow-up Task: {a.follow_up_task}")
+        activities_summary = "\n".join(act_items)
+    else:
+        activities_summary = "No prior conversations, phone calls, or CRM notes recorded yet (Initial outreach)."
+
+    # Retrieve audit intelligence
+    latest_run = (
+        db.query(SchoolAuditRun)
+        .filter(SchoolAuditRun.school_id == school.id, SchoolAuditRun.status == AuditStatus.completed)
+        .order_by(SchoolAuditRun.started_at.desc())
+        .first()
+    )
+
+    tools_info = (
+        ", ".join(extraction.detected_tools)
+        if extraction and extraction.detected_tools
+        else (latest_run.detected_tools if latest_run and latest_run.detected_tools else "Not explicitly stated")
+    )
+    strengths_info = (
+        ", ".join(extraction.strengths_found)
+        if extraction and extraction.strengths_found
+        else (latest_run.strengths_found if latest_run and latest_run.strengths_found else "Inclusive ethos")
+    )
+    challenges_info = (
+        ", ".join(extraction.challenges_found)
+        if extraction and extraction.challenges_found
+        else (latest_run.challenges_found if latest_run and latest_run.challenges_found else "High caseload / transition support")
+    )
+    angle_info = (
+        extraction.recommended_angle
+        if extraction and extraction.recommended_angle
+        else (latest_run.recommended_angle if latest_run and latest_run.recommended_angle else "Workload reduction and daily home-school loop")
+    )
+
+    today_str = datetime.now().strftime("%d %B %Y")
+
     prompt_input = f"""
 School Name: {school.name}
 School Address: {school.address or school.postcode or 'England, UK'}
+Current Date: {today_str}
 Phase: {school.phase or 'Primary'}
 Multi-Academy Trust: {school.mat_name or 'Maintained / Single Academy'}
 SENCO Name: {senco.name} ({senco.role})
@@ -268,10 +323,16 @@ Ofsted Inspection Quote regarding SEND:
 {school.ofsted_send_excerpt or 'Not available'}
 
 Identified SEND Context / Tools:
-- Tools: {', '.join(extraction.detected_tools) if extraction and extraction.detected_tools else 'Not explicitly stated'}
-- Strengths: {', '.join(extraction.strengths_found) if extraction and extraction.strengths_found else 'Inclusive ethos'}
-- Challenges: {', '.join(extraction.challenges_found) if extraction and extraction.challenges_found else 'High caseload / transition support'}
-- Recommended Angle: {extraction.recommended_angle if extraction else 'Workload reduction and daily home-school loop'}
+- Tools: {tools_info}
+- Strengths: {strengths_info}
+- Challenges: {challenges_info}
+- Recommended Angle: {angle_info}
+
+CRITICAL - Recorded Pipeline Activities & CRM Notes ({len(activities)} logged):
+{activities_summary}
+
+Specific Drafting Instructions / Additional Guidance:
+{custom_instructions if custom_instructions else "None provided - dynamically synthesize school context and CRM notes history."}
 
 Demo Booking Link: {settings.demo_link}
 Video Overview Link: {settings.video_link}
@@ -303,7 +364,33 @@ Video Overview Link: {settings.video_link}
         if school.pipeline_stage in (SchoolPipelineStage.discovered, SchoolPipelineStage.qualified):
             school.pipeline_stage = SchoolPipelineStage.outreach_ready
 
+        # Log an activity for draft generation
+        notes_detail = f"Generated SENCO email, Headteacher email, and physical letter taking into account {len(activities)} recorded CRM notes and SEND intelligence."
+        if custom_instructions:
+            notes_detail += f" Focus angle: '{custom_instructions}'."
+        db.add(
+            SchoolActivity(
+                school_id=school.id,
+                activity_type="note",
+                title="✨ Tailored outreach drafts generated",
+                notes=notes_detail,
+                author="See My Mind Agent",
+            )
+        )
+
         db.commit()
+
+        return {
+            "status": "success",
+            "senco_subject": senco.email_subject,
+            "senco_email": senco.email_draft,
+            "head_subject": head.email_subject if head else None,
+            "head_email": head.email_draft if head else None,
+            "letter": senco.letter_draft,
+            "activities_count": len(activities),
+        }
+
+    return {"status": "error", "message": "Failed to parse outreach drafts"}
 
 
 # Alias for terminology

@@ -59,22 +59,36 @@ Your task is to write high-impact, deeply empathetic outreach for this specific 
 - Ground in their real context: Reference their actual SEND Information Report, Ofsted findings, or school priorities.
 - Lead with value and empathy: Acknowledge the intense workload SENCOs face and show how See My Mind takes the burden of daily evidence gathering off their desk.
 
+*** HANDLING CRM ACTIVITY HISTORY & PRIOR CONVERSATIONS (CRITICAL) ***
+You will be provided with the school's recorded pipeline activities, notes, and discussion history:
+- If prior activities, phone calls, meetings, or CRM notes exist:
+  1. Acknowledge and build directly upon the existing relationship and past discussions (e.g. "Following our conversation on Tuesday with Gemma...", "As discussed regarding your EHCP evidence review backlog...", "Following up on the questions raised about TA transition tracking...").
+  2. NEVER sound like a generic cold sender if previous discussions have occurred.
+  3. Address specific points, questions, challenges, or next steps noted by the team in the CRM history.
+  4. Ensure the call-to-action matches the logical next step in the pipeline (e.g., booked demo follow-up, sandbox access, addressing questions from the last call).
+- If NO prior activities exist:
+  1. Write a fresh, empathetic initial outreach referencing their statutory SEND report, Ofsted findings, and specific school challenges.
+- If specific drafting instructions or user angles are supplied, adhere to them closely.
+
 *** TEMPLATES & STRUCTURE ***
 
 [SENCO Email]
-- Subject: Must be warm and relevant (e.g., "A quick question regarding SEND evidence at <School Name>" or "Coordinating daily classroom notes for your SEN register")
+- Subject: Must be warm and relevant (e.g., "A quick question regarding SEND evidence at <School Name>", "Following up on our discussion regarding EHCP notes", or "Coordinating daily classroom notes for your SEN register")
 - Body:
   - Salutation: Dear <First Name>,
-  - Paragraph 1: Mention their specific school context or quote from their SEND Information Report / Ofsted.
-  - Paragraph 2: Highlight the common pain point (teachers struggling to record classroom adaptations, TAs disconnected, SENCO chasing evidence for reviews).
-  - Paragraph 3: Explain in 2 sentences how See My Mind simplifies this (morning room overview, TA notes, shared home loop).
-  - Call to action: Low-pressure invitation to see a 3-minute video overview or try a sandbox.
+  - Paragraph 1: Mention prior discussion points (if activities exist) or cite their specific school context from their SEND Report / Ofsted.
+  - Paragraph 2: Address the central challenge (teachers recording classroom adaptations, TAs disconnected, SENCO chasing evidence for reviews, or specific points raised in past calls).
+  - Paragraph 3: Explain in 2 sentences how See My Mind solves this (morning room overview, TA notes, shared home loop).
+  - Call to action: Low-pressure invitation to see a 3-minute video overview, try a sandbox, or proceed to the next agreed step.
 
 [Headteacher Email]
-- Focuses on whole-school inclusion oversight, reducing staff workload/burnout, and consistent Ofsted readiness.
+- Focuses on whole-school inclusion oversight, reducing staff workload/burnout, and consistent Ofsted readiness. If prior discussions exist with leadership, reference them appropriately.
 
 [Physical Letter]
-- Clean, executive layout with Date, Recipient Name & Title, School Address, Subject Header, 3 focused paragraphs, and professional sign-off.
+- Clean, executive layout formatted for printing on school letterhead.
+- Header: Use the actual provided Current Date (e.g. "5 November 2026", NEVER output "[Date]" literally), Recipient Name & Title, School Name & Address.
+- Subject: Clear bold heading (e.g. "Enhancing Daily SEND Evidence & Workload Support at <School Name>").
+- Body: 3 focused, empathetic paragraphs followed by professional sign-off ("Warm regards," / "Yours sincerely," with See My Mind Partnerships Team).
 """
 
 DEFAULT_PROMPTS = {
