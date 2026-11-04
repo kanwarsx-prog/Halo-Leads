@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SENCO & Education Contacts Directory · See My Mind</title>
-    <link rel="stylesheet" href="/seemymind/static/styles.css">
+    <title>Key Contacts Directory · See My Mind Lead Agent</title>
+    <link rel="stylesheet" href="/seemymind/static/styles.css?v=2.2">
 </head>
 <body>
     <div class="container">
@@ -33,39 +33,109 @@
                 <div class="metric-value" style="color: var(--teal);">{{ senco_count }}</div>
             </div>
             <div class="card metric-card">
-                <div class="metric-title">Verified Direct Emails</div>
-                <div class="metric-value" style="color: var(--success);">{{ verified_count }}</div>
+                <div class="metric-title">Headteachers</div>
+                <div class="metric-value" style="color: #0284c7;">{{ head_count }}</div>
+            </div>
+            <div class="card metric-card">
+                <div class="metric-title">Verified Inboxes</div>
+                <div class="metric-value" style="color: #16a34a;">{{ verified_count }}</div>
             </div>
         </div>
 
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.75rem;">
-            <h2>Education Decision Makers Directory</h2>
-            <div style="display: flex; gap: 0.75rem; align-items: center;">
-                <input type="text" id="contactFilter" onkeyup="filterContacts()" placeholder="Filter by name, role or school..." style="padding: 0.5rem 0.85rem; border: 1px solid var(--line); border-radius: 6px; width: 280px;">
-                <a href="/schools/export/contacts-csv" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 0.35rem;">
+        <!-- Directory Header & Controls -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
+            <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+                <h2 style="margin: 0;">Education Decision Makers Directory</h2>
+                <span id="contactsCountLabel" style="font-size: 0.82rem; color: var(--soft); font-weight: 500;">
+                    Showing {{ contacts | length }} of {{ contacts | length }} contacts
+                </span>
+            </div>
+            <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+                <button onclick="resetContactFilters()" class="btn btn-secondary btn-sm" style="font-size: 0.76rem;">↺ Reset Filters</button>
+                <a href="/seemymind/schools/export/contacts-csv" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.76rem;">
                     📥 Export CSV
                 </a>
             </div>
         </div>
 
+        <!-- Scrollable Table with Sticky Header -->
         <div class="table-container">
             <table id="contactsTable">
                 <thead>
+                    <!-- Sortable Title Row -->
                     <tr>
-                        <th>Contact Name</th>
-                        <th>Role / Title</th>
-                        <th>School / Academy</th>
-                        <th>Direct Contact</th>
-                        <th>Source</th>
-                        <th>Outreach Status</th>
-                        <th>Actions</th>
+                        <th class="th-sortable" onclick="sortContacts(0, 'string')">
+                            Contact Name <span class="sort-icon" id="cSortIcon0">↕</span>
+                        </th>
+                        <th class="th-sortable" onclick="sortContacts(1, 'string')">
+                            Role / Title <span class="sort-icon" id="cSortIcon1">↕</span>
+                        </th>
+                        <th class="th-sortable" onclick="sortContacts(2, 'string')">
+                            School / Academy <span class="sort-icon" id="cSortIcon2">↕</span>
+                        </th>
+                        <th class="th-sortable" onclick="sortContacts(3, 'string')">
+                            Direct Contact <span class="sort-icon" id="cSortIcon3">↕</span>
+                        </th>
+                        <th class="th-sortable" onclick="sortContacts(4, 'string')">
+                            Source <span class="sort-icon" id="cSortIcon4">↕</span>
+                        </th>
+                        <th class="th-sortable" onclick="sortContacts(5, 'string')">
+                            Outreach Status <span class="sort-icon" id="cSortIcon5">↕</span>
+                        </th>
+                        <th style="text-align: center; width: 140px;">Actions</th>
+                    </tr>
+
+                    <!-- In-Column Filter Row -->
+                    <tr class="filter-row">
+                        <th>
+                            <input type="text" id="colContactName" class="th-filter-input" placeholder="🔍 Search name..." oninput="filterContacts()">
+                        </th>
+                        <th>
+                            <select id="colContactRole" class="th-filter-select" onchange="filterContacts()">
+                                <option value="">All Roles</option>
+                                <option value="senco">SENCO & Inclusion</option>
+                                <option value="head">Headteacher / Principal</option>
+                                <option value="deputy">Deputy Head</option>
+                                <option value="mat">Director of SEND / MAT</option>
+                                <option value="other">Other Roles</option>
+                            </select>
+                        </th>
+                        <th>
+                            <input type="text" id="colContactSchool" class="th-filter-input" placeholder="🔍 Search school / postcode..." oninput="filterContacts()">
+                        </th>
+                        <th>
+                            <select id="colContactEmail" class="th-filter-select" onchange="filterContacts()">
+                                <option value="">All Contacts</option>
+                                <option value="has_email">Has Email</option>
+                                <option value="verified">Verified Inbox</option>
+                                <option value="no_email">Email Not Published</option>
+                            </select>
+                        </th>
+                        <th>
+                            <input type="text" id="colContactSource" class="th-filter-input" placeholder="🔍 Filter source..." oninput="filterContacts()">
+                        </th>
+                        <th>
+                            <select id="colContactStatus" class="th-filter-select" onchange="filterContacts()">
+                                <option value="">All Statuses</option>
+                                <option value="discovered">Discovered</option>
+                                <option value="researched">Researched</option>
+                                <option value="outreach_drafted">Outreach Drafted</option>
+                                <option value="contacted">Contacted</option>
+                                <option value="replied">Replied</option>
+                            </select>
+                        </th>
+                        <th style="text-align: center;">
+                            <button onclick="resetContactFilters()" class="btn btn-secondary btn-sm" style="font-size: 0.72rem; padding: 0.2rem 0.45rem; width: 100%; font-weight: 600;" title="Reset all column filters">
+                                ↺ Reset
+                            </button>
+                        </th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for contact in contacts %}
-                    <tr>
+                    <tr class="contact-row" data-name="{{ contact.name | lower }}" data-role="{{ contact.role | lower }}" data-school="{{ contact.school.name | lower }}" data-postcode="{{ (contact.school.postcode or '') | lower }}" data-email="{{ (contact.email or '') | lower }}" data-verified="{{ 'true' if contact.email_is_verified else 'false' }}" data-source="{{ (contact.source or '') | lower }}" data-status="{{ contact.status.value }}">
                         <td>
-                            <strong style="color: var(--ink);">{{ contact.name }}</strong>
+                            <strong style="color: var(--ink); font-size: 0.92rem;">{{ contact.name }}</strong>
                         </td>
                         <td>
                             <span class="badge {% if 'SENCO' in contact.role %}badge-teal{% elif 'Head' in contact.role %}badge-mint{% else %}badge-gray{% endif %}">
@@ -73,18 +143,18 @@
                             </span>
                         </td>
                         <td>
-                            <a href="/seemymind/ui/schools/{{ contact.school.id }}" style="color: var(--teal); font-weight: 500; text-decoration: none;">
+                            <a href="/seemymind/ui/schools/{{ contact.school.id }}" style="color: var(--teal); font-weight: 600; text-decoration: none;">
                                 {{ contact.school.name }}
                             </a>
                             {% if contact.school.postcode %}
-                                <span style="font-size: 0.75rem; color: var(--soft);">({{ contact.school.postcode }})</span>
+                                <div style="font-size: 0.75rem; color: var(--soft);">{{ contact.school.postcode }}</div>
                             {% endif %}
                         </td>
                         <td>
                             {% if contact.email %}
-                                <div><a href="mailto:{{ contact.email }}" style="color: var(--ink); text-decoration: underline;">{{ contact.email }}</a></div>
+                                <div><a href="mailto:{{ contact.email }}" style="color: var(--ink); text-decoration: underline; font-weight: 500;">{{ contact.email }}</a></div>
                                 {% if contact.email_is_verified %}
-                                    <span style="color: var(--success); font-size: 0.75rem; font-weight: 600;">✓ Published in SEND Report</span>
+                                    <span style="color: var(--success); font-size: 0.74rem; font-weight: 600;">✓ Verified SEND Inbox</span>
                                 {% endif %}
                             {% else %}
                                 <span style="color: var(--soft); font-size: 0.8rem;">Direct email not published</span>
@@ -94,7 +164,7 @@
                             {% endif %}
                         </td>
                         <td>
-                            <span style="font-size: 0.8rem; color: var(--soft);">{{ contact.source or 'School Website' }}</span>
+                            <span style="font-size: 0.78rem; color: var(--soft);">{{ contact.source or 'School Website' }}</span>
                         </td>
                         <td>
                             <span class="badge badge-gray" style="text-transform: capitalize;">
@@ -102,11 +172,12 @@
                             </span>
                         </td>
                         <td>
-                            <div style="display: flex; gap: 0.35rem;">
+                            <div style="display: flex; gap: 0.35rem; align-items: center;">
                                 <a href="/seemymind/ui/schools/{{ contact.school.id }}" class="btn btn-secondary btn-sm">View School</a>
                                 {% if contact.email %}
-                                    <button onclick="navigator.clipboard.writeText('{{ contact.email }}'); alert('Copied {{ contact.email }} to clipboard!');" class="btn btn-secondary btn-sm">Copy Email</button>
+                                    <button onclick="navigator.clipboard.writeText('{{ contact.email }}'); alert('Copied {{ contact.email }} to clipboard!');" class="btn btn-secondary btn-sm" title="Copy Email">Copy</button>
                                 {% endif %}
+                                <button onclick="deleteContact('{{ contact.id }}')" class="btn btn-secondary btn-sm" style="color: var(--danger); padding: 0.2rem 0.45rem;" title="Delete Contact">&times;</button>
                             </div>
                         </td>
                     </tr>
@@ -120,16 +191,382 @@
                 </tbody>
             </table>
         </div>
+
+        <!-- Pagination Bar -->
+        <div class="pagination-bar">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <span id="pageInfoLabel">Showing 1–25 of {{ contacts | length }} contacts</span>
+                <label style="display: flex; align-items: center; gap: 0.35rem; font-size: 0.78rem;">
+                    <span>Rows per page:</span>
+                    <select id="pageSizeSelect" onchange="changeContactPageSize(this.value)" style="padding: 0.2rem 0.4rem; border: 1px solid var(--line); border-radius: 4px; font-size: 0.78rem; background: #fff;">
+                        <option value="25" selected>25</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                        <option value="all">All</option>
+                    </select>
+                </label>
+            </div>
+            <div class="pagination-controls">
+                <button id="firstPageBtn" onclick="goToContactPage(1)" class="page-btn" title="First Page">&laquo;</button>
+                <button id="prevPageBtn" onclick="goToContactPage(currentPage - 1)" class="page-btn" title="Previous Page">&lsaquo; Prev</button>
+                <span id="pageNumDisplay" style="font-weight: 600; padding: 0 0.5rem; color: var(--ink);">Page 1 of 7</span>
+                <button id="nextPageBtn" onclick="goToContactPage(currentPage + 1)" class="page-btn" title="Next Page">Next &rsaquo;</button>
+                <button id="lastPageBtn" onclick="goToContactPage(totalPages)" class="page-btn" title="Last Page">&raquo;</button>
+            </div>
+        </div>
     </div>
 
+    <!-- Modal: Add Contact (Global) -->
+    <div id="addGlobalContactModal" class="modal-overlay" onclick="if(event.target===this) closeModal('addGlobalContactModal')">
+        <div class="modal">
+            <h2 style="margin-bottom: 0.4rem;">Add School Contact</h2>
+            <p style="font-size: 0.82rem; color: var(--soft); margin-bottom: 1.25rem;">
+                Create a contact and assign them to one of your target schools.
+            </p>
+            
+            <form id="addGlobalContactForm" onsubmit="submitAddGlobalContact(event)">
+                <div class="form-group">
+                    <label>Assign to Target School *</label>
+                    <select name="school_id" required>
+                        <option value="">-- Select School --</option>
+                        {% for s in schools %}
+                        <option value="{{ s.id }}">{{ s.name }} ({{ s.postcode or s.phase }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Full Name *</label>
+                    <input type="text" name="name" required placeholder="e.g. Mrs. Sarah Jenkins">
+                </div>
+                <div class="form-group">
+                    <label>Role / Job Title *</label>
+                    <select name="role" required>
+                        <option value="SENCO & Inclusion Leader">SENCO & Inclusion Leader</option>
+                        <option value="Headteacher / Principal">Headteacher / Principal</option>
+                        <option value="Deputy Headteacher">Deputy Headteacher</option>
+                        <option value="Director of SEND / MAT Lead">Director of SEND / MAT Lead</option>
+                        <option value="Assistant Headteacher">Assistant Headteacher</option>
+                        <option value="Inclusion Lead">Inclusion Lead</option>
+                        <option value="Pastoral & SEND Support">Pastoral & SEND Support</option>
+                    </select>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                    <div class="form-group">
+                        <label>Direct Email</label>
+                        <input type="email" name="email" placeholder="e.g. s.jenkins@school.sch.uk">
+                    </div>
+                    <div class="form-group">
+                        <label>Phone / Extension</label>
+                        <input type="text" name="phone_extension" placeholder="e.g. ext 204">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Information Source</label>
+                    <input type="text" name="source" placeholder="e.g. School Website, LinkedIn, Direct Call" value="Direct Research">
+                </div>
+                <div style="margin-bottom: 1.25rem;">
+                    <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.82rem; cursor: pointer; color: var(--ink);">
+                        <input type="checkbox" name="email_is_verified" checked style="width: auto;">
+                        Mark as verified contact
+                    </label>
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+                    <button type="button" onclick="closeModal('addGlobalContactModal')" class="btn btn-secondary">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="saveGlobalContactBtn">Save & Assign Contact</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="/seemymind/static/app.js?v=2.2"></script>
+    <!-- Robust Embedded Contact Table Filter, Sort & Pagination Engine -->
     <script>
-        function filterContacts() {
-            const query = document.getElementById('contactFilter').value.toLowerCase();
-            const rows = document.querySelectorAll('#contactsTable tbody tr');
-            rows.forEach(row => {
-                const text = row.innerText.toLowerCase();
-                row.style.display = text.includes(query) ? '' : 'none';
-            });
+        (function() {
+            let currentPage = 1;
+            let pageSize = 25;
+            let currentSortColumn = -1;
+            let currentSortAsc = true;
+            let filteredRows = [];
+
+            function getFilterValues() {
+                const nameEl = document.getElementById('colContactName') || document.getElementById('contactFilter');
+                const roleEl = document.getElementById('colContactRole');
+                const schoolEl = document.getElementById('colContactSchool');
+                const emailEl = document.getElementById('colContactEmail');
+                const sourceEl = document.getElementById('colContactSource');
+                const statusEl = document.getElementById('colContactStatus');
+
+                return {
+                    name: nameEl ? (nameEl.value || '').toLowerCase().trim() : '',
+                    role: roleEl ? (roleEl.value || '').trim() : '',
+                    school: schoolEl ? (schoolEl.value || '').toLowerCase().trim() : '',
+                    emailStatus: emailEl ? (emailEl.value || '').trim() : '',
+                    source: sourceEl ? (sourceEl.value || '').toLowerCase().trim() : '',
+                    status: statusEl ? (statusEl.value || '').trim() : ''
+                };
+            }
+
+            window.filterContacts = function() {
+                const filters = getFilterValues();
+                const allRows = Array.from(document.querySelectorAll('#contactsTable tbody tr.contact-row'));
+
+                filteredRows = allRows.filter(row => {
+                    const name = (row.dataset.name || '').toLowerCase();
+                    const role = (row.dataset.role || '').toLowerCase();
+                    const school = (row.dataset.school || '').toLowerCase();
+                    const postcode = (row.dataset.postcode || '').toLowerCase();
+                    const email = (row.dataset.email || '').toLowerCase();
+                    const isVerified = (row.dataset.verified === 'true');
+                    const source = (row.dataset.source || '').toLowerCase();
+                    const status = (row.dataset.status || '');
+
+                    // 1. Name
+                    if (filters.name && !name.includes(filters.name)) return false;
+
+                    // 2. Role
+                    if (filters.role) {
+                        const r = filters.role.toLowerCase();
+                        if (r === 'senco' && !role.includes('senco') && !role.includes('inclusion')) return false;
+                        if (r === 'head' && !role.includes('head') && !role.includes('principal')) return false;
+                        if (r === 'deputy' && !role.includes('deputy')) return false;
+                        if (r === 'mat' && !role.includes('mat') && !role.includes('director')) return false;
+                        if (r === 'other' && (role.includes('senco') || role.includes('head') || role.includes('principal'))) return false;
+                    }
+
+                    // 3. School / Postcode
+                    if (filters.school && !school.includes(filters.school) && !postcode.includes(filters.school)) return false;
+
+                    // 4. Email Status
+                    if (filters.emailStatus) {
+                        if (filters.emailStatus === 'has_email' && !email) return false;
+                        if (filters.emailStatus === 'verified' && !isVerified) return false;
+                        if (filters.emailStatus === 'no_email' && email) return false;
+                    }
+
+                    // 5. Source
+                    if (filters.source && !source.includes(filters.source)) return false;
+
+                    // 6. Outreach Status
+                    if (filters.status && status !== filters.status) return false;
+
+                    return true;
+                });
+
+                currentPage = 1;
+                renderPaginatedTable();
+            };
+
+            function renderPaginatedTable() {
+                const allRows = Array.from(document.querySelectorAll('#contactsTable tbody tr.contact-row'));
+                allRows.forEach(r => r.style.display = 'none');
+
+                const total = filteredRows.length;
+                const countLabel = document.getElementById('contactsCountLabel');
+                if (countLabel) {
+                    countLabel.innerText = `Showing ${total} of ${allRows.length} contacts`;
+                }
+
+                const effectiveSize = pageSize === 'all' ? Math.max(1, total) : parseInt(pageSize, 10);
+                const totalPages = Math.max(1, Math.ceil(total / effectiveSize));
+                if (currentPage > totalPages) currentPage = totalPages;
+
+                const startIndex = (currentPage - 1) * effectiveSize;
+                const endIndex = Math.min(startIndex + effectiveSize, total);
+
+                for (let i = startIndex; i < endIndex; i++) {
+                    if (filteredRows[i]) {
+                        filteredRows[i].style.display = '';
+                    }
+                }
+
+                // Update pagination controls
+                const pageInfo = document.getElementById('pageInfoLabel');
+                if (pageInfo) {
+                    if (total === 0) {
+                        pageInfo.innerText = 'No matching contacts found';
+                    } else {
+                        pageInfo.innerText = `Showing ${startIndex + 1}–${endIndex} of ${total} contacts`;
+                    }
+                }
+
+                const pageNumDisplay = document.getElementById('pageNumDisplay');
+                if (pageNumDisplay) {
+                    pageNumDisplay.innerText = `Page ${currentPage} of ${totalPages}`;
+                }
+
+                const prevBtn = document.getElementById('prevPageBtn');
+                const firstBtn = document.getElementById('firstPageBtn');
+                const nextBtn = document.getElementById('nextPageBtn');
+                const lastBtn = document.getElementById('lastPageBtn');
+
+                if (prevBtn) prevBtn.disabled = (currentPage <= 1);
+                if (firstBtn) firstBtn.disabled = (currentPage <= 1);
+                if (nextBtn) nextBtn.disabled = (currentPage >= totalPages);
+                if (lastBtn) lastBtn.disabled = (currentPage >= totalPages);
+            }
+
+            window.goToContactPage = function(page) {
+                const effectiveSize = pageSize === 'all' ? Math.max(1, filteredRows.length) : parseInt(pageSize, 10);
+                const totalPages = Math.max(1, Math.ceil(filteredRows.length / effectiveSize));
+                if (page < 1 || page > totalPages) return;
+                currentPage = page;
+                renderPaginatedTable();
+            };
+
+            window.changeContactPageSize = function(val) {
+                pageSize = val;
+                currentPage = 1;
+                renderPaginatedTable();
+            };
+
+            window.resetContactFilters = function() {
+                const elIds = ['colContactName', 'contactFilter', 'colContactRole', 'colContactSchool', 'colContactEmail', 'colContactSource', 'colContactStatus'];
+                elIds.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.value = '';
+                });
+                window.filterContacts();
+            };
+
+            window.sortContacts = function(columnIndex, type) {
+                const tbody = document.querySelector('#contactsTable tbody');
+                if (!tbody) return;
+
+                if (currentSortColumn === columnIndex) {
+                    currentSortAsc = !currentSortAsc;
+                } else {
+                    currentSortColumn = columnIndex;
+                    currentSortAsc = true;
+                }
+
+                // Update sort icons
+                for (let i = 0; i <= 5; i++) {
+                    const icon = document.getElementById(`cSortIcon${i}`);
+                    if (icon) {
+                        if (i === columnIndex) {
+                            icon.innerText = currentSortAsc ? '▲' : '▼';
+                            icon.style.opacity = '1';
+                            icon.style.color = 'var(--teal)';
+                        } else {
+                            icon.innerText = '↕';
+                            icon.style.opacity = '0.5';
+                            icon.style.color = '';
+                        }
+                    }
+                }
+
+                const rows = Array.from(document.querySelectorAll('#contactsTable tbody tr.contact-row'));
+
+                rows.sort((a, b) => {
+                    let valA, valB;
+                    switch (columnIndex) {
+                        case 0: // Name
+                            valA = a.dataset.name || '';
+                            valB = b.dataset.name || '';
+                            break;
+                        case 1: // Role
+                            valA = a.dataset.role || '';
+                            valB = b.dataset.role || '';
+                            break;
+                        case 2: // School
+                            valA = a.dataset.school || '';
+                            valB = b.dataset.school || '';
+                            break;
+                        case 3: // Direct Contact / Email
+                            valA = a.dataset.email || '';
+                            valB = b.dataset.email || '';
+                            break;
+                        case 4: // Source
+                            valA = a.dataset.source || '';
+                            valB = b.dataset.source || '';
+                            break;
+                        case 5: // Status
+                            valA = a.dataset.status || '';
+                            valB = b.dataset.status || '';
+                            break;
+                        default:
+                            return 0;
+                    }
+
+                    return currentSortAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+                });
+
+                rows.forEach(r => tbody.appendChild(r));
+                window.filterContacts();
+            };
+
+            function initContactTable() {
+                const allRows = Array.from(document.querySelectorAll('#contactsTable tbody tr.contact-row'));
+                filteredRows = allRows;
+                renderPaginatedTable();
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initContactTable);
+            } else {
+                initContactTable();
+            }
+        })();
+
+        async function submitAddGlobalContact(e) {
+            e.preventDefault();
+            const form = e.target;
+            const schoolId = form.school_id.value;
+            if (!schoolId) {
+                alert('Please select a target school');
+                return;
+            }
+
+            const btn = document.getElementById('saveGlobalContactBtn');
+            btn.disabled = true;
+            btn.innerText = 'Saving...';
+
+            const data = {
+                name: form.name.value,
+                role: form.role.value,
+                email: form.email.value || null,
+                phone_extension: form.phone_extension.value || null,
+                source: form.source.value || 'Direct Research',
+                email_is_verified: form.email_is_verified.checked
+            };
+
+            try {
+                const res = await fetch(`/seemymind/schools/${schoolId}/contacts`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                if (res.ok) {
+                    window.location.reload();
+                } else {
+                    const err = await res.json();
+                    alert(err.detail || 'Failed to save contact');
+                    btn.disabled = false;
+                    btn.innerText = 'Save & Assign Contact';
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Connection error');
+                btn.disabled = false;
+                btn.innerText = 'Save & Assign Contact';
+            }
+        }
+
+        async function deleteContact(contactId) {
+            if (!confirm('Are you sure you want to delete this contact?')) return;
+            try {
+                const res = await fetch(`/seemymind/schools/contacts/${contactId}`, {
+                    method: 'DELETE'
+                });
+                if (res.ok) {
+                    window.location.reload();
+                } else {
+                    alert('Failed to delete contact');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Connection error');
+            }
         }
     </script>
 </body>
