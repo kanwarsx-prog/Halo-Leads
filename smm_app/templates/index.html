@@ -141,40 +141,34 @@
                 </span>
             </div>
             <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
-                <input type="text" id="schoolFilter" onkeyup="filterSchools()" placeholder="Search school, trust, postcode..." style="padding: 0.38rem 0.75rem; border: 1px solid var(--line); border-radius: 6px; width: 220px; font-size: 0.82rem;">
-                
-                <select id="stageFilter" onchange="filterSchools()" style="padding: 0.38rem 0.65rem; border: 1px solid var(--line); border-radius: 6px; font-size: 0.82rem; background: #fff; font-weight: 500;">
-                    <option value="">All Pipeline Stages</option>
-                    <option value="outreach_ready">Outreach Ready</option>
-                    <option value="contacted">Contacted</option>
-                    <option value="demo_booked">Demo Booked</option>
-                    <option value="partner_won">Partner Won</option>
-                    <option value="qualified">Qualified</option>
-                    <option value="discovered">Discovered</option>
-                    <option value="not_a_fit">Not a Fit</option>
-                </select>
-
-                <select id="priorityFilter" onchange="filterSchools()" style="padding: 0.38rem 0.65rem; border: 1px solid var(--line); border-radius: 6px; font-size: 0.82rem; background: #fff; font-weight: 500;">
-                    <option value="">All Priorities</option>
-                    <option value="Immediate Focus">Immediate Focus</option>
-                    <option value="Target School">Target School</option>
-                    <option value="Monitor">Monitor</option>
-                </select>
+                <span style="font-size: 0.8rem; color: var(--soft);">Use the column filters below to search and sort:</span>
+                <button onclick="resetAllFilters()" class="btn btn-secondary btn-sm" style="font-size: 0.76rem;">↺ Reset Filters</button>
             </div>
         </div>
 
         <div class="table-container">
             <table id="schoolsTable">
                 <thead>
+                    <!-- Header Row: Titles with Sorting -->
                     <tr>
-                        <th>School / Academy</th>
-                        <th>Phase & Type</th>
-                        <th>Multi-Academy Trust (MAT)</th>
-                        <th>SEN %</th>
-                        <th>Ofsted</th>
-                        <th>
-                            Lead Priority
-                            <span class="tooltip-container">
+                        <th class="th-sortable" onclick="sortTable(0, 'string')">
+                            School / Academy <span class="sort-icon" id="sortIcon0">↕</span>
+                        </th>
+                        <th class="th-sortable" onclick="sortTable(1, 'string')">
+                            Phase & Type <span class="sort-icon" id="sortIcon1">↕</span>
+                        </th>
+                        <th class="th-sortable" onclick="sortTable(2, 'string')">
+                            Trust / Authority <span class="sort-icon" id="sortIcon2">↕</span>
+                        </th>
+                        <th class="th-sortable" onclick="sortTable(3, 'number')">
+                            SEN % <span class="sort-icon" id="sortIcon3">↕</span>
+                        </th>
+                        <th class="th-sortable" onclick="sortTable(4, 'string')">
+                            Ofsted <span class="sort-icon" id="sortIcon4">↕</span>
+                        </th>
+                        <th class="th-sortable" onclick="sortTable(5, 'number')">
+                            Lead Priority <span class="sort-icon" id="sortIcon5">↕</span>
+                            <span class="tooltip-container" onclick="event.stopPropagation()">
                                 <span class="info-icon">ℹ</span>
                                 <div class="tooltip-box">
                                     <div class="tooltip-header">Deterministic Priority Model</div>
@@ -183,19 +177,79 @@
                                     <div class="tooltip-row"><span>• Named SENCO Verified</span><strong>20%</strong></div>
                                     <div class="tooltip-row"><span>• Academy Trust Scale (MAT)</span><strong>10%</strong></div>
                                     <div class="tooltip-row"><span>• Ofsted SEND Findings</span><strong>10%</strong></div>
-                                    <div style="margin-top: 0.35rem; font-size: 0.72rem; color: #a9c3bb;">
-                                        Score updates automatically when discovery is executed.
-                                    </div>
                                 </div>
                             </span>
                         </th>
-                        <th>Pipeline Stage</th>
-                        <th>Actions</th>
+                        <th class="th-sortable" onclick="sortTable(6, 'string')">
+                            Pipeline Stage <span class="sort-icon" id="sortIcon6">↕</span>
+                        </th>
+                        <th style="text-align: center; width: 130px;">Actions</th>
+                    </tr>
+
+                    <!-- Filter Row: In-Column Search & Dropdown Filters -->
+                    <tr class="filter-row">
+                        <th>
+                            <input type="text" id="colSearchSchool" class="th-filter-input" placeholder="🔍 Search name / postcode..." oninput="filterSchools()">
+                        </th>
+                        <th>
+                            <select id="colFilterPhase" class="th-filter-select" onchange="filterSchools()">
+                                <option value="">All Phases</option>
+                                <option value="Primary">Primary</option>
+                                <option value="Secondary">Secondary</option>
+                                <option value="Special">Special</option>
+                                <option value="Nursery">Nursery</option>
+                            </select>
+                        </th>
+                        <th>
+                            <input type="text" id="colSearchTrust" class="th-filter-input" placeholder="🔍 Search trust or LA..." oninput="filterSchools()">
+                        </th>
+                        <th>
+                            <select id="colFilterSen" class="th-filter-select" onchange="filterSchools()">
+                                <option value="">All</option>
+                                <option value="16">≥ 16% (High Need)</option>
+                                <option value="recorded">Has %</option>
+                            </select>
+                        </th>
+                        <th>
+                            <select id="colFilterOfsted" class="th-filter-select" onchange="filterSchools()">
+                                <option value="">All Ratings</option>
+                                <option value="Outstanding">Outstanding</option>
+                                <option value="Good">Good</option>
+                                <option value="Requires">Requires Impr.</option>
+                                <option value="Inadequate">Inadequate</option>
+                                <option value="Pending">Pending Discovery</option>
+                            </select>
+                        </th>
+                        <th>
+                            <select id="colFilterPriority" class="th-filter-select" onchange="filterSchools()">
+                                <option value="">All Priorities</option>
+                                <option value="Immediate Focus">Immediate Focus</option>
+                                <option value="Target School">Target School</option>
+                                <option value="Monitor">Monitor</option>
+                            </select>
+                        </th>
+                        <th>
+                            <select id="colFilterStage" class="th-filter-select" onchange="filterSchools()">
+                                <option value="">All Stages</option>
+                                <option value="outreach_ready">Outreach Ready</option>
+                                <option value="contacted">Contacted</option>
+                                <option value="demo_booked">Demo Booked</option>
+                                <option value="partner_won">Partner Won</option>
+                                <option value="qualified">Qualified</option>
+                                <option value="discovered">Discovered</option>
+                                <option value="not_a_fit">Not a Fit</option>
+                            </select>
+                        </th>
+                        <th style="text-align: center;">
+                            <button onclick="resetAllFilters()" class="btn btn-secondary btn-sm" style="font-size: 0.72rem; padding: 0.2rem 0.45rem; width: 100%; font-weight: 600;" title="Reset all column filters">
+                                ↺ Reset
+                            </button>
+                        </th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for school in schools %}
-                    <tr data-stage="{{ school.pipeline_stage.value }}" data-priority="{{ school.priority }}">
+                    <tr class="school-row" data-name="{{ school.name | lower }}" data-postcode="{{ (school.postcode or '') | lower }}" data-phase="{{ school.phase or 'Primary' }}" data-mat="{{ (school.mat_name or '') | lower }}" data-la="{{ (school.local_authority or '') | lower }}" data-sen="{{ school.sen_percentage or 0 }}" data-ofsted="{{ school.ofsted_rating or 'Pending Discovery' }}" data-score="{{ school.overall_score }}" data-priority="{{ school.priority }}" data-stage="{{ school.pipeline_stage.value }}">
                         <td>
                             <a href="/seemymind/ui/schools/{{ school.id }}" style="font-weight: 600; color: var(--teal); text-decoration: none;">
                                 {{ school.name }}
@@ -296,6 +350,29 @@
                     {% endfor %}
                 </tbody>
             </table>
+        </div>
+
+        <!-- Pagination Bar -->
+        <div class="pagination-bar">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <span id="pageInfoLabel">Showing 1–25 of {{ schools | length }} schools</span>
+                <label style="display: flex; align-items: center; gap: 0.35rem; font-size: 0.78rem;">
+                    <span>Rows per page:</span>
+                    <select id="pageSizeSelect" onchange="changePageSize(this.value)" style="padding: 0.2rem 0.4rem; border: 1px solid var(--line); border-radius: 4px; font-size: 0.78rem; background: #fff;">
+                        <option value="25" selected>25</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                        <option value="all">All</option>
+                    </select>
+                </label>
+            </div>
+            <div class="pagination-controls">
+                <button id="firstPageBtn" onclick="goToPage(1)" class="page-btn" title="First Page">&laquo;</button>
+                <button id="prevPageBtn" onclick="goToPage(currentPage - 1)" class="page-btn" title="Previous Page">&lsaquo; Prev</button>
+                <span id="pageNumDisplay" style="font-weight: 600; padding: 0 0.5rem; color: var(--ink);">Page 1 of 4</span>
+                <button id="nextPageBtn" onclick="goToPage(currentPage + 1)" class="page-btn" title="Next Page">Next &rsaquo;</button>
+                <button id="lastPageBtn" onclick="goToPage(totalPages)" class="page-btn" title="Last Page">&raquo;</button>
+            </div>
         </div>
     </div>
 

@@ -256,12 +256,16 @@ h3 {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
 }
 
-/* Compact Tables */
+/* Enhanced Sticky Scrollable Table */
 .table-container {
   overflow-x: auto;
-  border-radius: 10px;
+  overflow-y: auto;
+  max-height: 640px;
+  position: relative;
+  border-radius: 10px 10px 0 0;
   background: var(--paper);
   border: 1px solid var(--line);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 table {
@@ -275,9 +279,102 @@ th {
   background: var(--teal-light);
   color: var(--teal-dark);
   font-weight: 600;
-  padding: 0.55rem 0.75rem;
+  padding: 0.5rem 0.65rem;
   border-bottom: 1px solid var(--line);
+  font-size: 0.76rem;
+}
+
+.table-container thead th {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: #eef6f3;
+}
+
+.table-container thead tr.filter-row th {
+  position: sticky;
+  top: 36px;
+  z-index: 9;
+  background: #f7faf9;
+  padding: 0.3rem 0.45rem;
+  border-bottom: 2px solid var(--line);
+}
+
+.th-sortable {
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.th-sortable:hover {
+  background: #e2f0ea;
+  color: var(--teal);
+}
+
+.sort-icon {
+  font-size: 0.68rem;
+  margin-left: 0.2rem;
+  opacity: 0.6;
+}
+
+.th-filter-input, .th-filter-select {
+  width: 100%;
+  padding: 0.22rem 0.4rem;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  font-size: 0.73rem;
+  background: #ffffff;
+  color: var(--ink);
+  outline: none;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+.th-filter-input:focus, .th-filter-select:focus {
+  border-color: var(--teal);
+  box-shadow: 0 0 0 2px rgba(29, 98, 93, 0.12);
+}
+
+.pagination-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.65rem 1rem;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-top: none;
+  border-radius: 0 0 10px 10px;
+  font-size: 0.8rem;
+  color: var(--soft);
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.page-btn {
+  padding: 0.25rem 0.6rem;
+  border: 1px solid var(--line);
+  background: #ffffff;
+  border-radius: 4px;
+  cursor: pointer;
   font-size: 0.78rem;
+  color: var(--ink);
+}
+
+.page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.page-btn:not(:disabled):hover {
+  background: var(--teal-light);
+  color: var(--teal);
+  border-color: var(--teal);
 }
 
 td {

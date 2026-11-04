@@ -121,41 +121,235 @@ function printLetter() {
   window.print();
 }
 
-// Enhanced Multi-Attribute Table Filter
+// State for Filtering, Sorting, and Pagination
+let currentPage = 1;
+let pageSize = 25;
+let currentSortColumn = -1;
+let currentSortAsc = true;
+let filteredRows = [];
+
+function getFilterValues() {
+  return {
+    school: (document.getElementById('colSearchSchool')?.value || '').toLowerCase().trim(),
+    phase: document.getElementById('colFilterPhase')?.value || '',
+    trust: (document.getElementById('colSearchTrust')?.value || '').toLowerCase().trim(),
+    sen: document.getElementById('colFilterSen')?.value || '',
+    ofsted: document.getElementById('colFilterOfsted')?.value || '',
+    priority: document.getElementById('colFilterPriority')?.value || '',
+    stage: document.getElementById('colFilterStage')?.value || ''
+  };
+}
+
 function filterSchools() {
-  const queryInput = document.getElementById('schoolFilter');
-  const stageSelect = document.getElementById('stageFilter');
-  const prioritySelect = document.getElementById('priorityFilter');
+  const filters = getFilterValues();
+  const allRows = Array.from(document.querySelectorAll('#schoolsTable tbody tr.school-row'));
   
-  const query = queryInput ? queryInput.value.toLowerCase().trim() : '';
-  const stage = stageSelect ? stageSelect.value : '';
-  const priority = prioritySelect ? prioritySelect.value : '';
-  
-  const rows = document.querySelectorAll('#schoolsTable tbody tr');
-  let visibleCount = 0;
+  filteredRows = allRows.filter(row => {
+    const name = row.dataset.name || '';
+    const postcode = row.dataset.postcode || '';
+    const phase = row.dataset.phase || '';
+    const mat = row.dataset.mat || '';
+    const la = row.dataset.la || '';
+    const sen = parseFloat(row.dataset.sen) || 0;
+    const ofsted = row.dataset.ofsted || '';
+    const priority = row.dataset.priority || '';
+    const stage = row.dataset.stage || '';
 
-  rows.forEach(row => {
-    const text = row.innerText.toLowerCase();
-    const rowStage = row.dataset.stage || '';
-    const rowPriority = row.dataset.priority || '';
+    // 1. School name or postcode filter
+    if (filters.school && !name.includes(filters.school) && !postcode.includes(filters.school)) {
+      return false;
+    }
 
-    const matchesQuery = !query || text.includes(query);
-    const matchesStage = !stage || rowStage === stage;
-    const matchesPriority = !priority || rowPriority === priority;
+    // 2. Phase filter
+    if (filters.phase && !phase.toLowerCase().includes(filters.phase.toLowerCase())) {
+      return false;
+    }
 
-    if (matchesQuery && matchesStage && matchesPriority) {
-      row.style.display = '';
-      visibleCount++;
+    // 3. Trust or LA filter
+    if (filters.trust && !mat.includes(filters.trust) && !la.includes(filters.trust)) {
+      return false;
+    }
+
+    // 4. SEN % filter
+    if (filters.sen === '16' && sen < 16.0) return false;
+    if (filters.sen === 'recorded' && sen <= 0) return false;
+
+    // 5. Ofsted filter
+    if (filters.ofsted) {
+      if (filters.ofsted === 'Pending' && !ofsted.toLowerCase().includes('pending')) return false;
+      if (filters.ofsted !== 'Pending' && !ofsted.toLowerCase().includes(filters.ofsted.toLowerCase())) return false;
+    }
+
+    // 6. Priority filter
+    if (filters.priority && priority !== filters.priority) return false;
+
+    // 7. Stage filter
+    if (filters.stage && stage !== filters.stage) return false;
+
+    return true;
+  });
+
+  currentPage = 1;
+  renderPaginatedTable();
+}
+
+function renderPaginatedTable() {
+  const allRows = Array.from(document.querySelectorAll('#schoolsTable tbody tr.school-row'));
+  allRows.forEach(r => r.style.display = 'none');
+
+  const total = filteredRows.length;
+  const countLabel = document.getElementById('schoolsCountLabel');
+  if (countLabel) {
+    countLabel.innerText = `Showing ${total} of ${allRows.length} schools`;
+  }
+
+  const effectiveSize = pageSize === 'all' ? total : parseInt(pageSize, 10);
+  const totalPages = Math.max(1, Math.ceil(total / effectiveSize));
+  if (currentPage > totalPages) currentPage = totalPages;
+
+  const startIndex = (currentPage - 1) * effectiveSize;
+  const endIndex = Math.min(startIndex + effectiveSize, total);
+
+  for (let i = startIndex; i < endIndex; i++) {
+    if (filteredRows[i]) {
+      filteredRows[i].style.display = '';
+    }
+  }
+
+  // Update pagination bar
+  const pageInfo = document.getElementById('pageInfoLabel');
+  if (pageInfo) {
+    if (total === 0) {
+      pageInfo.innerText = 'No matching schools found';
     } else {
-      row.style.display = 'none';
+      pageInfo.innerText = `Showing ${startIndex + 1}–${endIndex} of ${total} schools`;
+    }
+  }
+
+  const pageNumDisplay = document.getElementById('pageNumDisplay');
+  if (pageNumDisplay) {
+    pageNumDisplay.innerText = `Page ${currentPage} of ${totalPages}`;
+  }
+
+  const prevBtn = document.getElementById('prevPageBtn');
+  const firstBtn = document.getElementById('firstPageBtn');
+  const nextBtn = document.getElementById('nextPageBtn');
+  const lastBtn = document.getElementById('lastPageBtn');
+
+  if (prevBtn) prevBtn.disabled = (currentPage <= 1);
+  if (firstBtn) firstBtn.disabled = (currentPage <= 1);
+  if (nextBtn) nextBtn.disabled = (currentPage >= totalPages);
+  if (lastBtn) lastBtn.disabled = (currentPage >= totalPages);
+}
+
+function goToPage(page) {
+  const effectiveSize = pageSize === 'all' ? filteredRows.length : parseInt(pageSize, 10);
+  const totalPages = Math.max(1, Math.ceil(filteredRows.length / effectiveSize));
+  if (page < 1 || page > totalPages) return;
+  currentPage = page;
+  renderPaginatedTable();
+}
+
+function changePageSize(val) {
+  pageSize = val;
+  currentPage = 1;
+  renderPaginatedTable();
+}
+
+function resetAllFilters() {
+  const elIds = ['colSearchSchool', 'colFilterPhase', 'colSearchTrust', 'colFilterSen', 'colFilterOfsted', 'colFilterPriority', 'colFilterStage'];
+  elIds.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  filterSchools();
+}
+
+function sortTable(columnIndex, type) {
+  const tbody = document.querySelector('#schoolsTable tbody');
+  if (!tbody) return;
+
+  if (currentSortColumn === columnIndex) {
+    currentSortAsc = !currentSortAsc;
+  } else {
+    currentSortColumn = columnIndex;
+    currentSortAsc = true;
+  }
+
+  // Update sort icons
+  for (let i = 0; i <= 6; i++) {
+    const icon = document.getElementById(`sortIcon${i}`);
+    if (icon) {
+      if (i === columnIndex) {
+        icon.innerText = currentSortAsc ? '▲' : '▼';
+        icon.style.opacity = '1';
+        icon.style.color = 'var(--teal)';
+      } else {
+        icon.innerText = '↕';
+        icon.style.opacity = '0.5';
+        icon.style.color = '';
+      }
+    }
+  }
+
+  const rows = Array.from(document.querySelectorAll('#schoolsTable tbody tr.school-row'));
+
+  rows.sort((a, b) => {
+    let valA, valB;
+
+    switch (columnIndex) {
+      case 0: // School name
+        valA = a.dataset.name || '';
+        valB = b.dataset.name || '';
+        break;
+      case 1: // Phase
+        valA = a.dataset.phase || '';
+        valB = b.dataset.phase || '';
+        break;
+      case 2: // Trust / LA
+        valA = (a.dataset.mat || a.dataset.la || '');
+        valB = (b.dataset.mat || b.dataset.la || '');
+        break;
+      case 3: // SEN %
+        valA = parseFloat(a.dataset.sen) || 0;
+        valB = parseFloat(b.dataset.sen) || 0;
+        break;
+      case 4: // Ofsted
+        valA = a.dataset.ofsted || '';
+        valB = b.dataset.ofsted || '';
+        break;
+      case 5: // Priority score
+        valA = parseInt(a.dataset.score, 10) || 0;
+        valB = parseInt(b.dataset.score, 10) || 0;
+        break;
+      case 6: // Stage
+        valA = a.dataset.stage || '';
+        valB = b.dataset.stage || '';
+        break;
+      default:
+        return 0;
+    }
+
+    if (type === 'number') {
+      return currentSortAsc ? (valA - valB) : (valB - valA);
+    } else {
+      return currentSortAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
     }
   });
 
-  const countLabel = document.getElementById('schoolsCountLabel');
-  if (countLabel) {
-    countLabel.innerText = `Showing ${visibleCount} of ${rows.length} schools`;
-  }
+  // Re-append sorted rows to tbody
+  rows.forEach(r => tbody.appendChild(r));
+
+  // Re-filter and re-paginate
+  filterSchools();
 }
+
+// Initialise pagination on page load
+document.addEventListener('DOMContentLoaded', () => {
+  const allRows = Array.from(document.querySelectorAll('#schoolsTable tbody tr.school-row'));
+  filteredRows = allRows;
+  renderPaginatedTable();
+});
 
 async function markTaskDone(taskId, btn) {
   if (btn) {
