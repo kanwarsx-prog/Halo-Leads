@@ -112,7 +112,7 @@
                                     <div class="tooltip-row"><span>• Academy Trust Scale (MAT)</span><strong>10%</strong></div>
                                     <div class="tooltip-row"><span>• Ofsted SEND Findings</span><strong>10%</strong></div>
                                     <div style="margin-top: 0.35rem; font-size: 0.72rem; color: #a9c3bb;">
-                                        Score updates automatically when an audit is executed.
+                                        Score updates automatically when discovery is executed.
                                     </div>
                                 </div>
                             </span>
@@ -157,7 +157,7 @@
                                     {{ school.ofsted_rating }}
                                 </span>
                             {% else %}
-                                <span style="color: var(--soft); font-size: 0.8rem;">Pending Audit</span>
+                                <span style="color: var(--soft); font-size: 0.8rem;">Pending Discovery</span>
                             {% endif %}
                         </td>
                         <td>
@@ -185,18 +185,18 @@
                                         <strong>{{ school.contacts | length }} Discovered</strong>
                                     </div>
                                     <div style="margin-top: 0.35rem; font-size: 0.72rem; color: #a9c3bb;">
-                                        Hover over or click 'View' for full audit evidence.
+                                        Hover over or click 'View' for full discovery evidence.
                                     </div>
                                 </div>
                             </span>
                             {% else %}
                             <span class="tooltip-container">
                                 <span class="badge badge-gray" style="cursor: pointer;">
-                                    Pending Audit
+                                    Pending Discovery
                                 </span>
                                 <div class="tooltip-box">
-                                    <div class="tooltip-header">Pending Audit</div>
-                                    <div>Click <strong>Audit SEND</strong> on the right to scan their statutory SEND report, SEN roll %, and Ofsted history to calculate qualification.</div>
+                                    <div class="tooltip-header">Pending Discovery</div>
+                                    <div>Click <strong>Run Discovery</strong> on the right to research their statutory SEND report, SEN roll %, and Ofsted history.</div>
                                 </div>
                             </span>
                             {% endif %}
@@ -209,7 +209,7 @@
                         <td>
                             <div style="display: flex; gap: 0.4rem;">
                                 <a href="/seemymind/ui/schools/{{ school.id }}" class="btn btn-secondary btn-sm">View</a>
-                                <button onclick="triggerAudit('{{ school.id }}', this)" class="btn btn-primary btn-sm">Audit SEND</button>
+                                <button onclick="triggerAudit('{{ school.id }}', this)" class="btn btn-primary btn-sm">Run Discovery</button>
                             </div>
                         </td>
                     </tr>
@@ -217,7 +217,7 @@
                     <tr>
                         <td colspan="8" style="text-align: center; padding: 3rem; color: var(--soft);">
                             <p style="font-size: 1.1rem; margin-bottom: 0.75rem;">No target schools added yet.</p>
-                            <p style="font-size: 0.85rem; margin-bottom: 1.5rem;">Add a school manually or import a DfE GIAS export CSV to begin auditing SEND reports and named SENCOs.</p>
+                            <p style="font-size: 0.85rem; margin-bottom: 1.5rem;">Add a school manually or import a DfE GIAS export CSV to begin running discovery on SEND reports and named SENCOs.</p>
                             <button onclick="openModal('addSchoolModal')" class="btn btn-primary">+ Add Your First School</button>
                         </td>
                     </tr>

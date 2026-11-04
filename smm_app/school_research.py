@@ -42,10 +42,10 @@ def run_web_search(query_input: str, instructions: str) -> tuple[str, dict[str, 
 
 
 def audit_school(db: Session, run_id: str) -> SchoolAuditExtraction:
-    """Run the complete education intelligence audit for a school."""
+    """Run the complete education intelligence discovery for a school."""
     run = db.get(SchoolAuditRun, run_id)
     if not run:
-        raise ValueError(f"Audit run {run_id} not found")
+        raise ValueError(f"Discovery run {run_id} not found")
 
     school = db.get(School, run.school_id)
     if not school:
@@ -56,7 +56,7 @@ def audit_school(db: Session, run_id: str) -> SchoolAuditExtraction:
         db.commit()
 
         # Step 1: Formulate search query
-        update_audit_message(db, run.id, f"Auditing {school.name}'s SEND Information Report & Ofsted history...")
+        update_audit_message(db, run.id, f"Discovering {school.name}'s SEND Information Report & Ofsted history...")
         search_prompt = f"""
 School Name: {school.name}
 Phase: {school.phase or 'Primary'}
@@ -70,8 +70,8 @@ Please investigate:
 2. Their latest Ofsted inspection report: Find the specific findings and verbatim quotes about SEND and inclusion.
 3. Mentions of tools they currently use (e.g. Edukey / Provision Map, CPOMS, SIMS, Arbor, Bromcom).
 """
-        audit_instructions = get_prompt(db, "SCHOOL_AUDIT_INSTRUCTIONS")
-        discovery_text, _ = run_web_search(search_prompt, audit_instructions)
+        discovery_instructions = get_prompt(db, "SCHOOL_AUDIT_INSTRUCTIONS")
+        discovery_text, _ = run_web_search(search_prompt, discovery_instructions)
         run.raw_findings = discovery_text
         db.commit()
 
@@ -94,6 +94,8 @@ Please investigate:
         # Step 3: Update School Record
         if extraction.ofsted_rating:
             school.ofsted_rating = extraction.ofsted_rating
+        if extraction.ofsted_inspection_date:
+            school.ofsted_inspection_date = extraction.ofsted_inspection_date
         if extraction.ofsted_send_quote:
             school.ofsted_send_excerpt = extraction.ofsted_send_quote
         if extraction.send_report_url:
@@ -300,3 +302,7 @@ Video Overview Link: {settings.video_link}
             school.pipeline_stage = SchoolPipelineStage.outreach_ready
 
         db.commit()
+
+
+# Alias for terminology
+discovery_school = audit_school

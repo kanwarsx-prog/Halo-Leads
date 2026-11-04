@@ -43,10 +43,10 @@
                         </span>
                         {% else %}
                         <span class="tooltip-container">
-                            <span class="badge badge-gray">Pending Audit</span>
+                            <span class="badge badge-gray">Pending Discovery</span>
                             <div class="tooltip-box">
-                                <div class="tooltip-header">Not Audited</div>
-                                <div>Click 'Audit School' to calculate priority based on statutory reports and Ofsted.</div>
+                                <div class="tooltip-header">Not Discovered</div>
+                                <div>Click 'Run Discovery' to research statutory reports, Ofsted history, and calculate fit.</div>
                             </div>
                         </span>
                         {% endif %}
@@ -75,7 +75,7 @@
                         </select>
                     </div>
                     <button onclick="triggerAudit('{{ school.id }}', this)" class="btn btn-primary btn-sm">
-                        {% if latest_run and latest_run.status.value == 'completed' %}Re-run SEND Audit{% else %}Audit School & SEND Report{% endif %}
+                        {% if latest_run and latest_run.status.value == 'completed' %}Re-run Discovery{% else %}Run School Discovery{% endif %}
                     </button>
                     <button onclick="if(confirm('Are you sure you want to remove this school from your targets?')) { fetch('/seemymind/schools/{{ school.id }}', {method: 'DELETE'}).then(() => window.location.href='/ui'); }" class="btn btn-secondary btn-sm" style="color: var(--danger);" title="Remove School">
                         🗑️ Delete
@@ -85,7 +85,7 @@
         </div>
 
         <div class="detail-grid">
-            <!-- Left Column: Evidence & Audit findings -->
+            <!-- Left Column: Evidence & Discovery findings -->
             <div>
                 <!-- Ofsted Quote -->
                 <div class="card" style="margin-bottom: 1.5rem;">
@@ -103,9 +103,22 @@
                         "{{ school.ofsted_send_excerpt }}"
                     </div>
                     <p style="font-size: 0.8rem; color: var(--soft);">Source: Latest Ofsted Inspection Report (SEND Provision Section)</p>
+                    {% elif latest_run and latest_run.status.value == 'completed' %}
+                    <div style="background: var(--gray-100); border-radius: 8px; padding: 0.95rem; margin-top: 0.75rem; border: 1px solid var(--line);">
+                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.4rem;">
+                            <span style="font-size: 1rem;">📋</span>
+                            <strong style="color: var(--ink); font-size: 0.9rem;">
+                                Latest Inspection: {{ school.ofsted_rating or 'Assessed' }}
+                                {% if school.ofsted_inspection_date %}<span style="color: var(--soft); font-weight: normal;">({{ school.ofsted_inspection_date }})</span>{% endif %}
+                            </strong>
+                        </div>
+                        <p style="color: var(--soft); font-size: 0.84rem; line-height: 1.5; margin: 0;">
+                            No verbatim SEND quote was published in public inspection summaries for this school. Discovery extracted the overall rating, statutory SEND policy, and key leadership contacts.
+                        </p>
+                    </div>
                     {% else %}
                     <p style="color: var(--soft); font-size: 0.9rem; padding: 1rem 0;">
-                        No Ofsted quote extracted yet. Click <strong>Audit School</strong> to scan their latest inspection findings.
+                        Discovery not run yet. Click <strong>Run School Discovery</strong> above to research inspection findings.
                     </p>
                     {% endif %}
                 </div>
@@ -151,7 +164,7 @@
                         {% endif %}
                     {% else %}
                         <p style="color: var(--soft); font-size: 0.9rem; padding: 1rem 0;">
-                            Audit has not yet been executed for this school. Click <strong>Audit School</strong> to search for their statutory SEND policy and contact information.
+                            Discovery has not yet been executed for this school. Click <strong>Run Discovery</strong> to search for their statutory SEND policy and contact information.
                         </p>
                     {% endif %}
                 </div>
@@ -184,7 +197,7 @@
                     </div>
                     {% else %}
                     <p style="color: var(--soft); font-size: 0.9rem; padding: 0.5rem 0;">
-                        No staff contacts found yet. The audit agent will locate the named SENCO and Headteacher.
+                        No staff contacts found yet. Click 'Run Discovery' to locate the named SENCO and Headteacher.
                     </p>
                     {% endfor %}
                 </div>
@@ -229,7 +242,7 @@
                             </div>
                             <div id="sencoBody" class="outreach-box">{{ senco_contact.email_draft }}</div>
                         {% else %}
-                            <p style="color: var(--soft); font-size: 0.9rem;">Run the school audit to generate an empathetic email drafted specifically for the SENCO.</p>
+                            <p style="color: var(--soft); font-size: 0.9rem;">Run school discovery to generate an empathetic email drafted specifically for the SENCO.</p>
                         {% endif %}
                     </div>
 
@@ -245,7 +258,7 @@
                             </div>
                             <div id="headBody" class="outreach-box">{{ head_contact.email_draft }}</div>
                         {% else %}
-                            <p style="color: var(--soft); font-size: 0.9rem;">Run the school audit to generate a whole-school inclusion oversight message for the Headteacher.</p>
+                            <p style="color: var(--soft); font-size: 0.9rem;">Run school discovery to generate a whole-school inclusion oversight message for the Headteacher.</p>
                         {% endif %}
                     </div>
 
@@ -261,7 +274,7 @@
                             </div>
                             <div id="letterText" class="letter-paper">{{ senco_contact.letter_draft }}</div>
                         {% else %}
-                            <p style="color: var(--soft); font-size: 0.9rem;">Run the school audit to generate a print-ready physical letter addressed to the named SENCO.</p>
+                            <p style="color: var(--soft); font-size: 0.9rem;">Run school discovery to generate a print-ready physical letter addressed to the named SENCO.</p>
                         {% endif %}
                     </div>
                 </div>

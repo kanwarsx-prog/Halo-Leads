@@ -34,7 +34,7 @@ async function updateStage(schoolId, stage) {
 async function triggerAudit(schoolId, btnElement) {
   const originalText = btnElement ? btnElement.innerHTML : '';
   if (btnElement) {
-    btnElement.innerHTML = 'Starting audit...';
+    btnElement.innerHTML = 'Starting discovery...';
     btnElement.disabled = true;
   }
 
@@ -44,7 +44,7 @@ async function triggerAudit(schoolId, btnElement) {
     if (res.ok) {
       pollAudit(data.run_id, btnElement, originalText);
     } else {
-      alert(data.detail || 'Failed to start audit');
+      alert(data.detail || 'Failed to start discovery');
       if (btnElement) {
         btnElement.innerHTML = originalText;
         btnElement.disabled = false;
@@ -71,11 +71,11 @@ function pollAudit(runId, btnElement, originalText) {
 
       if (data.status === 'completed') {
         clearInterval(interval);
-        if (btnElement) btnElement.innerHTML = 'Audit Complete! Reloading...';
+        if (btnElement) btnElement.innerHTML = 'Discovery Complete! Reloading...';
         setTimeout(() => window.location.reload(), 1200);
       } else if (data.status === 'failed') {
         clearInterval(interval);
-        alert('Audit failed: ' + (data.error_message || 'Unknown error'));
+        alert('Discovery failed: ' + (data.error_message || 'Unknown error'));
         if (btnElement) {
           btnElement.innerHTML = originalText;
           btnElement.disabled = false;

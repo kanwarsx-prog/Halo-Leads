@@ -93,6 +93,7 @@ class SchoolAuditExtraction(BaseModel):
     detected_tools: list[str] = Field(description="Existing tools/platforms mentioned (e.g., Provision Map, CPOMS, SIMS, Arbor, ClassDojo)")
     
     ofsted_rating: str | None = Field(description="Latest Ofsted rating if discovered")
+    ofsted_inspection_date: str | None = Field(description="Date of latest Ofsted inspection, e.g., November 2023", default=None)
     ofsted_send_quote: str | None = Field(description="Exact quote from latest Ofsted report regarding SEND / Inclusion")
     
     strengths_found: list[str] = Field(description="Specific SEND strengths or initiatives they highlight")
