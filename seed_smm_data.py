@@ -23,7 +23,7 @@ def seed():
             get_prompt(db, name)
 
         # Check if already seeded
-        if db.query(School).count() > 0:
+        if db.query(School).count() >= 5:
             print("Database already contains schools. Skipping seed.")
             return
 
@@ -197,6 +197,45 @@ See My Mind Partnerships""",
             notes="Exemplary cradle-to-career model. Strong candidate for early adopter pilot.",
         )
         db.add(s2)
+        db.flush()
+
+        # Reach Academy Contacts
+        c3 = SchoolContact(
+            id=str(uuid.uuid4()),
+            school_id=s2.id,
+            name="Reach Academy Office",
+            role="General Contact",
+            email="rafoffice@reachacademy.org.uk",
+            email_is_verified=True,
+            source="School Website Contact Page",
+            status=ContactStatus.discovered,
+        )
+        db.add(c3)
+
+        c4 = SchoolContact(
+            id=str(uuid.uuid4()),
+            school_id=s2.id,
+            name="The Headteacher / Principal",
+            role="Headteacher",
+            email=None,
+            email_is_verified=False,
+            source="Ofsted Inspection Report 2024",
+            status=ContactStatus.outreach_drafted,
+            email_subject="Supporting SEND provision and teacher workload at Reach Academy",
+            email_draft="""Dear Principal,
+
+Reach Academy Feltham's reputation for exceptional cradle-to-career inclusion and academic rigor is widely admired across West London.
+
+We built See My Mind to give senior leaders whole-school oversight of daily provision and to reduce staff burnout by replacing fragmented notes with a coordinated morning dashboard.
+
+I would be delighted to share a short 3-minute video showing how other high-performing academies streamline their inclusion trail: https://seemymind.co.uk/product.html
+
+Kind regards,
+
+Munish Kanwar
+See My Mind Partnerships""",
+        )
+        db.add(c4)
 
         # 3. St Jude's Church of England Primary
         s3 = School(
@@ -219,6 +258,44 @@ See My Mind Partnerships""",
             notes="Single maintained primary school in Southwark. High pupil mobility and neurodiversity need.",
         )
         db.add(s3)
+
+        # 4. Ark Globe Academy (All-through, MAT)
+        s4 = School(
+            id=str(uuid.uuid4()),
+            urn="145892",
+            name="Ark Globe Academy",
+            phase="All-through",
+            school_type="Academy Sponsor Led",
+            mat_name="Ark Schools",
+            website="https://arkglobe.org",
+            postcode="SE1 6AF",
+            address="Harper Road, London SE1 6AF",
+            sen_percentage=19.2,
+            pipeline_stage=SchoolPipelineStage.discovered,
+            overall_score=0,
+            priority="Monitor",
+            notes="Large MAT academy with high SEN Support proportion.",
+        )
+        db.add(s4)
+
+        # 5. Harris Academy Bermondsey (Secondary, MAT)
+        s5 = School(
+            id=str(uuid.uuid4()),
+            urn="137512",
+            name="Harris Academy Bermondsey",
+            phase="Secondary",
+            school_type="Academy Sponsor Led",
+            mat_name="Harris Federation",
+            website="https://www.harrisbermondsey.org.uk",
+            postcode="SE16 3TY",
+            address="55 Southwark Park Road, London SE16 3TY",
+            sen_percentage=18.0,
+            pipeline_stage=SchoolPipelineStage.discovered,
+            overall_score=0,
+            priority="Monitor",
+            notes="Part of Harris Federation; strong candidate for trust-wide rollout.",
+        )
+        db.add(s5)
 
         db.commit()
         print("Successfully seeded demo schools and contacts!")
