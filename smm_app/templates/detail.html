@@ -304,6 +304,136 @@
                 </div>
             </div>
         </div>
+
+        <!-- Pipeline Activities & CRM Notes Section -->
+        <div class="card" style="margin-top: 1.5rem; margin-bottom: 2rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.75rem;">
+                <div>
+                    <h2 style="margin: 0; font-size: 1.25rem;">Pipeline Activities & Discussion Notes</h2>
+                    <p style="font-size: 0.82rem; color: var(--soft); margin-top: 0.2rem;">
+                        Track calls, meetings, emails, demos, and discussion points for <strong>{{ school.name }}</strong>.
+                    </p>
+                </div>
+                <span class="badge badge-teal" style="font-size: 0.82rem; padding: 0.35rem 0.75rem;">
+                    {{ activities | length }} Activities Logged
+                </span>
+            </div>
+
+            <!-- Quick Activity Logger Form -->
+            <div style="background: var(--cream); border: 1px solid var(--line); border-radius: 8px; padding: 1.25rem; margin-bottom: 1.75rem;">
+                <div style="font-size: 0.78rem; font-weight: 700; color: var(--soft); text-transform: uppercase; margin-bottom: 0.75rem; letter-spacing: 0.5px;">
+                    Log New Pipeline Activity
+                </div>
+                
+                <!-- Activity Type Selector Pills -->
+                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem;" id="activityTypePills">
+                    <button type="button" onclick="selectActivityType('call', this)" class="btn btn-secondary btn-sm act-type-btn active" style="font-weight: 600; background: var(--teal); color: #fff; border-color: var(--teal);">
+                        📞 Call
+                    </button>
+                    <button type="button" onclick="selectActivityType('meeting', this)" class="btn btn-secondary btn-sm act-type-btn" style="font-weight: 600;">
+                        🤝 Meeting / Discussion
+                    </button>
+                    <button type="button" onclick="selectActivityType('email', this)" class="btn btn-secondary btn-sm act-type-btn" style="font-weight: 600;">
+                        ✉️ Email
+                    </button>
+                    <button type="button" onclick="selectActivityType('note', this)" class="btn btn-secondary btn-sm act-type-btn" style="font-weight: 600;">
+                        📝 Note
+                    </button>
+                    <button type="button" onclick="selectActivityType('demo', this)" class="btn btn-secondary btn-sm act-type-btn" style="font-weight: 600;">
+                        🖥️ Demo
+                    </button>
+                </div>
+
+                <form id="addActivityForm" onsubmit="submitAddActivity(event)">
+                    <input type="hidden" name="activity_type" id="activityTypeInput" value="call">
+                    
+                    <div class="activity-form-grid">
+                        <div class="form-group" style="margin: 0;">
+                            <label style="font-size: 0.75rem; font-weight: 600;">Activity Title / Subject *</label>
+                            <input type="text" name="title" id="activityTitleInput" required placeholder="e.g. Call with SENCO re: EHCP process & annual review pressure">
+                        </div>
+                        <div class="form-group" style="margin: 0;">
+                            <label style="font-size: 0.75rem; font-weight: 600;">Associated Contact</label>
+                            <select name="contact_name" id="activityContactSelect">
+                                <option value="">-- General / School Leadership --</option>
+                                {% for c in named_contacts %}
+                                <option value="{{ c.name }} ({{ c.role }})">{{ c.name }} ({{ c.role }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group" style="margin: 0;">
+                            <label style="font-size: 0.75rem; font-weight: 600;">Date</label>
+                            <input type="date" name="activity_date" id="activityDateInput" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 0.75rem;">
+                        <label style="font-size: 0.75rem; font-weight: 600;">Discussion Points, Key Takeaways & Next Actions *</label>
+                        <textarea name="notes" rows="3" required placeholder="What was discussed? Mentioned specific pain points, student numbers, budget timeline, current software tools, or agreed follow-up date..."></textarea>
+                    </div>
+
+                    <div style="display: flex; justify-content: flex-end;">
+                        <button type="submit" class="btn btn-primary btn-sm" id="saveActivityBtn" style="padding: 0.45rem 1.25rem; font-weight: 600;">
+                            <span>+</span> Log Activity Note
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Activity Timeline Feed -->
+            <div class="activity-timeline">
+                <div style="font-size: 0.78rem; font-weight: 700; color: var(--soft); text-transform: uppercase; margin-bottom: 1rem; letter-spacing: 0.5px;">
+                    Activity History & Timeline
+                </div>
+
+                {% if activities %}
+                    <div style="display: flex; flex-direction: column; gap: 0.85rem;">
+                        {% for act in activities %}
+                        <div style="background: #ffffff; border: 1px solid var(--line); border-radius: 8px; padding: 1rem; position: relative;">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; flex-wrap: wrap;">
+                                <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                                    <span class="badge {% if act.activity_type == 'call' %}badge-teal{% elif act.activity_type == 'meeting' %}badge-mint{% elif act.activity_type == 'demo' %}badge-coral{% elif act.activity_type == 'stage_change' %}badge-gold{% else %}badge-gray{% endif %}" style="font-weight: 600;">
+                                        {% if act.activity_type == 'call' %}📞 Call
+                                        {% elif act.activity_type == 'meeting' %}🤝 Meeting
+                                        {% elif act.activity_type == 'demo' %}🖥️ Demo
+                                        {% elif act.activity_type == 'email' %}✉️ Email
+                                        {% elif act.activity_type == 'stage_change' %}🔄 Pipeline Update
+                                        {% else %}📝 Note{% endif %}
+                                    </span>
+                                    <strong style="color: var(--ink); font-size: 0.95rem;">{{ act.title }}</strong>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                    <span style="font-size: 0.75rem; color: var(--soft);">
+                                        📅 {{ act.activity_date.strftime('%d %b %Y') if act.activity_date else act.created_at.strftime('%d %b %Y') }}
+                                    </span>
+                                    <button onclick="deleteActivity('{{ act.id }}')" style="background: none; border: none; color: var(--soft); cursor: pointer; font-size: 1rem; padding: 2px 6px;" title="Delete activity">&times;</button>
+                                </div>
+                            </div>
+
+                            <div style="font-size: 0.78rem; color: var(--soft); margin-top: 0.35rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+                                {% if act.contact_name %}
+                                <span>👤 <strong>Contact:</strong> {{ act.contact_name }}</span>
+                                {% endif %}
+                                <span>✍️ <strong>Logged by:</strong> {{ act.author or 'Admin' }}</span>
+                            </div>
+
+                            {% if act.notes %}
+                            <div style="white-space: pre-wrap; font-size: 0.86rem; color: var(--ink); line-height: 1.55; margin-top: 0.65rem; background: var(--gray-100); padding: 0.75rem 0.95rem; border-radius: 6px; border: 1px solid var(--line);">{{ act.notes }}</div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div style="text-align: center; padding: 2.5rem 1.5rem; background: var(--gray-100); border-radius: 8px; border: 1px dashed var(--line);">
+                        <div style="font-size: 2rem; margin-bottom: 0.5rem;">📋</div>
+                        <strong style="color: var(--ink); font-size: 0.95rem;">No pipeline activities recorded yet</strong>
+                        <p style="color: var(--soft); font-size: 0.82rem; margin-top: 0.3rem; max-width: 480px; margin-left: auto; margin-right: auto;">
+                            Log what you've discussed with the SENCO or Headteacher, call notes, meeting takeaways, or general CRM updates using the form above.
+                        </p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
     </div>
 
     <!-- Modal: Add Contact to School -->
@@ -424,6 +554,94 @@
                     window.location.reload();
                 } else {
                     alert('Failed to delete contact');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Connection error');
+            }
+        }
+
+        // Initialize Activity Date to today
+        const dateInput = document.getElementById('activityDateInput');
+        if (dateInput) {
+            const today = new Date().toISOString().split('T')[0];
+            dateInput.value = today;
+        }
+
+        function selectActivityType(type, btn) {
+            document.getElementById('activityTypeInput').value = type;
+            const buttons = document.querySelectorAll('.act-type-btn');
+            buttons.forEach(b => {
+                b.style.background = '';
+                b.style.color = '';
+                b.style.borderColor = '';
+            });
+            btn.style.background = 'var(--teal)';
+            btn.style.color = '#ffffff';
+            btn.style.borderColor = 'var(--teal)';
+
+            const titleInput = document.getElementById('activityTitleInput');
+            if (titleInput && (!titleInput.value || titleInput.dataset.autoFilled === 'true')) {
+                const prefixes = {
+                    'call': 'Call with SENCO / Leadership',
+                    'meeting': 'Meeting with Leadership Team',
+                    'email': 'Email follow-up sent',
+                    'note': 'Internal note on SEND priorities',
+                    'demo': 'Product demo presented'
+                };
+                titleInput.value = prefixes[type] || '';
+                titleInput.dataset.autoFilled = 'true';
+            }
+        }
+
+        async function submitAddActivity(e) {
+            e.preventDefault();
+            const form = e.target;
+            const btn = document.getElementById('saveActivityBtn');
+            btn.disabled = true;
+            btn.innerText = 'Logging...';
+
+            const data = {
+                activity_type: form.activity_type.value,
+                title: form.title.value,
+                notes: form.notes.value,
+                contact_name: form.contact_name.value || null,
+                activity_date: form.activity_date.value ? new Date(form.activity_date.value).toISOString() : null,
+                author: 'Admin'
+            };
+
+            try {
+                const res = await fetch('/seemymind/schools/{{ school.id }}/activities', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                if (res.ok) {
+                    window.location.reload();
+                } else {
+                    const err = await res.json();
+                    alert(err.detail || 'Failed to log activity');
+                    btn.disabled = false;
+                    btn.innerText = '+ Log Activity Note';
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Connection error');
+                btn.disabled = false;
+                btn.innerText = '+ Log Activity Note';
+            }
+        }
+
+        async function deleteActivity(activityId) {
+            if (!confirm('Are you sure you want to delete this activity log?')) return;
+            try {
+                const res = await fetch(`/seemymind/schools/activities/${activityId}`, {
+                    method: 'DELETE'
+                });
+                if (res.ok) {
+                    window.location.reload();
+                } else {
+                    alert('Failed to delete activity');
                 }
             } catch (err) {
                 console.error(err);

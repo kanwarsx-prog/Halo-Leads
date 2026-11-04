@@ -4,7 +4,7 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 
 from smm_app.database import get_db
-from smm_app.models import School, SchoolContact, SchoolAuditRun, PromptConfig, SchoolPipelineStage, ContactStatus
+from smm_app.models import School, SchoolContact, SchoolAuditRun, PromptConfig, SchoolPipelineStage, ContactStatus, SchoolActivity
 from smm_app.prompts import DEFAULT_PROMPTS, get_prompt
 
 TEMPLATES_DIR = Path(__file__).resolve().parent.parent / "templates"
@@ -60,6 +60,13 @@ def school_detail(school_id: str, request: Request, db: Session = Depends(get_db
     has_named_senco = any("senco" in c.role.lower() or "inclusion" in c.role.lower() for c in named_contacts)
     has_named_head = any("head" in c.role.lower() or "principal" in c.role.lower() for c in named_contacts)
 
+    activities = (
+        db.query(SchoolActivity)
+        .filter(SchoolActivity.school_id == school.id)
+        .order_by(SchoolActivity.activity_date.desc(), SchoolActivity.created_at.desc())
+        .all()
+    )
+
     return templates.TemplateResponse(
         request=request,
         name="detail.html",
@@ -72,6 +79,7 @@ def school_detail(school_id: str, request: Request, db: Session = Depends(get_db
             "has_named_senco": has_named_senco,
             "has_named_head": has_named_head,
             "stages": [s.value for s in SchoolPipelineStage],
+            "activities": activities,
         },
     )
 

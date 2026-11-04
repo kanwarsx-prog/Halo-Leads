@@ -103,6 +103,11 @@ class School(Base):
         cascade="all, delete-orphan",
         order_by="desc(SchoolAuditRun.started_at)",
     )
+    activities: Mapped[list["SchoolActivity"]] = relationship(
+        back_populates="school",
+        cascade="all, delete-orphan",
+        order_by="desc(SchoolActivity.activity_date)",
+    )
 
     @property
     def named_contacts(self) -> list["SchoolContact"]:
@@ -197,3 +202,35 @@ class PromptConfig(Base):
     name: Mapped[str] = mapped_column(String(100), primary_key=True)
     content: Mapped[str] = mapped_column(Text, nullable=False)
     description: Mapped[str | None] = mapped_column(Text)
+
+
+class SchoolActivity(Base):
+    __tablename__ = "smm_activities"
+
+    id: Mapped[str] = mapped_column(
+        String(36),
+        primary_key=True,
+        default=lambda: str(uuid.uuid4()),
+    )
+    school_id: Mapped[str] = mapped_column(
+        ForeignKey("smm_schools.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    activity_type: Mapped[str] = mapped_column(
+        String(50), default="note"
+    )  # call, meeting, email, note, demo, stage_change
+    title: Mapped[str] = mapped_column(String(300), nullable=False)
+    notes: Mapped[str | None] = mapped_column(Text)
+    contact_name: Mapped[str | None] = mapped_column(String(200))
+    author: Mapped[str] = mapped_column(String(100), default="Admin")
+    activity_date: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+    )
+
+    school: Mapped["School"] = relationship(back_populates="activities")

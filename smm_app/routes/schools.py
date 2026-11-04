@@ -1,13 +1,14 @@
 import csv
 import io
 import uuid
+from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from smm_app.database import get_db
-from smm_app.models import School, SchoolPipelineStage, SchoolContact, ContactStatus
-from smm_app.schemas import SchoolCreate, SchoolRead, SchoolStageUpdate, SchoolContactCreate
+from smm_app.models import School, SchoolPipelineStage, SchoolContact, ContactStatus, SchoolActivity
+from smm_app.schemas import SchoolCreate, SchoolRead, SchoolStageUpdate, SchoolContactCreate, SchoolActivityCreate, SchoolActivityRead
 
 router = APIRouter(prefix="/schools", tags=["schools"])
 
@@ -67,7 +68,24 @@ def update_stage(school_id: str, payload: SchoolStageUpdate, db: Session = Depen
     school = db.get(School, school_id)
     if not school:
         raise HTTPException(status_code=404, detail="School not found")
+    
+    old_stage = school.pipeline_stage
     school.pipeline_stage = payload.pipeline_stage
+    
+    if old_stage != payload.pipeline_stage:
+        old_name = old_stage.value.replace("_", " ").title()
+        new_name = payload.pipeline_stage.value.replace("_", " ").title()
+        stage_activity = SchoolActivity(
+            id=str(uuid.uuid4()),
+            school_id=school.id,
+            activity_type="stage_change",
+            title=f"Pipeline Stage Changed to {new_name}",
+            notes=f"Progressed from '{old_name}' to '{new_name}'.",
+            author="Admin",
+            activity_date=datetime.now(),
+        )
+        db.add(stage_activity)
+        
     db.commit()
     db.refresh(school)
     return school
@@ -267,3 +285,44 @@ def delete_school_contact(contact_id: str, db: Session = Depends(get_db)):
     db.delete(contact)
     db.commit()
     return {"message": "Contact deleted successfully"}
+
+
+@router.post("/{school_id}/activities", status_code=201)
+def add_school_activity(
+    school_id: str,
+    payload: SchoolActivityCreate,
+    db: Session = Depends(get_db),
+):
+    school = db.get(School, school_id)
+    if not school:
+        raise HTTPException(status_code=404, detail="School not found")
+
+    activity = SchoolActivity(
+        id=str(uuid.uuid4()),
+        school_id=school.id,
+        activity_type=payload.activity_type or "note",
+        title=payload.title.strip(),
+        notes=payload.notes.strip() if payload.notes else None,
+        contact_name=payload.contact_name.strip() if payload.contact_name else None,
+        author=payload.author or "Admin",
+        activity_date=payload.activity_date or datetime.now(),
+    )
+    db.add(activity)
+    db.commit()
+    db.refresh(activity)
+    return {
+        "message": "Activity logged successfully",
+        "activity_id": activity.id,
+        "title": activity.title,
+        "activity_type": activity.activity_type,
+    }
+
+
+@router.delete("/activities/{activity_id}")
+def delete_school_activity(activity_id: str, db: Session = Depends(get_db)):
+    act = db.get(SchoolActivity, activity_id)
+    if not act:
+        raise HTTPException(status_code=404, detail="Activity not found")
+    db.delete(act)
+    db.commit()
+    return {"message": "Activity deleted successfully"}

@@ -123,3 +123,26 @@ class PromptConfigRead(BaseModel):
 
 class PromptConfigUpdate(BaseModel):
     content: str
+
+
+class SchoolActivityCreate(BaseModel):
+    activity_type: str = "note"
+    title: str
+    notes: str | None = None
+    contact_name: str | None = None
+    author: str | None = "Admin"
+    activity_date: datetime | None = None
+
+
+class SchoolActivityRead(BaseModel):
+    id: str
+    school_id: str
+    activity_type: str
+    title: str
+    notes: str | None = None
+    contact_name: str | None = None
+    author: str
+    activity_date: datetime
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
