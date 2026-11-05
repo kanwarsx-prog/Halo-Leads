@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
 :root {
   --ink: #123b38;
   --soft: #46615d;
@@ -1378,4 +1380,263 @@ html, body {
   color: #eaf3f0;
   border: 1px solid var(--line);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+}
+
+
+/* ==========================================================================
+   High-Craft Visual Overhaul (Typography, Ambient Mesh, Glassmorphism & Depth)
+   ========================================================================== */
+
+:root {
+  --sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --serif: 'Fraunces', Georgia, Cambria, serif;
+  --cream: #f4f8f6;
+}
+
+[data-theme="dark"] {
+  --cream: #071110;
+  --paper: #0e1e1c;
+  --header-bg: rgba(14, 30, 28, 0.82);
+  --card-bg: #0e1e1c;
+  --line: #1d3633;
+  --gray-100: #132825;
+  --gray-200: #1a3531;
+  --table-th-bg: #112623;
+  --table-filter-bg: #0d1f1d;
+  --table-hover-bg: rgba(56, 178, 165, 0.07);
+}
+
+body {
+  background-color: var(--cream);
+  background-image:
+    radial-gradient(1100px circle at 8% -5%, rgba(189, 231, 214, 0.55), transparent 55%),
+    radial-gradient(900px circle at 92% -5%, rgba(232, 116, 94, 0.11), transparent 50%),
+    radial-gradient(900px circle at 50% 105%, rgba(29, 98, 93, 0.06), transparent 60%);
+  background-attachment: fixed;
+  letter-spacing: -0.008em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+[data-theme="dark"] body {
+  background-color: var(--cream);
+  background-image:
+    radial-gradient(1100px circle at 10% -8%, rgba(56, 178, 165, 0.16), transparent 55%),
+    radial-gradient(850px circle at 90% -5%, rgba(251, 113, 133, 0.08), transparent 50%),
+    radial-gradient(950px circle at 50% 105%, rgba(56, 178, 165, 0.07), transparent 60%);
+  background-attachment: fixed;
+}
+
+/* Frosted Glass Sticky Single-Row Header */
+header {
+  position: sticky;
+  top: 0.65rem;
+  z-index: 100;
+  background: rgba(255, 255, 255, 0.84) !important;
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid rgba(29, 98, 93, 0.14);
+  border-radius: 14px;
+  box-shadow: 0 8px 30px -6px rgba(18, 59, 56, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+[data-theme="dark"] header {
+  background: rgba(14, 30, 28, 0.82) !important;
+  border-color: rgba(56, 178, 165, 0.2);
+  box-shadow: 0 10px 32px -6px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+@keyframes pulseLiveDot {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.45); }
+  50% { box-shadow: 0 0 0 5px rgba(22, 163, 74, 0); }
+}
+
+.live-dot {
+  width: 7px;
+  height: 7px;
+  animation: pulseLiveDot 2.4s infinite;
+}
+
+/* Tactile Modern Buttons */
+.btn {
+  border-radius: 8px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #22756e 0%, #123b38 100%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 2px 8px -1px rgba(18, 59, 56, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #288880 0%, #164945 100%);
+  transform: translateY(-1.5px);
+  box-shadow: 0 6px 16px -2px rgba(29, 98, 93, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+[data-theme="dark"] .btn-primary {
+  background: linear-gradient(135deg, #2b8f85 0%, #18544e 100%);
+  border-color: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+}
+
+[data-theme="dark"] .btn-primary:hover {
+  background: linear-gradient(135deg, #34a59a 0%, #1e665f 100%);
+  box-shadow: 0 6px 18px rgba(56, 178, 165, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+}
+
+.btn-secondary {
+  box-shadow: 0 1px 2px rgba(18, 59, 56, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.btn-secondary:hover {
+  border-color: var(--teal);
+  color: var(--teal);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px -2px rgba(18, 59, 56, 0.08);
+}
+
+[data-theme="dark"] .btn-secondary {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+/* Elevated KPI Metric Cards with Radial Corner Glow */
+.metric-card {
+  border-radius: 14px;
+  padding: 0.95rem 1.1rem;
+  box-shadow: 0 4px 20px -4px rgba(18, 59, 56, 0.06), 0 1px 3px rgba(18, 59, 56, 0.03), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.metric-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 28px -6px rgba(18, 59, 56, 0.12), 0 2px 6px rgba(18, 59, 56, 0.04);
+  border-color: rgba(29, 98, 93, 0.28);
+}
+
+[data-theme="dark"] .metric-card {
+  box-shadow: 0 6px 22px -4px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="dark"] .metric-card:hover {
+  box-shadow: 0 14px 30px -6px rgba(0, 0, 0, 0.65), 0 0 16px rgba(56, 178, 165, 0.1);
+  border-color: rgba(56, 178, 165, 0.35);
+}
+
+.card-teal {
+  background-image: radial-gradient(140px circle at 100% 0%, rgba(29, 98, 93, 0.08), transparent 70%);
+}
+.card-coral {
+  background-image: radial-gradient(140px circle at 100% 0%, rgba(232, 116, 94, 0.12), transparent 70%);
+}
+.card-blue {
+  background-image: radial-gradient(140px circle at 100% 0%, rgba(2, 132, 199, 0.10), transparent 70%);
+}
+.card-green {
+  background-image: radial-gradient(140px circle at 100% 0%, rgba(22, 163, 74, 0.10), transparent 70%);
+}
+.card-purple {
+  background-image: radial-gradient(140px circle at 100% 0%, rgba(139, 92, 246, 0.10), transparent 70%);
+}
+
+.metric-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  background: var(--teal-light);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.95rem;
+  opacity: 1;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.card-coral .metric-icon { background: rgba(232, 116, 94, 0.15); }
+.card-blue .metric-icon { background: rgba(2, 132, 199, 0.14); }
+.card-green .metric-icon { background: rgba(22, 163, 74, 0.14); }
+.card-purple .metric-icon { background: rgba(139, 92, 246, 0.14); }
+
+.metric-value {
+  font-size: 1.75rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+  margin-top: 0.1rem;
+}
+
+/* Elevated Content Cards & Cluster Cards */
+.card, .cluster-card {
+  border-radius: 14px;
+  box-shadow: 0 6px 24px -6px rgba(18, 59, 56, 0.06), 0 1px 3px rgba(18, 59, 56, 0.03);
+}
+
+[data-theme="dark"] .card, [data-theme="dark"] .cluster-card {
+  box-shadow: 0 8px 28px -6px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+/* Modern Data Table & Row Hover Accent */
+.table-container {
+  border-radius: 14px 14px 0 0;
+  box-shadow: 0 10px 30px -8px rgba(18, 59, 56, 0.07);
+}
+
+[data-theme="dark"] .table-container {
+  box-shadow: 0 12px 34px -8px rgba(0, 0, 0, 0.55);
+}
+
+.pagination-bar {
+  border-radius: 0 0 14px 14px;
+}
+
+tbody tr {
+  transition: background-color 0.15s ease;
+}
+
+tbody tr:hover td:first-child {
+  box-shadow: inset 3px 0 0 var(--teal);
+}
+
+/* Crisp Pill Badges */
+.badge {
+  padding: 0.22rem 0.55rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="dark"] .badge {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+/* Frosted Kanban Columns & Floating Cards */
+.kanban-column {
+  border-radius: 14px;
+  background: rgba(244, 246, 245, 0.75);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 16px -4px rgba(18, 59, 56, 0.04);
+}
+
+[data-theme="dark"] .kanban-column {
+  background: rgba(19, 40, 37, 0.75);
+  box-shadow: 0 6px 20px -4px rgba(0, 0, 0, 0.4);
+}
+
+.kanban-column-header {
+  border-top-left-radius: 13px;
+  border-top-right-radius: 13px;
+}
+
+.kanban-card {
+  border-radius: 11px;
+  box-shadow: 0 2px 8px -2px rgba(18, 59, 56, 0.06);
+  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.kanban-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 22px -4px rgba(18, 59, 56, 0.12);
+  border-color: var(--teal);
 }
