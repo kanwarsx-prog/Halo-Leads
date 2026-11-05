@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pipeline Kanban Board · See My Mind Lead Intelligence</title>
     <link rel="stylesheet" href="/seemymind/static/styles.css?v=2.4">
+    <script src="/seemymind/static/theme.js"></script>
     <!-- Browser Favicons -->
     <link rel="icon" type="image/svg+xml" href="/seemymind/static/favicon.svg">
     <link rel="icon" type="image/png" sizes="32x32" href="/seemymind/static/favicon-32x32.png">
@@ -24,12 +25,16 @@
                 <a href="/seemymind/ui" class="btn btn-secondary">&larr; Back to Dashboard</a>
                 <a href="/seemymind/ui/rollups" class="btn btn-secondary"><span>🏛️</span> Trusts &amp; Councils</a>
                 <a href="/seemymind/ui/contacts" class="btn btn-secondary"><span>👥</span> Contacts</a>
+                <button id="themeToggleBtn" onclick="toggleTheme()" class="btn btn-secondary theme-toggle-btn" title="Toggle theme (Dark / Light)" aria-label="Toggle theme">
+                    <span class="theme-icon">🌙</span>
+                    <span class="theme-label">Dark</span>
+                </button>
                 <a href="/logout" class="btn btn-secondary" style="color: var(--soft);" title="Sign out">Log out</a>
             </nav>
         </header>
 
         <!-- Header Title Banner -->
-        <div class="card" style="margin-bottom: 1.25rem; padding: 1.15rem 1.35rem; background: #ffffff; border-left: 4px solid var(--teal);">
+        <div class="card" style="margin-bottom: 1.25rem; padding: 1.15rem 1.35rem; background: var(--paper); border-left: 4px solid var(--teal);">
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
                 <div>
                     <h1 style="font-size: 1.45rem; line-height: 1.2; margin: 0 0 0.3rem 0; color: var(--ink);">
@@ -51,13 +56,13 @@
         </div>
 
         <!-- Filter & Search Toolbar -->
-        <div class="card" style="margin-bottom: 1.25rem; padding: 0.85rem 1.15rem; background: #ffffff;">
+        <div class="card" style="margin-bottom: 1.25rem; padding: 0.85rem 1.15rem; background: var(--paper);">
             <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
                 <div style="flex: 1 1 240px;">
                     <input type="text" id="kanbanSearchInput" placeholder="🔍 Search school, trust, SENCO, or postcode..." oninput="filterKanbanCards()" style="width: 100%; padding: 0.45rem 0.65rem; border: 1px solid var(--line); border-radius: 6px; font-size: 0.84rem;">
                 </div>
                 <div style="flex: 0 1 180px;">
-                    <select id="kanbanPhaseFilter" onchange="filterKanbanCards()" style="width: 100%; padding: 0.45rem 0.6rem; border: 1px solid var(--line); border-radius: 6px; font-size: 0.84rem; background: #fff;">
+                    <select id="kanbanPhaseFilter" onchange="filterKanbanCards()" style="width: 100%; padding: 0.45rem 0.6rem; border: 1px solid var(--line); border-radius: 6px; font-size: 0.84rem; background: var(--paper);">
                         <option value="">All School Phases</option>
                         <option value="Primary">Primary</option>
                         <option value="Secondary">Secondary</option>
@@ -66,7 +71,7 @@
                     </select>
                 </div>
                 <div style="flex: 0 1 180px;">
-                    <select id="kanbanPriorityFilter" onchange="filterKanbanCards()" style="width: 100%; padding: 0.45rem 0.6rem; border: 1px solid var(--line); border-radius: 6px; font-size: 0.84rem; background: #fff;">
+                    <select id="kanbanPriorityFilter" onchange="filterKanbanCards()" style="width: 100%; padding: 0.45rem 0.6rem; border: 1px solid var(--line); border-radius: 6px; font-size: 0.84rem; background: var(--paper);">
                         <option value="">All Lead Priorities</option>
                         <option value="Immediate Focus">🔥 Immediate Focus</option>
                         <option value="Target School">🎯 Target School</option>
@@ -151,7 +156,7 @@
                             <a href="/seemymind/ui/schools/{{ sc.id }}" style="color: var(--soft); text-decoration: none; font-weight: 500;">
                                 Detail &rarr;
                             </a>
-                            <select onchange="handleSelectStageChange(this)" style="font-size: 0.72rem; padding: 0.15rem 0.35rem; border: 1px solid var(--line); border-radius: 4px; background: #fff; color: var(--soft);" title="Move to stage">
+                            <select onchange="handleSelectStageChange(this)" style="font-size: 0.72rem; padding: 0.15rem 0.35rem; border: 1px solid var(--line); border-radius: 4px; background: var(--paper); color: var(--soft);" title="Move to stage">
                                 {% for opt in stages %}
                                 <option value="{{ opt.id }}" {% if opt.id == st.id %}selected{% endif %}>
                                     Move &rarr; {{ opt.name }}

@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trusts & Local Councils Roll-Up · See My Mind Lead Intelligence</title>
     <link rel="stylesheet" href="/seemymind/static/styles.css?v=2.4">
+    <script src="/seemymind/static/theme.js"></script>
     <!-- Browser Favicons -->
     <link rel="icon" type="image/svg+xml" href="/seemymind/static/favicon.svg">
     <link rel="icon" type="image/png" sizes="32x32" href="/seemymind/static/favicon-32x32.png">
@@ -24,6 +25,10 @@
                 <a href="/seemymind/ui" class="btn btn-secondary">&larr; Back to Dashboard</a>
                 <a href="/seemymind/ui/kanban" class="btn btn-secondary"><span>📋</span> Pipeline Board</a>
                 <a href="/seemymind/ui/contacts" class="btn btn-secondary"><span>👥</span> Contacts</a>
+                <button id="themeToggleBtn" onclick="toggleTheme()" class="btn btn-secondary theme-toggle-btn" title="Toggle theme (Dark / Light)" aria-label="Toggle theme">
+                    <span class="theme-icon">🌙</span>
+                    <span class="theme-label">Dark</span>
+                </button>
                 <a href="/logout" class="btn btn-secondary" style="color: var(--soft);" title="Sign out">Log out</a>
             </nav>
         </header>
@@ -77,7 +82,7 @@
         </div>
 
         <!-- Header Title Banner -->
-        <div class="card" style="margin-bottom: 1.25rem; padding: 1.15rem 1.35rem; background: #ffffff; border-left: 4px solid var(--teal);">
+        <div class="card" style="margin-bottom: 1.25rem; padding: 1.15rem 1.35rem; background: var(--paper); border-left: 4px solid var(--teal);">
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
                 <div>
                     <h1 style="font-size: 1.45rem; line-height: 1.2; margin: 0 0 0.3rem 0; color: var(--ink);">
@@ -108,13 +113,13 @@
         </div>
 
         <!-- Unified Filter & Search Bar -->
-        <div class="card" style="margin-bottom: 1.5rem; padding: 0.9rem 1.15rem; background: #ffffff;">
+        <div class="card" style="margin-bottom: 1.5rem; padding: 0.9rem 1.15rem; background: var(--paper);">
             <div style="display: flex; gap: 0.65rem; align-items: center; flex-wrap: wrap;">
                 <div style="flex: 1 1 240px;">
                     <input type="text" id="clusterSearchInput" placeholder="🔍 Search trust, council, or school name..." oninput="filterClusters()" style="width: 100%; padding: 0.45rem 0.65rem; border: 1px solid var(--line); border-radius: 6px; font-size: 0.84rem;">
                 </div>
                 <div style="flex: 0 1 170px;">
-                    <select id="clusterSizeFilter" onchange="filterClusters()" style="width: 100%; padding: 0.45rem 0.6rem; border: 1px solid var(--line); border-radius: 6px; font-size: 0.84rem; background: #fff;">
+                    <select id="clusterSizeFilter" onchange="filterClusters()" style="width: 100%; padding: 0.45rem 0.6rem; border: 1px solid var(--line); border-radius: 6px; font-size: 0.84rem; background: var(--paper);">
                         <option value="">All Cluster Sizes</option>
                         <option value="2">2+ Target Schools</option>
                         <option value="3">3+ Target Schools</option>
@@ -122,7 +127,7 @@
                     </select>
                 </div>
                 <div style="flex: 0 1 180px;">
-                    <select id="clusterStageFilter" onchange="filterClusters()" style="width: 100%; padding: 0.45rem 0.6rem; border: 1px solid var(--line); border-radius: 6px; font-size: 0.84rem; background: #fff;">
+                    <select id="clusterStageFilter" onchange="filterClusters()" style="width: 100%; padding: 0.45rem 0.6rem; border: 1px solid var(--line); border-radius: 6px; font-size: 0.84rem; background: var(--paper);">
                         <option value="">All Pipeline Activity</option>
                         <option value="demo">Has Demos Booked</option>
                         <option value="outreach_ready">Has Outreach Ready</option>
@@ -131,7 +136,7 @@
                     </select>
                 </div>
                 <div style="flex: 0 1 170px;">
-                    <select id="clusterSortSelect" onchange="sortClusters()" style="width: 100%; padding: 0.45rem 0.6rem; border: 1px solid var(--line); border-radius: 6px; font-size: 0.84rem; background: #fff;">
+                    <select id="clusterSortSelect" onchange="sortClusters()" style="width: 100%; padding: 0.45rem 0.6rem; border: 1px solid var(--line); border-radius: 6px; font-size: 0.84rem; background: var(--paper);">
                         <option value="schools_desc">Most Schools</option>
                         <option value="sen_desc">Highest Avg SEN %</option>
                         <option value="score_desc">Highest Lead Score</option>

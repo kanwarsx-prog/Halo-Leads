@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login · See My Mind Education Intelligence</title>
     <link rel="stylesheet" href="/seemymind/static/styles.css?v=2.4">
+    <script src="/seemymind/static/theme.js"></script>
     <style>
         body {
             display: flex;
@@ -16,7 +17,7 @@
         }
 
         .login-card {
-            background: #ffffff;
+            background: var(--paper);
             border: 1px solid var(--line);
             border-radius: 14px;
             padding: 2.25rem 2rem;
@@ -114,6 +115,12 @@
     <link rel="shortcut icon" href="/seemymind/static/favicon.ico">
 </head>
 <body>
+    <div style="position: absolute; top: 1.25rem; right: 1.25rem;">
+        <button id="themeToggleBtn" onclick="toggleTheme()" class="btn btn-secondary theme-toggle-btn" title="Toggle theme (Dark / Light)" aria-label="Toggle theme">
+            <span class="theme-icon">🌙</span>
+            <span class="theme-label">Dark</span>
+        </button>
+    </div>
 
     <div class="login-card">
         <img src="/seemymind/static/logos/seemymind-mark.png" alt="See My Mind" class="login-logo">

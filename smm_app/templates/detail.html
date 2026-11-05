@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ school.name }} · See My Mind Lead Intelligence</title>
     <link rel="stylesheet" href="/seemymind/static/styles.css?v=2.4">
+    <script src="/seemymind/static/theme.js"></script>
     <!-- Browser Favicons -->
     <link rel="icon" type="image/svg+xml" href="/seemymind/static/favicon.svg">
     <link rel="icon" type="image/png" sizes="32x32" href="/seemymind/static/favicon-32x32.png">
@@ -25,6 +26,10 @@
                 <a href="/seemymind/ui/kanban" class="btn btn-secondary"><span>📋</span> Pipeline</a>
                 <a href="/seemymind/ui/rollups" class="btn btn-secondary"><span>🏛️</span> Trusts &amp; Councils</a>
                 <a href="/seemymind/ui/contacts" class="btn btn-secondary"><span>👥</span> All Contacts</a>
+                <button id="themeToggleBtn" onclick="toggleTheme()" class="btn btn-secondary theme-toggle-btn" title="Toggle theme (Dark / Light)" aria-label="Toggle theme">
+                    <span class="theme-icon">🌙</span>
+                    <span class="theme-label">Dark</span>
+                </button>
                 <a href="/logout" class="btn btn-secondary" style="color: var(--soft);" title="Sign out">Log out</a>
             </nav>
         </header>
@@ -74,7 +79,7 @@
                 <div class="school-header-actions">
                     <div>
                         <label style="font-size: 0.72rem; font-weight: 600; color: var(--soft); display: block; margin-bottom: 0.2rem;">Pipeline Stage</label>
-                        <select onchange="updateStage('{{ school.id }}', this.value)" style="padding: 0.38rem 0.65rem; border-radius: 6px; border: 1px solid var(--line); font-weight: 600; font-size: 0.8rem; background: #fff;">
+                        <select onchange="updateStage('{{ school.id }}', this.value)" style="padding: 0.38rem 0.65rem; border-radius: 6px; border: 1px solid var(--line); font-weight: 600; font-size: 0.8rem; background: var(--paper);">
                             {% for stage in stages %}
                             <option value="{{ stage }}" {% if school.pipeline_stage.value == stage %}selected{% endif %}>
                                 {{ stage | replace('_', ' ') | title }}
@@ -92,7 +97,7 @@
             </div>
 
             {% if active_follow_up %}
-            <div style="background: #fffbeb; border: 1px solid #fde68a; border-left: 4px solid #f59e0b; padding: 0.85rem 1.15rem; border-radius: 8px; margin-top: 1rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+            <div style="background: rgba(245, 158, 11, 0.12); border: 1px solid #fde68a; border-left: 4px solid #f59e0b; padding: 0.85rem 1.15rem; border-radius: 8px; margin-top: 1rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
                 <div>
                     <div style="font-size: 0.75rem; font-weight: 700; color: #b45309; text-transform: uppercase;">
                         ⏰ Upcoming Follow-Up Task: Due {{ active_follow_up.next_follow_up_date.strftime('%d %b %Y') }}
@@ -488,7 +493,7 @@
                 {% if activities %}
                     <div style="display: flex; flex-direction: column; gap: 0.85rem;">
                         {% for act in activities %}
-                        <div style="background: #ffffff; border: 1px solid var(--line); border-radius: 8px; padding: 1rem; position: relative;">
+                        <div style="background: var(--paper); border: 1px solid var(--line); border-radius: 8px; padding: 1rem; position: relative;">
                             <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; flex-wrap: wrap;">
                                 <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
                                     <span class="badge {% if act.activity_type == 'call' %}badge-teal{% elif act.activity_type == 'meeting' %}badge-mint{% elif act.activity_type == 'demo' %}badge-coral{% elif act.activity_type == 'stage_change' %}badge-gold{% else %}badge-gray{% endif %}" style="font-weight: 600;">

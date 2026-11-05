@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Prompt Configuration · See My Mind Lead Agent</title>
     <link rel="stylesheet" href="/seemymind/static/styles.css?v=2.4">
+    <script src="/seemymind/static/theme.js"></script>
     <!-- Browser Favicons -->
     <link rel="icon" type="image/svg+xml" href="/seemymind/static/favicon.svg">
     <link rel="icon" type="image/png" sizes="32x32" href="/seemymind/static/favicon-32x32.png">
@@ -25,6 +26,10 @@
                 <a href="/seemymind/ui/kanban" class="btn btn-secondary"><span>📋</span> Pipeline</a>
                 <a href="/seemymind/ui/rollups" class="btn btn-secondary"><span>🏛️</span> Trusts &amp; Councils</a>
                 <a href="/seemymind/ui/contacts" class="btn btn-secondary"><span>👥</span> Contacts</a>
+                <button id="themeToggleBtn" onclick="toggleTheme()" class="btn btn-secondary theme-toggle-btn" title="Toggle theme (Dark / Light)" aria-label="Toggle theme">
+                    <span class="theme-icon">🌙</span>
+                    <span class="theme-label">Dark</span>
+                </button>
                 <a href="/logout" class="btn btn-secondary" style="color: var(--soft);" title="Sign out">Log out</a>
             </nav>
         </header>
