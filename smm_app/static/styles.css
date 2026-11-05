@@ -1075,3 +1075,120 @@ html, body {
     margin-top: 0.35rem;
   }
 }
+
+
+/* ==========================================================================
+   Dedicated Kanban Pipeline Board Styling
+   ========================================================================== */
+
+.kanban-board-container {
+  display: flex;
+  gap: 1rem;
+  overflow-x: auto;
+  padding-bottom: 1.5rem;
+  -webkit-overflow-scrolling: touch;
+  align-items: flex-start;
+  min-height: 550px;
+}
+
+.kanban-column {
+  flex: 0 0 310px;
+  background: var(--gray-100);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 200px);
+  min-height: 380px;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.kanban-column.drag-over {
+  background: #eaf7f1 !important;
+  border: 2px dashed var(--teal) !important;
+}
+
+.kanban-column-header {
+  padding: 0.75rem 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid var(--line);
+  user-select: none;
+  background: #ffffff;
+  border-top-left-radius: 9px;
+  border-top-right-radius: 9px;
+}
+
+.kanban-cards-list {
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 120px;
+}
+
+.kanban-card {
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.85rem 0.95rem;
+  box-shadow: 0 1px 4px rgba(18, 59, 56, 0.04);
+  cursor: grab;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  user-select: none;
+}
+
+.kanban-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(18, 59, 56, 0.08);
+  border-color: #cbd5e1;
+}
+
+.kanban-card.is-dragging {
+  opacity: 0.4;
+  cursor: grabbing;
+  transform: scale(0.98);
+}
+
+.kanban-toast {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  background: #123b38;
+  color: #ffffff;
+  padding: 0.65rem 1.15rem;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  font-size: 0.84rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  z-index: 9999;
+  transform: translateY(100px);
+  opacity: 0;
+  transition: all 0.25s ease;
+}
+
+.kanban-toast.show {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+@media (max-width: 768px) {
+  .kanban-board-container {
+    gap: 0.75rem;
+    scroll-snap-type: x mandatory;
+    padding-bottom: 1rem;
+  }
+
+  .kanban-column {
+    flex: 0 0 85vw;
+    scroll-snap-align: center;
+    max-height: none;
+    min-height: 250px;
+  }
+}

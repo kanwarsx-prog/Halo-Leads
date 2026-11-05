@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pipeline Kanban Board · See My Mind Lead Intelligence</title>
+    <link rel="stylesheet" href="/seemymind/static/styles.css?v=2.4">
+    <!-- Browser Favicons -->
+    <link rel="icon" type="image/svg+xml" href="/seemymind/static/favicon.svg">
+    <link rel="icon" type="image/png" sizes="32x32" href="/seemymind/static/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/seemymind/static/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/seemymind/static/apple-touch-icon.png">
+    <link rel="shortcut icon" href="/seemymind/static/favicon.ico">
+</head>
+<body>
+    <div class="container" style="max-width: 1400px;">
+        <header>
+            <a href="/seemymind/ui" class="brand-title">
+                <img src="/seemymind/static/logos/seemymind-mark.png" alt="See My Mind" class="brand-icon">
+                <span class="brand-title-text smm-title">See My Mind</span>
+                <span class="brand-badge"><span class="live-dot"></span> Education Intelligence</span>
+            </a>
+            <nav>
+                <a href="/seemymind/ui" class="btn btn-secondary">&larr; Back to Dashboard</a>
+                <a href="/seemymind/ui/rollups" class="btn btn-secondary"><span>🏛️</span> Trusts &amp; Councils</a>
+                <a href="/seemymind/ui/contacts" class="btn btn-secondary"><span>👥</span> Contacts</a>
+                <a href="/logout" class="btn btn-secondary" style="color: var(--soft);" title="Sign out">Log out</a>
+            </nav>
+        </header>
+
+        <!-- Header Title Banner -->
+        <div class="card" style="margin-bottom: 1.25rem; padding: 1.15rem 1.35rem; background: #ffffff; border-left: 4px solid var(--teal);">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+                <div>
+                    <h1 style="font-size: 1.45rem; line-height: 1.2; margin: 0 0 0.3rem 0; color: var(--ink);">
+                        Visual Pipeline Kanban Board
+                    </h1>
+                    <p style="font-size: 0.85rem; color: var(--soft); margin: 0; max-width: 800px;">
+                        Interactive progression workspace for England &amp; Wales schools. Drag and drop cards between stages to update status in real time and automatically log activity timestamps.
+                    </p>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+                    <span class="badge badge-teal" style="font-size: 0.82rem; padding: 0.35rem 0.65rem;">
+                        {{ total_schools }} Target Schools
+                    </span>
+                    <a href="/seemymind/ui" class="btn btn-secondary btn-sm">
+                        📊 Switch to Table View
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter & Search Toolbar -->
+        <div class="card" style="margin-bottom: 1.25rem; padding: 0.85rem 1.15rem; background: #ffffff;">
+            <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+                <div style="flex: 1 1 240px;">
+                    <input type="text" id="kanbanSearchInput" placeholder="🔍 Search school, trust, SENCO, or postcode..." oninput="filterKanbanCards()" style="width: 100%; padding: 0.45rem 0.65rem; border: 1px solid var(--line); border-radius: 6px; font-size: 0.84rem;">
+                </div>
+                <div style="flex: 0 1 180px;">
+                    <select id="kanbanPhaseFilter" onchange="filterKanbanCards()" style="width: 100%; padding: 0.45rem 0.6rem; border: 1px solid var(--line); border-radius: 6px; font-size: 0.84rem; background: #fff;">
+                        <option value="">All School Phases</option>
+                        <option value="Primary">Primary</option>
+                        <option value="Secondary">Secondary</option>
+                        <option value="Special">Special School</option>
+                        <option value="All-through">All-through</option>
+                    </select>
+                </div>
+                <div style="flex: 0 1 180px;">
+                    <select id="kanbanPriorityFilter" onchange="filterKanbanCards()" style="width: 100%; padding: 0.45rem 0.6rem; border: 1px solid var(--line); border-radius: 6px; font-size: 0.84rem; background: #fff;">
+                        <option value="">All Lead Priorities</option>
+                        <option value="Immediate Focus">🔥 Immediate Focus</option>
+                        <option value="Target School">🎯 Target School</option>
+                        <option value="Monitor">Monitor</option>
+                    </select>
+                </div>
+                <div>
+                    <button onclick="resetKanbanFilters()" class="btn btn-secondary btn-sm" style="font-size: 0.78rem;">↺ Reset</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Scroll Hint -->
+        <div class="table-scroll-hint"><span>⇄ Swipe horizontally to explore pipeline stages or drag cards to advance</span></div>
+
+        <!-- Multi-Column Kanban Board -->
+        <div class="kanban-board-container" id="kanbanBoard">
+            {% for st in stages %}
+            {% set column_schools = stages_map[st.id] %}
+            <div class="kanban-column" data-stage="{{ st.id }}" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event, '{{ st.id }}')">
+                <!-- Column Header -->
+                <div class="kanban-column-header" style="border-bottom-color: {{ st.border }};">
+                    <div style="display: flex; align-items: center; gap: 0.45rem;">
+                        <span style="font-size: 1.1rem;">{{ st.icon }}</span>
+                        <strong style="color: var(--ink); font-size: 0.92rem;">{{ st.name }}</strong>
+                    </div>
+                    <span class="badge" id="counter-{{ st.id }}" style="background: rgba(18, 59, 56, 0.08); color: var(--ink); font-weight: 700; font-size: 0.76rem;">
+                        {{ column_schools | length }}
+                    </span>
+                </div>
+
+                <!-- Cards Container -->
+                <div class="kanban-cards-list" id="cards-{{ st.id }}">
+                    {% for sc in column_schools %}
+                    <div class="kanban-card" id="card-{{ sc.id }}" draggable="true" ondragstart="handleDragStart(event, '{{ sc.id }}', '{{ sc.name | escape }}')" ondragend="handleDragEnd(event)" data-school-id="{{ sc.id }}" data-name="{{ sc.name | lower }}" data-mat="{{ (sc.mat_name or '') | lower }}" data-la="{{ (sc.local_authority or '') | lower }}" data-postcode="{{ (sc.postcode or '') | lower }}" data-phase="{{ sc.phase or 'Primary' }}" data-priority="{{ sc.priority }}">
+                        
+                        <!-- Top Row: Phase + Score -->
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.45rem;">
+                            <span class="badge badge-gray" style="font-size: 0.7rem; padding: 0.15rem 0.4rem;">
+                                {{ sc.phase or 'Primary' }}
+                            </span>
+                            <span class="badge {% if sc.priority == 'Immediate Focus' %}badge-coral{% elif sc.priority == 'Target School' %}badge-mint{% else %}badge-gray{% endif %}" style="font-size: 0.7rem; padding: 0.15rem 0.4rem;">
+                                {% if sc.overall_score > 0 %}{{ sc.overall_score }}/100 &middot; {% endif %}{{ sc.priority }}
+                            </span>
+                        </div>
+
+                        <!-- School Name Link -->
+                        <div style="margin-bottom: 0.35rem;">
+                            <a href="/seemymind/ui/schools/{{ sc.id }}" style="font-weight: 700; color: var(--teal); font-size: 0.92rem; text-decoration: none; line-height: 1.35; display: inline-block;">
+                                {{ sc.name }}
+                            </a>
+                        </div>
+
+                        <!-- MAT / Council / Postcode -->
+                        <div style="font-size: 0.75rem; color: var(--soft); margin-bottom: 0.45rem; line-height: 1.3;">
+                            {% if sc.mat_name %}
+                                <span style="color: var(--ink); font-weight: 500;">🏫 {{ sc.mat_name }}</span>
+                            {% elif sc.local_authority %}
+                                <span>🏛️ {{ sc.local_authority }}</span>
+                            {% endif %}
+                            {% if sc.postcode %} &middot; {{ sc.postcode }}{% endif %}
+                        </div>
+
+                        <!-- SEN % & Key Contact Tag -->
+                        <div style="display: flex; gap: 0.35rem; align-items: center; flex-wrap: wrap; margin-bottom: 0.5rem;">
+                            {% if sc.sen_percentage and sc.sen_percentage > 0 %}
+                            <span class="badge {% if sc.sen_percentage >= 16.0 %}badge-coral{% else %}badge-mint{% endif %}" style="font-size: 0.68rem; font-weight: 600;">
+                                {{ "%.1f"|format(sc.sen_percentage) }}% SEN Roll
+                            </span>
+                            {% endif %}
+
+                            {% set senco = sc.named_contacts | selectattr('role', 'defined') | list | first if sc.named_contacts else None %}
+                            {% if senco %}
+                            <span style="font-size: 0.72rem; color: var(--soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 170px;" title="{{ senco.name }} ({{ senco.role }})">
+                                👤 {{ senco.name }}
+                            </span>
+                            {% endif %}
+                        </div>
+
+                        <!-- Card Footer / Stage Select Fallback (Touch friendly) -->
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 0.45rem; border-top: 1px dashed var(--line); font-size: 0.72rem;">
+                            <a href="/seemymind/ui/schools/{{ sc.id }}" style="color: var(--soft); text-decoration: none; font-weight: 500;">
+                                Detail &rarr;
+                            </a>
+                            <select onchange="handleSelectStageChange('{{ sc.id }}', '{{ sc.name | escape }}', this.value)" style="font-size: 0.72rem; padding: 0.15rem 0.35rem; border: 1px solid var(--line); border-radius: 4px; background: #fff; color: var(--soft);" title="Move to stage">
+                                {% for opt in stages %}
+                                <option value="{{ opt.id }}" {% if opt.id == st.id %}selected{% endif %}>
+                                    Move &rarr; {{ opt.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Floating Toast Notification -->
+        <div id="kanbanToast" class="kanban-toast">
+            <span id="toastIcon">✓</span>
+            <span id="toastMsg">Stage updated</span>
+        </div>
+
+        <!-- Discreet Footer -->
+        <footer style="margin-top: 3.5rem; padding: 1.5rem 0 2rem 0; border-top: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; font-size: 0.74rem; color: var(--soft); flex-wrap: wrap; gap: 0.5rem;">
+            <div>See My Mind &middot; Education Intelligence</div>
+            <div>
+                <a href="/seemymind/ui/config" style="color: var(--soft); text-decoration: none; opacity: 0.35; font-size: 0.72rem; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='0.35'" title="Admin Prompt Settings">
+                    ⚙️ Prompts
+                </a>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Drag & Drop Engine and Dynamic Stage Updates -->
+    <script>
+        let draggedSchoolId = null;
+        let draggedSchoolName = '';
+
+        function handleDragStart(e, schoolId, schoolName) {
+            draggedSchoolId = schoolId;
+            draggedSchoolName = schoolName;
+            e.dataTransfer.setData('text/plain', schoolId);
+            e.dataTransfer.effectAllowed = 'move';
+            const card = document.getElementById('card-' + schoolId);
+            if (card) {
+                setTimeout(() => card.classList.add('is-dragging'), 0);
+            }
+        }
+
+        function handleDragEnd(e) {
+            if (draggedSchoolId) {
+                const card = document.getElementById('card-' + draggedSchoolId);
+                if (card) card.classList.remove('is-dragging');
+            }
+            document.querySelectorAll('.kanban-column').forEach(col => col.classList.remove('drag-over'));
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            const col = e.currentTarget;
+            if (!col.classList.contains('drag-over')) {
+                col.classList.add('drag-over');
+            }
+        }
+
+        function handleDragLeave(e) {
+            const col = e.currentTarget;
+            if (!col.contains(e.relatedTarget)) {
+                col.classList.remove('drag-over');
+            }
+        }
+
+        async function handleDrop(e, targetStageId) {
+            e.preventDefault();
+            const col = e.currentTarget;
+            col.classList.remove('drag-over');
+
+            const schoolId = e.dataTransfer.getData('text/plain') || draggedSchoolId;
+            if (!schoolId) return;
+
+            const card = document.getElementById('card-' + schoolId);
+            if (!card) return;
+
+            const currentContainer = card.parentElement;
+            const currentStageId = currentContainer.id.replace('cards-', '');
+
+            if (currentStageId === targetStageId) return; // Same column drop
+
+            // Optimistically move card in DOM
+            const targetContainer = document.getElementById('cards-' + targetStageId);
+            targetContainer.prepend(card);
+
+            // Update card dropdown selection
+            const cardSelect = card.querySelector('select');
+            if (cardSelect) cardSelect.value = targetStageId;
+
+            // Update column counters
+            updateColumnCounters();
+
+            // Send PATCH request to backend
+            try {
+                const res = await fetch('/seemymind/schools/' + schoolId + '/stage', {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ pipeline_stage: targetStageId })
+                });
+
+                if (res.ok) {
+                    showToast('✓ ' + (draggedSchoolName || 'School') + ' progressed to ' + formatStageName(targetStageId));
+                } else {
+                    // Rollback
+                    currentContainer.appendChild(card);
+                    if (cardSelect) cardSelect.value = currentStageId;
+                    updateColumnCounters();
+                    alert('Failed to update stage. Reverting card.');
+                }
+            } catch (err) {
+                console.error(err);
+                currentContainer.appendChild(card);
+                if (cardSelect) cardSelect.value = currentStageId;
+                updateColumnCounters();
+                alert('Connection error while updating stage.');
+            }
+        }
+
+        async function handleSelectStageChange(schoolId, schoolName, newStageId) {
+            const card = document.getElementById('card-' + schoolId);
+            if (!card) return;
+
+            const currentContainer = card.parentElement;
+            const currentStageId = currentContainer.id.replace('cards-', '');
+
+            if (currentStageId === newStageId) return;
+
+            const targetContainer = document.getElementById('cards-' + newStageId);
+            if (!targetContainer) return;
+
+            targetContainer.prepend(card);
+            updateColumnCounters();
+
+            try {
+                const res = await fetch('/seemymind/schools/' + schoolId + '/stage', {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ pipeline_stage: newStageId })
+                });
+
+                if (res.ok) {
+                    showToast('✓ ' + schoolName + ' moved to ' + formatStageName(newStageId));
+                } else {
+                    currentContainer.appendChild(card);
+                    const cardSelect = card.querySelector('select');
+                    if (cardSelect) cardSelect.value = currentStageId;
+                    updateColumnCounters();
+                    alert('Failed to update stage.');
+                }
+            } catch (err) {
+                console.error(err);
+                currentContainer.appendChild(card);
+                const cardSelect = card.querySelector('select');
+                if (cardSelect) cardSelect.value = currentStageId;
+                updateColumnCounters();
+                alert('Connection error.');
+            }
+        }
+
+        function updateColumnCounters() {
+            document.querySelectorAll('.kanban-column').forEach(col => {
+                const stageId = col.dataset.stage;
+                const counter = document.getElementById('counter-' + stageId);
+                const cardsList = document.getElementById('cards-' + stageId);
+                if (counter && cardsList) {
+                    const visibleCards = Array.from(cardsList.querySelectorAll('.kanban-card')).filter(c => c.style.display !== 'none');
+                    counter.innerText = visibleCards.length;
+                }
+            });
+        }
+
+        function formatStageName(stage) {
+            return stage.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('kanbanToast');
+            const msgEl = document.getElementById('toastMsg');
+            msgEl.innerText = msg;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        function filterKanbanCards() {
+            const searchVal = document.getElementById('kanbanSearchInput').value.toLowerCase().trim();
+            const phaseVal = document.getElementById('kanbanPhaseFilter').value;
+            const priorityVal = document.getElementById('kanbanPriorityFilter').value;
+
+            document.querySelectorAll('.kanban-card').forEach(card => {
+                const name = card.dataset.name || '';
+                const mat = card.dataset.mat || '';
+                const la = card.dataset.la || '';
+                const postcode = card.dataset.postcode || '';
+                const phase = card.dataset.phase || '';
+                const priority = card.dataset.priority || '';
+                const fullText = card.innerText.toLowerCase();
+
+                let matchesSearch = !searchVal || name.includes(searchVal) || mat.includes(searchVal) || la.includes(searchVal) || postcode.includes(searchVal) || fullText.includes(searchVal);
+                let matchesPhase = !phaseVal || phase === phaseVal;
+                let matchesPriority = !priorityVal || priority === priorityVal;
+
+                if (matchesSearch && matchesPhase && matchesPriority) {
+                    card.style.display = '';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            updateColumnCounters();
+        }
+
+        function resetKanbanFilters() {
+            document.getElementById('kanbanSearchInput').value = '';
+            document.getElementById('kanbanPhaseFilter').value = '';
+            document.getElementById('kanbanPriorityFilter').value = '';
+            filterKanbanCards();
+        }
+    </script>
+</body>
+</html>

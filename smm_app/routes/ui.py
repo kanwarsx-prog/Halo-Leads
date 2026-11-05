@@ -253,3 +253,43 @@ def rollups_overview(request: Request, db: Session = Depends(get_db)):
             "now": datetime.now(),
         },
     )
+
+@router.get("/kanban")
+def kanban_board(request: Request, db: Session = Depends(get_db)):
+    schools = db.query(School).order_by(School.overall_score.desc()).all()
+    contacts_count = (
+        db.query(SchoolContact)
+        .filter(~SchoolContact.name.startswith("The "))
+        .count()
+    )
+
+    kanban_stages = [
+        {"id": "discovered", "name": "Discovered", "icon": "🔍", "color": "#475569", "border": "#94a3b8"},
+        {"id": "qualified", "name": "Qualified", "icon": "🎯", "color": "#0284c7", "border": "#38bdf8"},
+        {"id": "outreach_ready", "name": "Outreach Ready", "icon": "✉️", "color": "var(--teal)", "border": "var(--teal)"},
+        {"id": "contacted", "name": "Contacted", "icon": "📞", "color": "#d97706", "border": "#f59e0b"},
+        {"id": "demo_booked", "name": "Demo Booked", "icon": "⭐", "color": "#8b5cf6", "border": "#a855f7"},
+        {"id": "partner_won", "name": "Partner Won", "icon": "🏆", "color": "#16a34a", "border": "#22c55e"},
+    ]
+
+    stages_map = {st["id"]: [] for st in kanban_stages}
+    disqualified_count = 0
+    for s in schools:
+        st_val = s.pipeline_stage.value if hasattr(s.pipeline_stage, "value") else str(s.pipeline_stage)
+        if st_val in stages_map:
+            stages_map[st_val].append(s)
+        else:
+            disqualified_count += 1
+
+    return templates.TemplateResponse(
+        request=request,
+        name="kanban.html",
+        context={
+            "stages": kanban_stages,
+            "stages_map": stages_map,
+            "total_schools": len(schools),
+            "contacts_count": contacts_count,
+            "disqualified_count": disqualified_count,
+            "now": datetime.now(),
+        },
+    )
