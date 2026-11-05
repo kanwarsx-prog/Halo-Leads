@@ -650,7 +650,71 @@ th .tooltip-box::after {
    Comprehensive Mobile & Tablet Responsiveness
    ========================================================================== */
 
+/* Prevent horizontal page wobble */
+html, body {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+.form-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.followup-grid {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 0.75rem;
+}
+
+.school-header-actions {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.outreach-btn-row {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.4rem;
+  margin-bottom: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.letter-tab-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.table-scroll-hint {
+  display: none;
+}
+
+/* Activity & CRM Notes Responsive Grid */
+.activity-form-grid {
+  display: grid;
+  grid-template-columns: 2fr 1.3fr 1fr;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
 @media (max-width: 768px) {
+  /* Prevent iOS Safari auto-zooming on focus while keeping table filters compact */
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+
+  .th-filter-input, .th-filter-select {
+    font-size: 13px !important;
+    padding: 0.32rem 0.4rem;
+  }
+
   .container {
     padding: 0.65rem 0.5rem;
   }
@@ -688,6 +752,11 @@ th .tooltip-box::after {
     margin-bottom: 1rem;
   }
 
+  /* Make odd 5th card span full width on 2-col mobile view */
+  .grid-metrics > :last-child:nth-child(odd) {
+    grid-column: span 2;
+  }
+
   .metric-card {
     padding: 0.65rem 0.75rem;
   }
@@ -696,16 +765,36 @@ th .tooltip-box::after {
     font-size: 1.25rem;
   }
 
-  /* Tables horizontal touch scrolling */
+  /* Mobile scroll hint above wide data tables */
+  .table-scroll-hint {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: var(--soft);
+    background: rgba(29, 98, 93, 0.05);
+    border: 1px dashed var(--mint);
+    padding: 0.35rem 0.6rem;
+    border-radius: 6px;
+    margin-bottom: 0.5rem;
+    user-select: none;
+  }
+
+  /* Tables horizontal touch scrolling with readable column widths */
   .table-container {
     -webkit-overflow-scrolling: touch;
     overflow-x: auto;
     width: 100%;
     margin-bottom: 1rem;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    background: #ffffff;
   }
 
   table {
-    min-width: 600px;
+    min-width: 880px;
   }
 
   /* Modals */
@@ -717,14 +806,39 @@ th .tooltip-box::after {
   }
 
   .form-grid-2,
-  .modal form div[style*="grid-template-columns: 1fr 1fr"] {
+  .followup-grid,
+  .modal form div[style*="grid-template-columns: 1fr 1fr"],
+  .modal form div[style*="grid-template-columns: 1fr 2fr"],
+  .activity-form-grid {
     grid-template-columns: 1fr !important;
     gap: 0.5rem !important;
   }
 
-  /* Detail Screen */
+  /* School Detail Header & Actions */
+  .school-header-actions {
+    width: 100%;
+    margin-top: 0.65rem;
+    align-items: stretch;
+  }
+
+  .school-header-actions > div:first-child {
+    flex: 1 1 100%;
+    margin-bottom: 0.25rem;
+  }
+
+  .school-header-actions > div:first-child select {
+    width: 100%;
+  }
+
+  .school-header-actions > .btn {
+    flex: 1 1 calc(50% - 0.25rem);
+    justify-content: center;
+  }
+
+  /* Detail Screen Layout */
   .detail-grid {
     grid-template-columns: 1fr;
+    gap: 1rem;
   }
 
   .tabs {
@@ -741,9 +855,43 @@ th .tooltip-box::after {
     font-size: 0.76rem;
   }
 
+  /* Outreach Draft Action Buttons */
+  .outreach-btn-row {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .outreach-btn-row .btn {
+    flex: 1 1 auto;
+    justify-content: center;
+    text-align: center;
+    padding: 0.45rem 0.65rem;
+    font-size: 0.76rem;
+  }
+
+  .letter-tab-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .letter-tab-header > div {
+    display: flex;
+    gap: 0.5rem;
+    width: 100%;
+  }
+
+  .letter-tab-header > div .btn {
+    flex: 1;
+    justify-content: center;
+  }
+
   .letter-paper {
-    padding: 1rem;
+    padding: 0.85rem;
     font-size: 0.82rem;
+    line-height: 1.55;
+    word-break: break-word;
+    max-width: 100%;
+    overflow-x: hidden;
   }
 
   .tooltip-box {
@@ -757,6 +905,32 @@ th .tooltip-box::after {
     left: auto;
     right: 15px;
   }
+
+  /* Responsive Pagination Bar */
+  .pagination-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.65rem;
+    padding: 0.75rem;
+  }
+
+  .pagination-bar > div:first-child {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    font-size: 0.75rem;
+  }
+
+  .pagination-controls {
+    justify-content: center;
+    width: 100%;
+    gap: 0.25rem;
+  }
+
+  .page-btn {
+    padding: 0.25rem 0.45rem;
+    font-size: 0.74rem;
+  }
 }
 
 @media (max-width: 480px) {
@@ -769,8 +943,15 @@ th .tooltip-box::after {
     padding: 0.15rem 0.4rem;
   }
 
+  /* Maintain 2-column compact nav grid on phones instead of stacking massive buttons */
   nav {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.35rem;
+  }
+
+  nav .btn {
+    padding: 0.4rem 0.45rem;
+    font-size: 0.74rem;
   }
 
   .grid-metrics {
@@ -785,20 +966,12 @@ th .tooltip-box::after {
   .metric-subtitle {
     display: none;
   }
-}
 
-
-/* Activity & CRM Notes Responsive Grid */
-.activity-form-grid {
-  display: grid;
-  grid-template-columns: 2fr 1.3fr 1fr;
-  gap: 0.75rem;
-  margin-bottom: 0.75rem;
-}
-
-@media (max-width: 768px) {
-  .activity-form-grid {
-    grid-template-columns: 1fr;
-    gap: 0.5rem;
+  /* Quick Activity Pills */
+  .act-type-btn {
+    flex: 1 1 calc(33% - 0.4rem);
+    justify-content: center;
+    font-size: 0.74rem;
+    padding: 0.35rem 0.4rem;
   }
 }

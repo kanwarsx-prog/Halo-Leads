@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>See My Mind · Schools & MATs Lead Agent</title>
-    <link rel="stylesheet" href="/seemymind/static/styles.css?v=2.3">
+    <link rel="stylesheet" href="/seemymind/static/styles.css?v=2.4">
     <!-- Browser Favicons -->
     <link rel="icon" type="image/svg+xml" href="/seemymind/static/favicon.svg">
     <link rel="icon" type="image/png" sizes="32x32" href="/seemymind/static/favicon-32x32.png">
@@ -149,6 +149,7 @@
             </div>
         </div>
 
+        <div class="table-scroll-hint"><span>⇄ Swipe table horizontally to view full columns &amp; filters</span></div>
         <div class="table-container">
             <table id="schoolsTable">
                 <thead>
@@ -397,7 +398,7 @@
                     <label>School Name *</label>
                     <input type="text" name="name" required placeholder="e.g. St. Jude's C of E Primary School">
                 </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-grid-2">
                     <div class="form-group">
                         <label>Phase</label>
                         <select name="phase">

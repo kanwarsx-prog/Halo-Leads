@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ school.name }} · See My Mind Lead Intelligence</title>
-    <link rel="stylesheet" href="/seemymind/static/styles.css?v=2.3">
+    <link rel="stylesheet" href="/seemymind/static/styles.css?v=2.4">
     <!-- Browser Favicons -->
     <link rel="icon" type="image/svg+xml" href="/seemymind/static/favicon.svg">
     <link rel="icon" type="image/png" sizes="32x32" href="/seemymind/static/favicon-32x32.png">
@@ -69,7 +69,7 @@
                 </div>
 
                 <!-- Stage & Actions -->
-                <div style="display: flex; align-items: flex-end; gap: 0.5rem; flex-wrap: wrap;">
+                <div class="school-header-actions">
                     <div>
                         <label style="font-size: 0.72rem; font-weight: 600; color: var(--soft); display: block; margin-bottom: 0.2rem;">Pipeline Stage</label>
                         <select onchange="updateStage('{{ school.id }}', this.value)" style="padding: 0.38rem 0.65rem; border-radius: 6px; border: 1px solid var(--line); font-weight: 600; font-size: 0.8rem; background: #fff;">
@@ -337,7 +337,7 @@
                                     <label style="font-size: 0.75rem; font-weight: 700; color: var(--soft); text-transform: uppercase;">Subject Line:</label>
                                     <div id="sencoSubject" style="font-weight: 600; color: var(--ink); margin-top: 0.2rem;">{{ senco_contact.email_subject }}</div>
                                 </div>
-                                <div style="display: flex; justify-content: flex-end; margin-bottom: 0.5rem;">
+                                <div class="outreach-btn-row">
                                     <button onclick="copyText('sencoBody', this)" class="btn btn-secondary btn-sm">Copy Email Body</button>
                                     <button onclick="openMailto('{{ senco_contact.email or school.general_email or "" }}', 'sencoSubject', 'sencoBody', '{{ senco_contact.name or "the SENCO" }}')" class="btn btn-primary btn-sm" style="margin-left: 0.4rem;">✉️ Open in Email Client</button>
                                 </div>
@@ -354,7 +354,7 @@
                                     <label style="font-size: 0.75rem; font-weight: 700; color: var(--soft); text-transform: uppercase;">Subject Line:</label>
                                     <div id="headSubject" style="font-weight: 600; color: var(--ink); margin-top: 0.2rem;">{{ head_contact.email_subject }}</div>
                                 </div>
-                                <div style="display: flex; justify-content: flex-end; margin-bottom: 0.5rem;">
+                                <div class="outreach-btn-row">
                                     <button onclick="copyText('headBody', this)" class="btn btn-secondary btn-sm">Copy Email Body</button>
                                     <button onclick="openMailto('{{ head_contact.email or school.general_email or "" }}', 'headSubject', 'headBody', '{{ head_contact.name or "the Headteacher" }}')" class="btn btn-primary btn-sm" style="margin-left: 0.4rem;">✉️ Open in Email Client</button>
                                 </div>
@@ -367,7 +367,7 @@
                         <!-- Physical Postal Letter Tab -->
                         <div id="tabLetter" class="tab-content">
                             {% if senco_contact and senco_contact.letter_draft %}
-                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                                <div class="letter-tab-header">
                                     <span style="font-size: 0.8rem; color: var(--soft);">Ready for A4 Envelope Post ("Lumpy Mail")</span>
                                     <div style="display: flex; gap: 0.5rem;">
                                         <button onclick="copyText('letterText', this)" class="btn btn-secondary btn-sm">Copy Text</button>
@@ -457,7 +457,7 @@
                         <div style="font-size: 0.76rem; font-weight: 700; color: var(--teal); text-transform: uppercase; margin-bottom: 0.4rem; letter-spacing: 0.5px;">
                             ⏰ Schedule Next Action / Follow-Up (Optional)
                         </div>
-                        <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 0.75rem;">
+                        <div class="followup-grid">
                             <div class="form-group" style="margin: 0;">
                                 <label style="font-size: 0.74rem; font-weight: 600;">Follow-Up Due Date</label>
                                 <input type="date" name="next_follow_up_date" id="nextFollowUpDate">
@@ -587,7 +587,7 @@
             </p>
 
             <form id="editOfstedForm" onsubmit="submitEditOfsted(event)">
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1rem;">
+                <div class="form-grid-2" style="margin-bottom: 1rem;">
                     <div class="form-group">
                         <label>Ofsted Overall Rating</label>
                         <select name="ofsted_rating">
@@ -685,7 +685,7 @@
                         <option value="Pastoral & SEND Support">Pastoral & SEND Support</option>
                     </select>
                 </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                <div class="form-grid-2">
                     <div class="form-group">
                         <label>Direct Email</label>
                         <input type="email" name="email" placeholder="e.g. s.jenkins@school.sch.uk">

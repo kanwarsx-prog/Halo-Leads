@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ org.name }} - HaloITSM Lead Agent</title>
-    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="/static/styles.css?v=2.4">
 </head>
 <body>
     <div class="container">
@@ -97,7 +97,7 @@
         <div id="manual-contact-form" style="display: none; background: var(--bg-surface-hover); padding: 1.5rem; border-radius: 8px; margin-bottom: 1.5rem; border: 1px solid var(--border);">
             <h3 style="margin-top: 0; margin-bottom: 1rem;">Add Manual Contact</h3>
             <form id="add-contact-form" data-org-id="{{ org.id }}">
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                <div class="grid-2" style="margin-bottom: 1rem;">
                     <div>
                         <label style="display: block; margin-bottom: 0.25rem; font-size: 0.875rem; color: var(--text-secondary);">Full Name *</label>
                         <input type="text" id="manual-name" required class="form-control" style="width: 100%; background: var(--bg-surface); border: 1px solid var(--border); color: var(--text-primary); padding: 0.5rem; border-radius: 4px;">
@@ -123,8 +123,10 @@
         </div>
 
         {% if org.contact_leads %}
-        <div class="card">
-            <table style="width: 100%; text-align: left; border-collapse: collapse; table-layout: fixed;">
+        <div class="table-scroll-hint"><span>⇄ Swipe table horizontally to view all contacts</span></div>
+        <div class="card" style="padding: 0; overflow-x: auto;">
+            <div class="table-container" style="margin-bottom: 0;">
+                <table class="crm-table" style="width: 100%; min-width: 550px;">
                 <thead>
                     <tr style="border-bottom: 1px solid var(--bg-surface-hover);">
                         <th style="padding: 0.5rem 0; width: 20%;">Name</th>
@@ -164,6 +166,7 @@
                     {% endfor %}
                 </tbody>
             </table>
+            </div>
         </div>
         {% endif %}
 

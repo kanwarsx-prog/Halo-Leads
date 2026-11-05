@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Contact: {{ lead.name }}</title>
-    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="/static/styles.css?v=2.4">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body>
@@ -17,13 +17,13 @@
             <div>
                 <a href="/ui/contacts" class="btn btn-secondary" style="margin-right: 0.5rem;">Contacts</a>
                 <a href="/ui/config" class="btn btn-secondary" style="margin-right: 0.5rem;">Prompt Config</a>
-                <a href="/" class="btn btn-secondary">Dashboard</a>
+                <a href="/ui" class="btn btn-secondary">Dashboard</a>
             </div>
         </header>
 
         <div class="card mb-8">
             <h2 class="mb-4">Contact Profile</h2>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+            <div class="grid-2">
                 <div>
                     <div style="margin-bottom: 1rem;">
                         <strong>Job Title:</strong>
@@ -66,7 +66,7 @@
             </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; min-width: 0;">
+        <div class="grid-2" style="min-width: 0;">
             <!-- Deep Dive Workspace -->
             <div class="card" style="min-width: 0;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
