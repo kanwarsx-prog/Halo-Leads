@@ -101,7 +101,7 @@
                 <!-- Cards Container -->
                 <div class="kanban-cards-list" id="cards-{{ st.id }}">
                     {% for sc in column_schools %}
-                    <div class="kanban-card" id="card-{{ sc.id }}" draggable="true" ondragstart="handleDragStart(event, '{{ sc.id }}', '{{ sc.name | escape }}')" ondragend="handleDragEnd(event)" data-school-id="{{ sc.id }}" data-name="{{ sc.name | lower }}" data-mat="{{ (sc.mat_name or '') | lower }}" data-la="{{ (sc.local_authority or '') | lower }}" data-postcode="{{ (sc.postcode or '') | lower }}" data-phase="{{ sc.phase or 'Primary' }}" data-priority="{{ sc.priority }}">
+                    <div class="kanban-card" id="card-{{ sc.id }}" draggable="true" ondragstart="handleDragStart(event)" ondragend="handleDragEnd(event)" data-school-id="{{ sc.id }}" data-name="{{ sc.name | lower }}" data-mat="{{ (sc.mat_name or '') | lower }}" data-la="{{ (sc.local_authority or '') | lower }}" data-postcode="{{ (sc.postcode or '') | lower }}" data-phase="{{ sc.phase or 'Primary' }}" data-priority="{{ sc.priority }}">
                         
                         <!-- Top Row: Phase + Score -->
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.45rem;">
@@ -151,7 +151,7 @@
                             <a href="/seemymind/ui/schools/{{ sc.id }}" style="color: var(--soft); text-decoration: none; font-weight: 500;">
                                 Detail &rarr;
                             </a>
-                            <select onchange="handleSelectStageChange('{{ sc.id }}', '{{ sc.name | escape }}', this.value)" style="font-size: 0.72rem; padding: 0.15rem 0.35rem; border: 1px solid var(--line); border-radius: 4px; background: #fff; color: var(--soft);" title="Move to stage">
+                            <select onchange="handleSelectStageChange(this)" style="font-size: 0.72rem; padding: 0.15rem 0.35rem; border: 1px solid var(--line); border-radius: 4px; background: #fff; color: var(--soft);" title="Move to stage">
                                 {% for opt in stages %}
                                 <option value="{{ opt.id }}" {% if opt.id == st.id %}selected{% endif %}>
                                     Move &rarr; {{ opt.name }}
@@ -188,15 +188,17 @@
         let draggedSchoolId = null;
         let draggedSchoolName = '';
 
-        function handleDragStart(e, schoolId, schoolName) {
+        function handleDragStart(e) {
+            const card = e.currentTarget;
+            const schoolId = card.dataset.schoolId || card.id.replace('card-', '');
+            const link = card.querySelector('a');
+            const schoolName = link ? link.innerText.trim() : 'School';
+
             draggedSchoolId = schoolId;
             draggedSchoolName = schoolName;
             e.dataTransfer.setData('text/plain', schoolId);
             e.dataTransfer.effectAllowed = 'move';
-            const card = document.getElementById('card-' + schoolId);
-            if (card) {
-                setTimeout(() => card.classList.add('is-dragging'), 0);
-            }
+            setTimeout(() => card.classList.add('is-dragging'), 0);
         }
 
         function handleDragEnd(e) {
@@ -276,9 +278,14 @@
             }
         }
 
-        async function handleSelectStageChange(schoolId, schoolName, newStageId) {
-            const card = document.getElementById('card-' + schoolId);
+        async function handleSelectStageChange(selectEl) {
+            const card = selectEl.closest('.kanban-card');
             if (!card) return;
+
+            const schoolId = card.dataset.schoolId || card.id.replace('card-', '');
+            const link = card.querySelector('a');
+            const schoolName = link ? link.innerText.trim() : 'School';
+            const newStageId = selectEl.value;
 
             const currentContainer = card.parentElement;
             const currentStageId = currentContainer.id.replace('cards-', '');
@@ -302,16 +309,14 @@
                     showToast('✓ ' + schoolName + ' moved to ' + formatStageName(newStageId));
                 } else {
                     currentContainer.appendChild(card);
-                    const cardSelect = card.querySelector('select');
-                    if (cardSelect) cardSelect.value = currentStageId;
+                    selectEl.value = currentStageId;
                     updateColumnCounters();
                     alert('Failed to update stage.');
                 }
             } catch (err) {
                 console.error(err);
                 currentContainer.appendChild(card);
-                const cardSelect = card.querySelector('select');
-                if (cardSelect) cardSelect.value = currentStageId;
+                selectEl.value = currentStageId;
                 updateColumnCounters();
                 alert('Connection error.');
             }
