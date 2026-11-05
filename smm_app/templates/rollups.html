@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trusts & Local Councils Roll-Up · See My Mind Lead Intelligence</title>
+    <link rel="stylesheet" href="/seemymind/static/styles.css?v=2.4">
+    <!-- Browser Favicons -->
+    <link rel="icon" type="image/svg+xml" href="/seemymind/static/favicon.svg">
+    <link rel="icon" type="image/png" sizes="32x32" href="/seemymind/static/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/seemymind/static/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/seemymind/static/apple-touch-icon.png">
+    <link rel="shortcut icon" href="/seemymind/static/favicon.ico">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <a href="/seemymind/ui" class="brand-title">
+                <img src="/seemymind/static/logos/seemymind-mark.png" alt="See My Mind" class="brand-icon">
+                <span class="brand-title-text smm-title">See My Mind</span>
+                <span class="brand-badge"><span class="live-dot"></span> Education Intelligence</span>
+            </a>
+            <nav>
+                <a href="/seemymind/ui" class="btn btn-secondary">&larr; Back to Dashboard</a>
+                <a href="/seemymind/ui/contacts" class="btn btn-secondary"><span>👥</span> Contacts</a>
+                <a href="/logout" class="btn btn-secondary" style="color: var(--soft);" title="Sign out">Log out</a>
+            </nav>
+        </header>
+
+        <!-- Executive KPI Metrics Overview -->
+        <div class="grid-metrics">
+            <div class="metric-card card-teal">
+                <div class="metric-header">
+                    <span class="metric-title">Multi-Academy Trusts</span>
+                    <span class="metric-icon">🏫</span>
+                </div>
+                <div class="metric-value">{{ mats | length }}</div>
+                <div class="metric-subtitle">Academy Chains & Federations</div>
+            </div>
+
+            <div class="metric-card card-blue">
+                <div class="metric-header">
+                    <span class="metric-title">Local Councils</span>
+                    <span class="metric-icon">🏛️</span>
+                </div>
+                <div class="metric-value" style="color: #0284c7;">{{ las | length }}</div>
+                <div class="metric-subtitle">Local Education Authorities</div>
+            </div>
+
+            <div class="metric-card card-green">
+                <div class="metric-header">
+                    <span class="metric-title">Trust-Governed Schools</span>
+                    <span class="metric-icon">🎓</span>
+                </div>
+                <div class="metric-value" style="color: #16a34a;">{{ total_in_mats }}</div>
+                <div class="metric-subtitle">Out of {{ total_schools }} Target Schools</div>
+            </div>
+
+            <div class="metric-card card-coral">
+                <div class="metric-header">
+                    <span class="metric-title">High-Need Clusters</span>
+                    <span class="metric-icon">🔥</span>
+                </div>
+                <div class="metric-value" style="color: var(--coral);">{{ high_need_mats + high_need_las }}</div>
+                <div class="metric-subtitle">Average SEN Roll &ge; 16%</div>
+            </div>
+
+            <div class="metric-card card-purple">
+                <div class="metric-header">
+                    <span class="metric-title">Active Conversions</span>
+                    <span class="metric-icon">⭐</span>
+                </div>
+                <div class="metric-value" style="color: #8b5cf6;">{{ clusters_with_demos + clusters_with_wins }}</div>
+                <div class="metric-subtitle">Trusts with Demos or Won</div>
+            </div>
+        </div>
+
+        <!-- Header Title Banner -->
+        <div class="card" style="margin-bottom: 1.25rem; padding: 1.15rem 1.35rem; background: #ffffff; border-left: 4px solid var(--teal);">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+                <div>
+                    <h1 style="font-size: 1.45rem; line-height: 1.2; margin: 0 0 0.3rem 0; color: var(--ink);">
+                        Trusts &amp; Local Councils Roll-Up Intelligence
+                    </h1>
+                    <p style="font-size: 0.85rem; color: var(--soft); margin: 0; max-width: 800px;">
+                        Aggregate UK Multi-Academy Trusts (MATs) and Local Education Authorities (LAs) to evaluate need at scale, coordinate cross-school outreach, and engage Executive Directors of SEND and Trust CEOs.
+                    </p>
+                </div>
+                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                    <button onclick="expandAllClusters()" class="btn btn-secondary btn-sm">▼ Expand All</button>
+                    <button onclick="collapseAllClusters()" class="btn btn-secondary btn-sm">▲ Collapse All</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- View Switcher Tabs -->
+        <div class="tabs" style="margin-bottom: 1rem;">
+            <button class="tab-btn active" id="tabBtnMats" onclick="switchRollupTab('mats')">
+                🏫 Multi-Academy Trusts ({{ mats | length }})
+            </button>
+            <button class="tab-btn" id="tabBtnLas" onclick="switchRollupTab('las')">
+                🏛️ Local Authorities &amp; Councils ({{ las | length }})
+            </button>
+            <button class="tab-btn" id="tabBtnSingle" onclick="switchRollupTab('single')">
+                🎒 Maintained / Single Schools ({{ standalone_count }})
+            </button>
+        </div>
+
+        <!-- Unified Filter & Search Bar -->
+        <div class="card" style="margin-bottom: 1.5rem; padding: 0.9rem 1.15rem; background: #ffffff;">
+            <div style="display: flex; gap: 0.65rem; align-items: center; flex-wrap: wrap;">
+                <div style="flex: 1 1 240px;">
+                    <input type="text" id="clusterSearchInput" placeholder="🔍 Search trust, council, or school name..." oninput="filterClusters()" style="width: 100%; padding: 0.45rem 0.65rem; border: 1px solid var(--line); border-radius: 6px; font-size: 0.84rem;">
+                </div>
+                <div style="flex: 0 1 170px;">
+                    <select id="clusterSizeFilter" onchange="filterClusters()" style="width: 100%; padding: 0.45rem 0.6rem; border: 1px solid var(--line); border-radius: 6px; font-size: 0.84rem; background: #fff;">
+                        <option value="">All Cluster Sizes</option>
+                        <option value="2">2+ Target Schools</option>
+                        <option value="3">3+ Target Schools</option>
+                        <option value="5">5+ Target Schools</option>
+                    </select>
+                </div>
+                <div style="flex: 0 1 180px;">
+                    <select id="clusterStageFilter" onchange="filterClusters()" style="width: 100%; padding: 0.45rem 0.6rem; border: 1px solid var(--line); border-radius: 6px; font-size: 0.84rem; background: #fff;">
+                        <option value="">All Pipeline Activity</option>
+                        <option value="demo">Has Demos Booked</option>
+                        <option value="outreach_ready">Has Outreach Ready</option>
+                        <option value="high_need">High Need (Avg SEN &ge; 16%)</option>
+                        <option value="won">Partner Won</option>
+                    </select>
+                </div>
+                <div style="flex: 0 1 170px;">
+                    <select id="clusterSortSelect" onchange="sortClusters()" style="width: 100%; padding: 0.45rem 0.6rem; border: 1px solid var(--line); border-radius: 6px; font-size: 0.84rem; background: #fff;">
+                        <option value="schools_desc">Most Schools</option>
+                        <option value="sen_desc">Highest Avg SEN %</option>
+                        <option value="score_desc">Highest Lead Score</option>
+                        <option value="name_asc">Alphabetical (A-Z)</option>
+                    </select>
+                </div>
+                <div>
+                    <button onclick="resetClusterFilters()" class="btn btn-secondary btn-sm" style="font-size: 0.78rem;">↺ Reset</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================================================================== -->
+        <!-- TAB 1: MULTI-ACADEMY TRUSTS (MATs) -->
+        <!-- ================================================================== -->
+        <div id="tabContentMats" class="rollup-tab-panel">
+            <div id="matsListContainer">
+                {% for mat in mats %}
+                <div class="cluster-card" data-name="{{ mat.name | lower }}" data-count="{{ mat.total_schools }}" data-sen="{{ mat.avg_sen }}" data-score="{{ mat.max_score }}" data-has-demo="{{ 'true' if mat.has_demo else 'false' }}" data-has-outreach="{{ 'true' if mat.has_outreach_ready else 'false' }}" data-has-won="{{ 'true' if mat.has_won else 'false' }}" data-high-need="{{ 'true' if mat.avg_sen >= 16.0 else 'false' }}">
+                    <div class="cluster-header" onclick="toggleCluster(this)">
+                        <div>
+                            <div class="cluster-title-area">
+                                <span style="font-size: 1.25rem;">🏫</span>
+                                <h2 class="cluster-title">{{ mat.name }}</h2>
+                                <span class="badge badge-teal" style="font-size: 0.72rem; font-weight: 700;">Multi-Academy Trust</span>
+                            </div>
+                            <div class="cluster-pills-row">
+                                <span class="badge badge-mint" style="font-weight: 600;">
+                                    {{ mat.total_schools }} Target School{% if mat.total_schools > 1 %}s{% endif %}
+                                </span>
+                                {% if mat.avg_sen > 0 %}
+                                <span class="badge {% if mat.avg_sen >= 16.0 %}badge-coral{% else %}badge-gray{% endif %}" style="font-weight: 600;">
+                                    Avg SEN: {{ mat.avg_sen }}%
+                                </span>
+                                {% endif %}
+                                <span class="badge badge-gray">
+                                    👤 {{ mat.total_contacts }} Contact{% if mat.total_contacts != 1 %}s{% endif %} ({{ mat.senco_count }} SENCO{% if mat.senco_count != 1 %}s{% endif %})
+                                </span>
+                                {% if mat.active_tasks %}
+                                <span class="badge badge-gold" style="font-weight: 700;">
+                                    ⏰ {{ mat.active_tasks | length }} Action Due
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div style="display: flex; align-items: center; gap: 0.65rem; flex-wrap: wrap;">
+                            <div class="cluster-stage-pills">
+                                {% for st_key, st_cnt in mat.stages_count.items() %}
+                                    {% if st_key == 'demo_booked' %}
+                                        <span class="badge badge-purple" style="font-weight: 700;">⭐ {{ st_cnt }} Demo Booked</span>
+                                    {% elif st_key == 'partner_won' %}
+                                        <span class="badge badge-mint" style="font-weight: 700;">🏆 {{ st_cnt }} Partner Won</span>
+                                    {% elif st_key == 'outreach_ready' %}
+                                        <span class="badge badge-teal" style="font-weight: 600;">✉️ {{ st_cnt }} Outreach Ready</span>
+                                    {% elif st_key == 'contacted' %}
+                                        <span class="badge badge-blue">📞 {{ st_cnt }} Contacted</span>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                            <button class="btn btn-secondary btn-sm cluster-toggle-btn" style="font-size: 0.74rem;">
+                                View {{ mat.total_schools }} School{% if mat.total_schools > 1 %}s{% endif %} ▼
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Collapsible Cluster Intelligence Body -->
+                    <div class="cluster-body" {% if loop.index > 3 %}style="display: none;"{% endif %}>
+                        <div class="cluster-intel-grid">
+                            <!-- Anchor School Highlight -->
+                            {% if mat.top_school %}
+                            <div style="background: var(--gray-100); border: 1px solid var(--line); border-radius: 8px; padding: 0.85rem 1rem;">
+                                <div style="font-size: 0.72rem; font-weight: 700; color: var(--teal); text-transform: uppercase; margin-bottom: 0.35rem; letter-spacing: 0.5px;">
+                                    🎯 Priority Spearhead School in Trust:
+                                </div>
+                                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.4rem;">
+                                    <a href="/seemymind/ui/schools/{{ mat.top_school.id }}" style="font-weight: 700; font-size: 0.95rem; color: var(--ink); text-decoration: none;">
+                                        {{ mat.top_school.name }}
+                                    </a>
+                                    <span class="badge {% if mat.top_school.priority == 'Immediate Focus' %}badge-coral{% elif mat.top_school.priority == 'Target School' %}badge-mint{% else %}badge-gray{% endif %}">
+                                        Score {{ mat.top_school.overall_score }}/100 &middot; {{ mat.top_school.priority }}
+                                    </span>
+                                </div>
+                                {% if mat.top_school.ofsted_send_excerpt %}
+                                <div style="font-size: 0.8rem; font-style: italic; color: var(--soft); margin-top: 0.45rem; line-height: 1.4; border-left: 2px solid var(--teal); padding-left: 0.5rem;">
+                                    "{{ mat.top_school.ofsted_send_excerpt[:160] }}{% if mat.top_school.ofsted_send_excerpt | length > 160 %}...{% endif %}"
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+
+                            <!-- Decision Makers Quick Roster -->
+                            <div style="background: var(--gray-100); border: 1px solid var(--line); border-radius: 8px; padding: 0.85rem 1rem;">
+                                <div style="font-size: 0.72rem; font-weight: 700; color: var(--soft); text-transform: uppercase; margin-bottom: 0.4rem; letter-spacing: 0.5px;">
+                                    👤 Trust Key Decision Makers Discovered:
+                                </div>
+                                <div style="display: flex; flex-direction: column; gap: 0.35rem; max-height: 110px; overflow-y: auto;">
+                                    {% set contact_shown = 0 %}
+                                    {% for sc in mat.schools %}
+                                        {% for ct in sc.named_contacts %}
+                                            {% if contact_shown < 4 %}
+                                            <div style="font-size: 0.8rem; display: flex; justify-content: space-between; align-items: center; gap: 0.5rem;">
+                                                <div>
+                                                    <strong style="color: var(--ink);">{{ ct.name }}</strong>
+                                                    <span style="color: var(--soft); font-size: 0.75rem;">({{ ct.role }})</span>
+                                                </div>
+                                                <span style="font-size: 0.72rem; color: var(--teal); max-width: 130px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                                    {{ sc.name }}
+                                                </span>
+                                            </div>
+                                            {% set contact_shown = contact_shown + 1 %}
+                                            {% endif %}
+                                        {% endfor %}
+                                    {% endfor %}
+                                    {% if mat.total_contacts == 0 %}
+                                    <span style="color: var(--soft); font-size: 0.8rem;">No direct contacts recorded yet. Click into member schools to add or run discovery.</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Member Schools Table -->
+                        <div class="table-scroll-hint"><span>⇄ Swipe table horizontally to view member schools</span></div>
+                        <div class="table-container" style="margin-bottom: 0;">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>School Name</th>
+                                        <th>Phase</th>
+                                        <th>Postcode / LA</th>
+                                        <th>SEN %</th>
+                                        <th>Ofsted</th>
+                                        <th>Priority Score</th>
+                                        <th>Pipeline Stage</th>
+                                        <th style="text-align: right; width: 100px;">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for sc in mat.schools %}
+                                    <tr>
+                                        <td>
+                                            <a href="/seemymind/ui/schools/{{ sc.id }}" style="font-weight: 600; color: var(--teal); text-decoration: none;">
+                                                {{ sc.name }}
+                                            </a>
+                                        </td>
+                                        <td>
+                                            <span class="badge badge-gray" style="font-size: 0.72rem;">{{ sc.phase or 'Primary' }}</span>
+                                        </td>
+                                        <td style="font-size: 0.78rem; color: var(--soft);">
+                                            {{ sc.postcode or '-' }}{% if sc.local_authority %} &middot; {{ sc.local_authority }}{% endif %}
+                                        </td>
+                                        <td>
+                                            {% if sc.sen_percentage and sc.sen_percentage > 0 %}
+                                                <strong {% if sc.sen_percentage >= 16.0 %}style="color: var(--coral);"{% endif %}>
+                                                    {{ "%.1f"|format(sc.sen_percentage) }}%
+                                                </strong>
+                                            {% else %}
+                                                <span style="color: var(--soft);">-</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if sc.ofsted_rating %}
+                                                <span class="badge {% if 'Outstanding' in sc.ofsted_rating %}badge-mint{% elif 'Good' in sc.ofsted_rating %}badge-teal{% else %}badge-gold{% endif %}" style="font-size: 0.72rem;">
+                                                    {{ sc.ofsted_rating }}
+                                                </span>
+                                            {% else %}
+                                                <span style="color: var(--soft); font-size: 0.78rem;">Pending</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="badge {% if sc.priority == 'Immediate Focus' %}badge-coral{% elif sc.priority == 'Target School' %}badge-mint{% else %}badge-gray{% endif %}" style="font-size: 0.72rem;">
+                                                {{ sc.overall_score }}/100 &middot; {{ sc.priority }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="badge badge-gray" style="font-size: 0.72rem; text-transform: capitalize;">
+                                                {{ sc.pipeline_stage.value | replace('_', ' ') }}
+                                            </span>
+                                        </td>
+                                        <td style="text-align: right;">
+                                            <a href="/seemymind/ui/schools/{{ sc.id }}" class="btn btn-secondary btn-sm" style="font-size: 0.74rem; padding: 0.25rem 0.55rem;">
+                                                Open &rarr;
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="card" style="text-align: center; padding: 3rem; color: var(--soft);">
+                    <p style="font-size: 1.1rem; margin-bottom: 0.5rem;">No Multi-Academy Trusts recorded in the target directory.</p>
+                    <p style="font-size: 0.85rem;">Import schools with Trust details or assign a MAT name on any school detail page.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- ================================================================== -->
+        <!-- TAB 2: LOCAL AUTHORITIES & COUNCILS -->
+        <!-- ================================================================== -->
+        <div id="tabContentLas" class="rollup-tab-panel" style="display: none;">
+            <div id="lasListContainer">
+                {% for la in las %}
+                <div class="cluster-card cluster-card-la" data-name="{{ la.name | lower }}" data-count="{{ la.total_schools }}" data-sen="{{ la.avg_sen }}" data-score="{{ la.max_score }}" data-has-demo="{{ 'true' if la.has_demo else 'false' }}" data-has-outreach="{{ 'true' if la.has_outreach_ready else 'false' }}" data-has-won="{{ 'true' if la.has_won else 'false' }}" data-high-need="{{ 'true' if la.avg_sen >= 16.0 else 'false' }}">
+                    <div class="cluster-header" onclick="toggleCluster(this)">
+                        <div>
+                            <div class="cluster-title-area">
+                                <span style="font-size: 1.25rem;">🏛️</span>
+                                <h2 class="cluster-title">{{ la.name }}</h2>
+                                <span class="badge badge-blue" style="font-size: 0.72rem; font-weight: 700;">Local Authority / Council</span>
+                            </div>
+                            <div class="cluster-pills-row">
+                                <span class="badge badge-mint" style="font-weight: 600;">
+                                    {{ la.total_schools }} School{% if la.total_schools > 1 %}s{% endif %} in Council Area
+                                </span>
+                                {% if la.avg_sen > 0 %}
+                                <span class="badge {% if la.avg_sen >= 16.0 %}badge-coral{% else %}badge-gray{% endif %}" style="font-weight: 600;">
+                                    Avg Council SEN: {{ la.avg_sen }}%
+                                </span>
+                                {% endif %}
+                                <span class="badge badge-gray">
+                                    👤 {{ la.total_contacts }} Contact{% if la.total_contacts != 1 %}s{% endif %} ({{ la.senco_count }} SENCO{% if la.senco_count != 1 %}s{% endif %})
+                                </span>
+                                {% if la.active_tasks %}
+                                <span class="badge badge-gold" style="font-weight: 700;">
+                                    ⏰ {{ la.active_tasks | length }} Action Due
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div style="display: flex; align-items: center; gap: 0.65rem; flex-wrap: wrap;">
+                            <div class="cluster-stage-pills">
+                                {% for st_key, st_cnt in la.stages_count.items() %}
+                                    {% if st_key == 'demo_booked' %}
+                                        <span class="badge badge-purple" style="font-weight: 700;">⭐ {{ st_cnt }} Demo Booked</span>
+                                    {% elif st_key == 'partner_won' %}
+                                        <span class="badge badge-mint" style="font-weight: 700;">🏆 {{ st_cnt }} Partner Won</span>
+                                    {% elif st_key == 'outreach_ready' %}
+                                        <span class="badge badge-teal" style="font-weight: 600;">✉️ {{ st_cnt }} Outreach Ready</span>
+                                    {% elif st_key == 'contacted' %}
+                                        <span class="badge badge-blue">📞 {{ st_cnt }} Contacted</span>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                            <button class="btn btn-secondary btn-sm cluster-toggle-btn" style="font-size: 0.74rem;">
+                                View {{ la.total_schools }} School{% if la.total_schools > 1 %}s{% endif %} ▼
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Collapsible Cluster Intelligence Body -->
+                    <div class="cluster-body" {% if loop.index > 3 %}style="display: none;"{% endif %}>
+                        <div class="cluster-intel-grid">
+                            {% if la.top_school %}
+                            <div style="background: var(--gray-100); border: 1px solid var(--line); border-radius: 8px; padding: 0.85rem 1rem;">
+                                <div style="font-size: 0.72rem; font-weight: 700; color: #0284c7; text-transform: uppercase; margin-bottom: 0.35rem; letter-spacing: 0.5px;">
+                                    🎯 Highest Need / Priority School in Council Area:
+                                </div>
+                                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.4rem;">
+                                    <a href="/seemymind/ui/schools/{{ la.top_school.id }}" style="font-weight: 700; font-size: 0.95rem; color: var(--ink); text-decoration: none;">
+                                        {{ la.top_school.name }}
+                                    </a>
+                                    <span class="badge {% if la.top_school.priority == 'Immediate Focus' %}badge-coral{% elif la.top_school.priority == 'Target School' %}badge-mint{% else %}badge-gray{% endif %}">
+                                        Score {{ la.top_school.overall_score }}/100 &middot; {{ la.top_school.priority }}
+                                    </span>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            <div style="background: var(--gray-100); border: 1px solid var(--line); border-radius: 8px; padding: 0.85rem 1rem;">
+                                <div style="font-size: 0.72rem; font-weight: 700; color: var(--soft); text-transform: uppercase; margin-bottom: 0.4rem; letter-spacing: 0.5px;">
+                                    👤 Local Authority SEND & School Leadership Contacts:
+                                </div>
+                                <div style="display: flex; flex-direction: column; gap: 0.35rem; max-height: 110px; overflow-y: auto;">
+                                    {% set contact_shown = 0 %}
+                                    {% for sc in la.schools %}
+                                        {% for ct in sc.named_contacts %}
+                                            {% if contact_shown < 4 %}
+                                            <div style="font-size: 0.8rem; display: flex; justify-content: space-between; align-items: center; gap: 0.5rem;">
+                                                <div>
+                                                    <strong style="color: var(--ink);">{{ ct.name }}</strong>
+                                                    <span style="color: var(--soft); font-size: 0.75rem;">({{ ct.role }})</span>
+                                                </div>
+                                                <span style="font-size: 0.72rem; color: var(--teal); max-width: 130px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                                    {{ sc.name }}
+                                                </span>
+                                            </div>
+                                            {% set contact_shown = contact_shown + 1 %}
+                                            {% endif %}
+                                        {% endfor %}
+                                    {% endfor %}
+                                    {% if la.total_contacts == 0 %}
+                                    <span style="color: var(--soft); font-size: 0.8rem;">No contacts discovered yet.</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Member Schools Table -->
+                        <div class="table-scroll-hint"><span>⇄ Swipe table horizontally to view member schools</span></div>
+                        <div class="table-container" style="margin-bottom: 0;">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>School Name</th>
+                                        <th>Trust / Affiliation</th>
+                                        <th>Phase</th>
+                                        <th>SEN %</th>
+                                        <th>Ofsted</th>
+                                        <th>Priority Score</th>
+                                        <th>Pipeline Stage</th>
+                                        <th style="text-align: right; width: 100px;">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for sc in la.schools %}
+                                    <tr>
+                                        <td>
+                                            <a href="/seemymind/ui/schools/{{ sc.id }}" style="font-weight: 600; color: var(--teal); text-decoration: none;">
+                                                {{ sc.name }}
+                                            </a>
+                                        </td>
+                                        <td style="font-size: 0.8rem; color: var(--ink);">
+                                            {{ sc.mat_name or 'Maintained / Community' }}
+                                        </td>
+                                        <td>
+                                            <span class="badge badge-gray" style="font-size: 0.72rem;">{{ sc.phase or 'Primary' }}</span>
+                                        </td>
+                                        <td>
+                                            {% if sc.sen_percentage and sc.sen_percentage > 0 %}
+                                                <strong {% if sc.sen_percentage >= 16.0 %}style="color: var(--coral);"{% endif %}>
+                                                    {{ "%.1f"|format(sc.sen_percentage) }}%
+                                                </strong>
+                                            {% else %}
+                                                <span style="color: var(--soft);">-</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if sc.ofsted_rating %}
+                                                <span class="badge {% if 'Outstanding' in sc.ofsted_rating %}badge-mint{% elif 'Good' in sc.ofsted_rating %}badge-teal{% else %}badge-gold{% endif %}" style="font-size: 0.72rem;">
+                                                    {{ sc.ofsted_rating }}
+                                                </span>
+                                            {% else %}
+                                                <span style="color: var(--soft); font-size: 0.78rem;">Pending</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="badge {% if sc.priority == 'Immediate Focus' %}badge-coral{% elif sc.priority == 'Target School' %}badge-mint{% else %}badge-gray{% endif %}" style="font-size: 0.72rem;">
+                                                {{ sc.overall_score }}/100 &middot; {{ sc.priority }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="badge badge-gray" style="font-size: 0.72rem; text-transform: capitalize;">
+                                                {{ sc.pipeline_stage.value | replace('_', ' ') }}
+                                            </span>
+                                        </td>
+                                        <td style="text-align: right;">
+                                            <a href="/seemymind/ui/schools/{{ sc.id }}" class="btn btn-secondary btn-sm" style="font-size: 0.74rem; padding: 0.25rem 0.55rem;">
+                                                Open &rarr;
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="card" style="text-align: center; padding: 3rem; color: var(--soft);">
+                    <p style="font-size: 1.1rem; margin-bottom: 0.5rem;">No Local Authorities recorded.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- ================================================================== -->
+        <!-- TAB 3: MAINTAINED / SINGLE SCHOOLS -->
+        <!-- ================================================================== -->
+        <div id="tabContentSingle" class="rollup-tab-panel" style="display: none;">
+            <div class="card" style="margin-bottom: 1rem; padding: 1rem 1.25rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+                    <div>
+                        <h2 style="font-size: 1.15rem; margin: 0 0 0.2rem 0;">Standalone &amp; Maintained Schools ({{ standalone_count }})</h2>
+                        <p style="font-size: 0.82rem; color: var(--soft); margin: 0;">
+                            Schools not currently affiliated with a Multi-Academy Trust. These engage directly via their named SENCO and Headteacher under Council governance.
+                        </p>
+                    </div>
+                    <span class="badge badge-teal">{{ standalone_contacts }} Contacts Discovered</span>
+                </div>
+            </div>
+
+            <div class="table-scroll-hint"><span>⇄ Swipe table horizontally to view schools</span></div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>School Name</th>
+                            <th>Local Authority</th>
+                            <th>Phase</th>
+                            <th>SEN %</th>
+                            <th>Ofsted Rating</th>
+                            <th>Priority Score</th>
+                            <th>Pipeline Stage</th>
+                            <th style="text-align: right; width: 100px;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for sc in standalone_schools %}
+                        <tr>
+                            <td>
+                                <a href="/seemymind/ui/schools/{{ sc.id }}" style="font-weight: 600; color: var(--teal); text-decoration: none;">
+                                    {{ sc.name }}
+                                </a>
+                            </td>
+                            <td style="font-size: 0.82rem; color: var(--ink);">
+                                {{ sc.local_authority or 'Maintained' }}
+                            </td>
+                            <td>
+                                <span class="badge badge-gray" style="font-size: 0.72rem;">{{ sc.phase or 'Primary' }}</span>
+                            </td>
+                            <td>
+                                {% if sc.sen_percentage and sc.sen_percentage > 0 %}
+                                    <strong {% if sc.sen_percentage >= 16.0 %}style="color: var(--coral);"{% endif %}>
+                                        {{ "%.1f"|format(sc.sen_percentage) }}%
+                                    </strong>
+                                {% else %}
+                                    <span style="color: var(--soft);">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if sc.ofsted_rating %}
+                                    <span class="badge {% if 'Outstanding' in sc.ofsted_rating %}badge-mint{% elif 'Good' in sc.ofsted_rating %}badge-teal{% else %}badge-gold{% endif %}" style="font-size: 0.72rem;">
+                                        {{ sc.ofsted_rating }}
+                                    </span>
+                                {% else %}
+                                    <span style="color: var(--soft); font-size: 0.78rem;">Pending</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge {% if sc.priority == 'Immediate Focus' %}badge-coral{% elif sc.priority == 'Target School' %}badge-mint{% else %}badge-gray{% endif %}" style="font-size: 0.72rem;">
+                                    {{ sc.overall_score }}/100 &middot; {{ sc.priority }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge badge-gray" style="font-size: 0.72rem; text-transform: capitalize;">
+                                    {{ sc.pipeline_stage.value | replace('_', ' ') }}
+                                </span>
+                            </td>
+                            <td style="text-align: right;">
+                                <a href="/seemymind/ui/schools/{{ sc.id }}" class="btn btn-secondary btn-sm" style="font-size: 0.74rem; padding: 0.25rem 0.55rem;">
+                                    Open &rarr;
+                                </a>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="8" style="text-align: center; padding: 2.5rem; color: var(--soft);">
+                                All target schools in your system are currently assigned to a Multi-Academy Trust.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Discreet Footer -->
+        <footer style="margin-top: 3.5rem; padding: 1.5rem 0 2rem 0; border-top: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; font-size: 0.74rem; color: var(--soft); flex-wrap: wrap; gap: 0.5rem;">
+            <div>See My Mind &middot; Education Intelligence</div>
+            <div>
+                <a href="/seemymind/ui/config" style="color: var(--soft); text-decoration: none; opacity: 0.35; font-size: 0.72rem; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='0.35'" title="Admin Prompt Settings">
+                    ⚙️ Prompts
+                </a>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Client-side Interactive Filter, Search & Tab Engine -->
+    <script>
+        let currentTab = 'mats';
+
+        function switchRollupTab(tab) {
+            currentTab = tab;
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.rollup-tab-panel').forEach(p => p.style.display = 'none');
+
+            if (tab === 'mats') {
+                document.getElementById('tabBtnMats').classList.add('active');
+                document.getElementById('tabContentMats').style.display = 'block';
+            } else if (tab === 'las') {
+                document.getElementById('tabBtnLas').classList.add('active');
+                document.getElementById('tabContentLas').style.display = 'block';
+            } else if (tab === 'single') {
+                document.getElementById('tabBtnSingle').classList.add('active');
+                document.getElementById('tabContentSingle').style.display = 'block';
+            }
+            filterClusters();
+        }
+
+        function toggleCluster(headerEl) {
+            const card = headerEl.closest('.cluster-card');
+            const body = card.querySelector('.cluster-body');
+            const btn = card.querySelector('.cluster-toggle-btn');
+            if (body.style.display === 'none') {
+                body.style.display = 'block';
+                if (btn) btn.innerText = btn.innerText.replace('▼', '▲');
+            } else {
+                body.style.display = 'none';
+                if (btn) btn.innerText = btn.innerText.replace('▲', '▼');
+            }
+        }
+
+        function expandAllClusters() {
+            document.querySelectorAll('.cluster-body').forEach(b => b.style.display = 'block');
+            document.querySelectorAll('.cluster-toggle-btn').forEach(btn => btn.innerText = btn.innerText.replace('▼', '▲'));
+        }
+
+        function collapseAllClusters() {
+            document.querySelectorAll('.cluster-body').forEach(b => b.style.display = 'none');
+            document.querySelectorAll('.cluster-toggle-btn').forEach(btn => btn.innerText = btn.innerText.replace('▲', '▼'));
+        }
+
+        function filterClusters() {
+            const searchVal = document.getElementById('clusterSearchInput').value.toLowerCase().trim();
+            const sizeVal = parseInt(document.getElementById('clusterSizeFilter').value, 10) || 0;
+            const stageVal = document.getElementById('clusterStageFilter').value;
+
+            const activePanel = currentTab === 'mats' ? document.getElementById('tabContentMats') : (currentTab === 'las' ? document.getElementById('tabContentLas') : document.getElementById('tabContentSingle'));
+            
+            const cards = activePanel.querySelectorAll('.cluster-card');
+            cards.forEach(card => {
+                const name = card.dataset.name || '';
+                const count = parseInt(card.dataset.count, 10) || 0;
+                const hasDemo = card.dataset.hasDemo === 'true';
+                const hasOutreach = card.dataset.hasOutreach === 'true';
+                const hasWon = card.dataset.hasWon === 'true';
+                const highNeed = card.dataset.highNeed === 'true';
+
+                // Check text inside schools table in card
+                const innerText = card.innerText.toLowerCase();
+
+                let matchesSearch = !searchVal || name.includes(searchVal) || innerText.includes(searchVal);
+                let matchesSize = count >= sizeVal;
+                let matchesStage = true;
+                if (stageVal === 'demo') matchesStage = hasDemo;
+                else if (stageVal === 'outreach_ready') matchesStage = hasOutreach;
+                else if (stageVal === 'high_need') matchesStage = highNeed;
+                else if (stageVal === 'won') matchesStage = hasWon;
+
+                if (matchesSearch && matchesSize && matchesStage) {
+                    card.style.display = '';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        function sortClusters() {
+            const sortMode = document.getElementById('clusterSortSelect').value;
+            const container = currentTab === 'mats' ? document.getElementById('matsListContainer') : document.getElementById('lasListContainer');
+            if (!container) return;
+
+            const cards = Array.from(container.querySelectorAll('.cluster-card'));
+            cards.sort((a, b) => {
+                if (sortMode === 'schools_desc') {
+                    return (parseInt(b.dataset.count, 10) || 0) - (parseInt(a.dataset.count, 10) || 0);
+                } else if (sortMode === 'sen_desc') {
+                    return (parseFloat(b.dataset.sen, 10) || 0) - (parseFloat(a.dataset.sen, 10) || 0);
+                } else if (sortMode === 'score_desc') {
+                    return (parseInt(b.dataset.score, 10) || 0) - (parseInt(a.dataset.score, 10) || 0);
+                } else if (sortMode === 'name_asc') {
+                    return (a.dataset.name || '').localeCompare(b.dataset.name || '');
+                }
+                return 0;
+            });
+
+            cards.forEach(c => container.appendChild(c));
+        }
+
+        function resetClusterFilters() {
+            document.getElementById('clusterSearchInput').value = '';
+            document.getElementById('clusterSizeFilter').value = '';
+            document.getElementById('clusterStageFilter').value = '';
+            document.getElementById('clusterSortSelect').value = 'schools_desc';
+            filterClusters();
+            sortClusters();
+        }
+    </script>
+</body>
+</html>
