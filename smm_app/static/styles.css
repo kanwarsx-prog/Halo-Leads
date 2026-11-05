@@ -1192,3 +1192,20 @@ html, body {
     min-height: 250px;
   }
 }
+
+/* Clickable Email Outreach Hyperlinks */
+.email-link,
+.outreach-box a {
+  color: var(--teal);
+  text-decoration: underline;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.15s ease, opacity 0.15s ease;
+}
+
+.email-link:hover,
+.outreach-box a:hover {
+  color: var(--teal-dark);
+  opacity: 0.85;
+  text-decoration: underline;
+}

@@ -59,6 +59,12 @@ Your task is to write high-impact, deeply empathetic outreach for this specific 
 - Ground in their real context: Reference their actual SEND Information Report, Ofsted findings, or school priorities.
 - Lead with value and empathy: Acknowledge the intense workload SENCOs face and show how See My Mind takes the burden of daily evidence gathering off their desk.
 
+- Real Clickable Links & Calls to Action:
+  When inviting recipients to view the 3-minute video overview or explore the sandbox demo, embed the provided links with clear, natural anchor text rather than isolated brackets like "[here](url)".
+  Examples:
+  • "I invite you to take a quick look at our [3-minute video overview]({Video Overview Link}) or explore our [interactive sandbox demo]({Demo Booking Link})."
+  • "You can view our [3-minute platform walkthrough]({Video Overview Link}) at your convenience."
+
 *** HANDLING CRM ACTIVITY HISTORY & PRIOR CONVERSATIONS (CRITICAL) ***
 You will be provided with the school's recorded pipeline activities, notes, and discussion history:
 - If prior activities, phone calls, meetings, or CRM notes exist:

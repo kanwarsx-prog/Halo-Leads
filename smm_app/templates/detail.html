@@ -343,7 +343,7 @@
                                     <button onclick="copyText('sencoBody', this)" class="btn btn-secondary btn-sm">Copy Email Body</button>
                                     <button onclick="openMailto('{{ senco_contact.email or school.general_email or "" }}', 'sencoSubject', 'sencoBody', '{{ senco_contact.name or "the SENCO" }}')" class="btn btn-primary btn-sm" style="margin-left: 0.4rem;">✉️ Open in Email Client</button>
                                 </div>
-                                <div id="sencoBody" class="outreach-box">{{ senco_contact.email_draft }}</div>
+                                <div id="sencoBody" class="outreach-box" data-raw="{{ senco_contact.email_draft }}">{{ senco_contact.email_draft }}</div>
                             {% else %}
                                 <p style="color: var(--soft); font-size: 0.9rem;">No SENCO draft generated yet.</p>
                             {% endif %}
@@ -360,7 +360,7 @@
                                     <button onclick="copyText('headBody', this)" class="btn btn-secondary btn-sm">Copy Email Body</button>
                                     <button onclick="openMailto('{{ head_contact.email or school.general_email or "" }}', 'headSubject', 'headBody', '{{ head_contact.name or "the Headteacher" }}')" class="btn btn-primary btn-sm" style="margin-left: 0.4rem;">✉️ Open in Email Client</button>
                                 </div>
-                                <div id="headBody" class="outreach-box">{{ head_contact.email_draft }}</div>
+                                <div id="headBody" class="outreach-box" data-raw="{{ head_contact.email_draft }}">{{ head_contact.email_draft }}</div>
                             {% else %}
                                 <p style="color: var(--soft); font-size: 0.9rem;">No Headteacher draft generated yet.</p>
                             {% endif %}
@@ -1048,7 +1048,9 @@
             const subjectEl = document.getElementById(subjectElemId);
             const bodyEl = document.getElementById(bodyElemId);
             const subject = subjectEl ? subjectEl.innerText.trim() : '';
-            const body = bodyEl ? bodyEl.innerText.trim() : '';
+            let body = bodyEl ? (bodyEl.getAttribute('data-raw') || bodyEl.innerText.trim()) : '';
+            // Convert markdown [anchor](url) into anchor: url so mail clients automatically turn it into a clickable link
+            body = body.replace(/\[([^\]]+)\]\((https?:\/\/[^\s\)]+)\)/g, '$1: $2');
 
             const mailtoUrl = `mailto:${encodeURIComponent(toEmail)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
             window.location.href = mailtoUrl;
@@ -1083,6 +1085,21 @@
                 }
             }, 600);
         }
+    
+        function initEmailDraftLinks() {
+            ['sencoBody', 'headBody'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    const raw = el.getAttribute('data-raw') || el.innerText;
+                    el.setAttribute('data-raw', raw);
+                    el.innerHTML = formatOutreachHtml(raw);
+                }
+            });
+        }
+        document.addEventListener('DOMContentLoaded', () => {
+            initEmailDraftLinks();
+        });
+
     </script>
 </body>
 </html>

@@ -99,13 +99,61 @@ function switchTab(evt, tabId) {
 }
 
 // Copy to Clipboard
-function copyText(elementId, btn) {
+function formatOutreachHtml(rawText) {
+  if (!rawText) return '';
+  let html = rawText
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+
+  // 1. Convert Markdown links [text](url) to real clickable <a> tags
+  html = html.replace(/\[([^\]]+)\]\((https?:\/\/[^\s\)]+)\)/g, (match, anchorText, url) => {
+    return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="email-link">${anchorText}</a>`;
+  });
+
+  // 2. Convert standalone URLs not already in an <a> tag
+  html = html.replace(/(^|[\s\n(])(https?:\/\/[^\s<)]+)/g, (match, prefix, url) => {
+    let cleanUrl = url;
+    let trailing = '';
+    const m = cleanUrl.match(/([.,;:!?]+)$/);
+    if (m) {
+      trailing = m[0];
+      cleanUrl = cleanUrl.slice(0, -trailing.length);
+    }
+    return `${prefix}<a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" class="email-link">${cleanUrl}</a>${trailing}`;
+  });
+
+  return html;
+}
+
+async function copyText(elementId, btn) {
   const el = document.getElementById(elementId);
   if (!el) return;
-  const text = el.innerText || el.value;
-  navigator.clipboard.writeText(text).then(() => {
-    const oldText = btn.innerText;
-    btn.innerText = 'Copied!';
+  const rawText = el.getAttribute('data-raw') || el.innerText || el.value;
+
+  // Format rich HTML with real <a> links for pasting into Gmail, Outlook, Apple Mail
+  const htmlFormatted = formatOutreachHtml(rawText).replace(/\n/g, '<br>');
+  const htmlBlob = new Blob([
+    `<div style="font-family: Arial, -apple-system, BlinkMacSystemFont, sans-serif; font-size: 14px; line-height: 1.5; color: #111;">${htmlFormatted}</div>`
+  ], { type: 'text/html' });
+
+  // Format plain text fallback: convert [anchor](url) into "anchor (url)" so there are no raw brackets
+  const plainText = rawText.replace(/\[([^\]]+)\]\((https?:\/\/[^\s\)]+)\)/g, '$1 ($2)');
+  const textBlob = new Blob([plainText], { type: 'text/plain' });
+
+  const oldText = btn.innerText;
+  try {
+    if (navigator.clipboard && window.ClipboardItem) {
+      await navigator.clipboard.write([
+        new ClipboardItem({
+          'text/html': htmlBlob,
+          'text/plain': textBlob
+        })
+      ]);
+    } else {
+      await navigator.clipboard.writeText(plainText);
+    }
+    btn.innerText = 'Copied with Links!';
     btn.style.backgroundColor = 'var(--success)';
     btn.style.color = '#fff';
     setTimeout(() => {
@@ -113,7 +161,13 @@ function copyText(elementId, btn) {
       btn.style.backgroundColor = '';
       btn.style.color = '';
     }, 2000);
-  });
+  } catch (err) {
+    await navigator.clipboard.writeText(plainText);
+    btn.innerText = 'Copied!';
+    setTimeout(() => {
+      btn.innerText = oldText;
+    }, 2000);
+  }
 }
 
 // Print Letter
