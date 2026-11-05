@@ -1,6 +1,6 @@
 /**
  * SeeMyMind Education Intelligence - Dark / Light Theme Manager
- * Instant execution in <head> to eliminate Flash of Unstyled Content (FOUC).
+ * Icon-only compact toggle, zero text.
  */
 (function () {
     const saved = localStorage.getItem('smm_theme');
@@ -15,10 +15,8 @@
 
 function updateThemeToggleButtons(isDark) {
     document.querySelectorAll('.theme-toggle-btn').forEach(btn => {
-        const icon = btn.querySelector('.theme-icon');
-        const label = btn.querySelector('.theme-label');
+        const icon = btn.querySelector('.theme-icon') || btn;
         if (icon) icon.textContent = isDark ? '☀️' : '🌙';
-        if (label) label.textContent = isDark ? 'Light' : 'Dark';
         btn.setAttribute('title', isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode');
         btn.setAttribute('aria-label', isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode');
     });
