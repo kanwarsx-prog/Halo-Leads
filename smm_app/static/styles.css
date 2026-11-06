@@ -1379,3 +1379,221 @@ html, body {
   border: 1px solid var(--line);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
 }
+
+
+/* ==========================================================================
+   Strict Zero-Horizontal-Scroll Mobile Layout (<= 768px)
+   Desktop (> 768px) keeps single-row header & full data tables.
+   Mobile (<= 768px) stacks header nav, tables, tabs, and Kanban vertically.
+   ========================================================================== */
+@media (max-width: 768px) {
+  html, body, .container {
+    overflow-x: hidden !important;
+    max-width: 100vw !important;
+  }
+
+  /* 1. Header & Nav: Fit 100% inside mobile screen without horizontal scroll */
+  header {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    flex-wrap: wrap !important;
+    overflow-x: hidden !important;
+    padding: 0.65rem 0.75rem !important;
+    gap: 0.55rem !important;
+  }
+
+  .brand-title {
+    width: 100% !important;
+    justify-content: space-between !important;
+    flex-wrap: wrap !important;
+    white-space: normal !important;
+  }
+
+  nav {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    width: 100% !important;
+    gap: 0.35rem !important;
+    overflow-x: hidden !important;
+  }
+
+  nav .btn {
+    flex: 1 1 calc(50% - 0.35rem) !important;
+    min-width: 0 !important;
+    width: auto !important;
+    white-space: normal !important;
+    padding: 0.42rem 0.5rem !important;
+    font-size: 0.75rem !important;
+    line-height: 1.2 !important;
+  }
+
+  nav .theme-toggle-btn {
+    flex: 0 0 36px !important;
+    width: 36px !important;
+    height: 34px !important;
+  }
+
+  /* 2. Tabs: Wrap cleanly instead of horizontal scrolling */
+  .tabs {
+    flex-wrap: wrap !important;
+    overflow-x: hidden !important;
+    gap: 0.25rem !important;
+  }
+
+  .tab-btn {
+    flex: 1 1 calc(50% - 0.25rem) !important;
+    white-space: normal !important;
+    text-align: center !important;
+    padding: 0.45rem 0.5rem !important;
+    font-size: 0.75rem !important;
+    border: 1px solid var(--line) !important;
+    border-radius: 6px !important;
+    margin-bottom: 0 !important;
+  }
+
+  .tab-btn.active {
+    background: var(--teal-light) !important;
+    border-color: var(--teal) !important;
+  }
+
+  /* 3. All Tables: Convert from 880px horizontal scroll into 100%-width stacked cards */
+  .table-scroll-hint {
+    display: none !important;
+  }
+
+  .table-container {
+    overflow-x: hidden !important;
+    overflow-y: visible !important;
+    max-height: none !important;
+    width: 100% !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  table {
+    min-width: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    display: block !important;
+  }
+
+  thead {
+    display: block !important;
+    width: 100% !important;
+  }
+
+  thead tr:not(.filter-row) {
+    display: none !important;
+  }
+
+  thead tr.filter-row {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 0.45rem !important;
+    background: var(--paper) !important;
+    padding: 0.7rem !important;
+    border: 1px solid var(--line) !important;
+    border-radius: 10px !important;
+    margin-bottom: 0.65rem !important;
+    position: static !important;
+  }
+
+  thead tr.filter-row th {
+    display: block !important;
+    width: 100% !important;
+    padding: 0 !important;
+    border: none !important;
+    background: transparent !important;
+    position: static !important;
+  }
+
+  thead tr.filter-row th:first-child {
+    grid-column: span 2 !important;
+  }
+
+  tbody {
+    display: block !important;
+    width: 100% !important;
+  }
+
+  tbody tr {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.4rem 0.6rem;
+    width: 100%;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 0.8rem 0.85rem;
+    margin-bottom: 0.6rem;
+    box-sizing: border-box;
+  }
+
+  tbody td {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    padding: 0 !important;
+    border: none !important;
+    font-size: 0.8rem;
+    max-width: 100%;
+    word-break: break-word;
+  }
+
+  tbody td:first-child {
+    flex: 1 1 100%;
+    display: block;
+    font-size: 0.92rem;
+    padding-bottom: 0.35rem !important;
+    margin-bottom: 0.1rem;
+    border-bottom: 1px dashed var(--line) !important;
+  }
+
+  tbody td:last-child {
+    flex: 1 1 100%;
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 0.4rem !important;
+    margin-top: 0.1rem;
+    border-top: 1px dashed var(--line) !important;
+    width: 100%;
+  }
+
+  tbody td:last-child > div {
+    width: 100%;
+    display: flex;
+    gap: 0.4rem;
+  }
+
+  tbody td:last-child .btn {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+
+  .pagination-bar {
+    border-top: 1px solid var(--line) !important;
+    border-radius: 10px !important;
+  }
+
+  /* 4. Kanban Board: Stack columns vertically on mobile with zero horizontal scroll */
+  .kanban-board-container {
+    flex-direction: column !important;
+    overflow-x: hidden !important;
+    gap: 0.85rem !important;
+    min-height: 0 !important;
+  }
+
+  .kanban-column {
+    flex: 1 1 auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-height: 0 !important;
+    max-height: 420px !important;
+  }
+}
