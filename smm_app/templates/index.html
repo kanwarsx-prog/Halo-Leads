@@ -6,7 +6,7 @@
     <title>See My Mind · Schools & MATs Lead Agent</title>
     <link rel="stylesheet" href="/seemymind/static/styles.css?v=3.0">
     <script src="/seemymind/static/theme.js"></script>
-    <script src="/seemymind/static/agent.js?v=1.1" defer></script>
+    <script src="/seemymind/static/agent.js?v=1.2" defer></script>
     <!-- Browser Favicons -->
     <link rel="icon" type="image/svg+xml" href="/seemymind/static/favicon.svg">
     <link rel="icon" type="image/png" sizes="32x32" href="/seemymind/static/favicon-32x32.png">
@@ -32,9 +32,6 @@
                 <a href="/seemymind/ui/contacts" class="btn btn-secondary">
                     <span>👥</span> Contacts ({{ contacts_count }})
                 </a>
-                <button onclick="openModal('importCsvModal')" class="btn btn-secondary">
-                    <span>📥</span> Import GIAS
-                </button>
                 <button onclick="openModal('addSchoolModal')" class="btn btn-primary">
                     <span>+</span> Add Target School
                 </button>
@@ -392,7 +389,10 @@
         <!-- Discreet Footer -->
         <footer style="margin-top: 3.5rem; padding: 1.5rem 0 2rem 0; border-top: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; font-size: 0.74rem; color: var(--soft); flex-wrap: wrap; gap: 0.5rem;">
             <div>See My Mind &middot; Education Intelligence</div>
-            <div>
+            <div style="display: flex; gap: 1rem; align-items: center;">
+                <a href="#" onclick="event.preventDefault(); openModal('importCsvModal');" style="color: var(--soft); text-decoration: none; opacity: 0.55; font-size: 0.72rem;" title="Bulk Import GIAS CSV">
+                    📥 Import GIAS CSV
+                </a>
                 <a href="/seemymind/ui/config" style="color: var(--soft); text-decoration: none; opacity: 0.35; font-size: 0.72rem; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='0.35'" title="Admin Prompt Settings">
                     ⚙️ Prompts
                 </a>
@@ -403,7 +403,12 @@
     <!-- Modal: Add Single School -->
     <div id="addSchoolModal" class="modal-overlay" onclick="if(event.target===this) closeModal('addSchoolModal')">
         <div class="modal">
-            <h2 style="margin-bottom: 1.25rem;">Add Target School</h2>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+                <h2 style="margin: 0;">Add Target School</h2>
+                <button type="button" onclick="closeModal('addSchoolModal'); openModal('importCsvModal');" class="btn btn-secondary btn-sm" style="font-size: 0.74rem;">
+                    📥 Bulk Import CSV
+                </button>
+            </div>
             <form id="addSchoolForm" onsubmit="submitAddSchool(event)">
                 <div class="form-group">
                     <label>School Name *</label>

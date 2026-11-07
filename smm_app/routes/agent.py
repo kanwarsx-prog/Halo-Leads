@@ -25,6 +25,7 @@ from smm_app.models import (
     SchoolAuditRun,
     SchoolContact,
     SchoolPipelineStage,
+    AgentInteractionLog,
 )
 from smm_app.openai_client import client
 
@@ -41,6 +42,35 @@ class AgentChatRequest(BaseModel):
     message: str
     history: list[AgentMessage] = []
     current_school_id: str | None = None
+
+
+
+def _log_llm_interaction(
+    db: Session,
+    user_prompt: str,
+    llm_output: str,
+    system_prompt: str | None = None,
+    tool_calls_trace: list[dict[str, Any]] | None = None,
+    school_id: str | None = None,
+    status: str = "completed",
+) -> None:
+    """Persist every AI Agent input prompt, tool trace, and LLM output to smm_agent_logs."""
+    try:
+        AgentInteractionLog.__table__.create(bind=db.get_bind(), checkfirst=True)
+        entry = AgentInteractionLog(
+            school_id=school_id,
+            model=settings.openai_model,
+            user_prompt=user_prompt,
+            system_prompt=system_prompt,
+            tool_calls_json=json.dumps(tool_calls_trace) if tool_calls_trace else None,
+            llm_output=llm_output,
+            status=status,
+        )
+        db.add(entry)
+        db.commit()
+    except Exception as log_exc:
+        db.rollback()
+        print(f"Warning: failed to write AgentInteractionLog: {log_exc}")
 
 
 def _resolve_school(db: Session, query_or_id: str | None, fallback_id: str | None = None) -> School | None:
@@ -829,7 +859,16 @@ def _execute_tool(
             response_format={"type": "json_object"},
             temperature=0.5,
         )
-        parsed = json.loads(resp.choices[0].message.content or "{}")
+        raw_draft_output = resp.choices[0].message.content or "{}"
+        _log_llm_interaction(
+            db=db,
+            user_prompt=prompt,
+            llm_output=raw_draft_output,
+            system_prompt="Email Drafting Sub-Agent (JSON mode)",
+            school_id=school.id if school else current_school_id,
+            status="completed",
+        )
+        parsed = json.loads(raw_draft_output)
         subject = parsed.get("subject", f"Supporting SEN pupils at {school.name if school else 'your school'}")
         body = parsed.get("body", "")
 
@@ -967,6 +1006,7 @@ def agent_chat(payload: AgentChatRequest, db: Session = Depends(get_db)) -> dict
     messages.append({"role": "user", "content": payload.message})
 
     actions_taken: list[dict[str, Any]] = []
+    tool_calls_trace: list[dict[str, Any]] = []
 
     try:
         # Up to 4 sequential tool-calling rounds
@@ -981,8 +1021,19 @@ def agent_chat(payload: AgentChatRequest, db: Session = Depends(get_db)) -> dict
             msg = response.choices[0].message
 
             if not msg.tool_calls:
+                final_text = msg.content or "Done."
+                resolved_school_id = next((a.get("school_id") for a in actions_taken if a.get("school_id")), payload.current_school_id)
+                _log_llm_interaction(
+                    db=db,
+                    user_prompt=payload.message,
+                    llm_output=final_text,
+                    system_prompt=system_prompt,
+                    tool_calls_trace=tool_calls_trace,
+                    school_id=resolved_school_id,
+                    status="completed",
+                )
                 return {
-                    "reply": msg.content or "Done.",
+                    "reply": final_text,
                     "actions_taken": actions_taken,
                     "mutated": any(a.get("mutated") for a in actions_taken),
                 }
@@ -1003,6 +1054,11 @@ def agent_chat(payload: AgentChatRequest, db: Session = Depends(get_db)) -> dict
                     current_school_id=payload.current_school_id,
                     actions_taken=actions_taken,
                 )
+                tool_calls_trace.append({
+                    "tool": fn_name,
+                    "arguments": fn_args,
+                    "output": tool_result,
+                })
                 messages.append({
                     "role": "tool",
                     "tool_call_id": tc.id,
@@ -1016,14 +1072,61 @@ def agent_chat(payload: AgentChatRequest, db: Session = Depends(get_db)) -> dict
             messages=messages,
             temperature=0.3,
         )
+        final_text = final_resp.choices[0].message.content or "Completed your request."
+        resolved_school_id = next((a.get("school_id") for a in actions_taken if a.get("school_id")), payload.current_school_id)
+        _log_llm_interaction(
+            db=db,
+            user_prompt=payload.message,
+            llm_output=final_text,
+            system_prompt=system_prompt,
+            tool_calls_trace=tool_calls_trace,
+            school_id=resolved_school_id,
+            status="completed",
+        )
         return {
-            "reply": final_resp.choices[0].message.content or "Completed your request.",
+            "reply": final_text,
             "actions_taken": actions_taken,
             "mutated": any(a.get("mutated") for a in actions_taken),
         }
     except Exception as exc:
+        err_msg = f"⚠️ Agent encountered an error while processing your request: {exc}"
+        _log_llm_interaction(
+            db=db,
+            user_prompt=payload.message,
+            llm_output=err_msg,
+            system_prompt=system_prompt,
+            tool_calls_trace=tool_calls_trace,
+            school_id=payload.current_school_id,
+            status="error",
+        )
         return {
-            "reply": f"⚠️ Agent encountered an error while processing your request: {exc}",
+            "reply": err_msg,
             "actions_taken": actions_taken,
             "mutated": False,
         }
+
+
+@router.get("/logs")
+def get_agent_logs(limit: int = 50, db: Session = Depends(get_db)) -> list[dict[str, Any]]:
+    """Retrieve logged AI Agent interactions (input prompt, system prompt, tool calls, and LLM output)."""
+    AgentInteractionLog.__table__.create(bind=db.get_bind(), checkfirst=True)
+    logs = (
+        db.query(AgentInteractionLog)
+        .order_by(AgentInteractionLog.created_at.desc())
+        .limit(min(limit, 200))
+        .all()
+    )
+    return [
+        {
+            "id": l.id,
+            "school_id": l.school_id,
+            "model": l.model,
+            "user_prompt": l.user_prompt,
+            "system_prompt": l.system_prompt,
+            "tool_calls": json.loads(l.tool_calls_json) if l.tool_calls_json else [],
+            "llm_output": l.llm_output,
+            "status": l.status,
+            "created_at": l.created_at.isoformat() if l.created_at else None,
+        }
+        for l in logs
+    ]

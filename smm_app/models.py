@@ -240,3 +240,24 @@ class SchoolActivity(Base):
     follow_up_completed: Mapped[bool] = mapped_column(Boolean, default=False)
 
     school: Mapped["School"] = relationship(back_populates="activities")
+
+
+class AgentInteractionLog(Base):
+    __tablename__ = "smm_agent_logs"
+
+    id: Mapped[str] = mapped_column(
+        String(36),
+        primary_key=True,
+        default=lambda: str(uuid.uuid4()),
+    )
+    school_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
+    model: Mapped[str | None] = mapped_column(String(100))
+    user_prompt: Mapped[str] = mapped_column(Text, nullable=False)
+    system_prompt: Mapped[str | None] = mapped_column(Text)
+    tool_calls_json: Mapped[str | None] = mapped_column(Text)
+    llm_output: Mapped[str] = mapped_column(Text, nullable=False)
+    status: Mapped[str] = mapped_column(String(50), default="completed")
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+    )
