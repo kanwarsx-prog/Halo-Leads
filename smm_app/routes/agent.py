@@ -28,6 +28,7 @@ from smm_app.models import (
     AgentInteractionLog,
 )
 from smm_app.openai_client import client
+from smm_app.prompts import get_prompt
 
 router = APIRouter(prefix="/agent", tags=["agent"])
 settings = get_settings()
@@ -844,7 +845,7 @@ def _execute_tool(
             )
 
         prompt = (
-            "You are drafting an email for Sushil Kanwar at See My Mind (an early-stage UK EdTech platform supporting "
+            "You are drafting an email on behalf of the See My Mind team (a UK EdTech platform supporting "
             "SEN pupils, SENCOs, and teachers with early identification and pupil wellbeing/support profiles).\n\n"
             f"Recipient Name: {recipient_name or 'Headteacher / SENCO'}\n"
             f"Recipient Role: {recipient_role}\n"
@@ -992,22 +993,8 @@ def agent_chat(payload: AgentChatRequest, db: Session = Depends(get_db)) -> dict
                 f"If the user says 'this school' or omits the school name, use '{curr.name}' (ID: {curr.id})."
             )
 
-    system_prompt = (
-        f"You are the SMM Agent, an executive operational assistant for Sushil Kanwar and his partners "
-        f"at See My Mind (UK EdTech platform supporting SEN pupils, SENCOs, and school leaders).\n"
-        f"Today's date is {now_str}.{current_school_info}\n\n"
-        "You have direct tool access to the live See My Mind database:\n"
-        "- Check school status, SEND metrics, Ofsted quotes, contacts, and activity history (`get_school_status`, `search_schools_pipeline`)\n"
-        "- Add new schools or update pipeline stages (`create_or_update_school`, `update_school_stage`)\n"
-        "- Take notes, log calls/emails, and schedule meetings/demos with follow-up dates (`log_note_or_meeting`)\n"
-        "- Save named contacts like Headteachers or SENCOs (`add_or_update_contact`)\n"
-        "- Draft tailored, warm UK-English emails (`draft_email_for_school`)\n"
-        "- Check upcoming scheduled meetings, demos, and follow-up tasks (`get_upcoming_schedule`, `complete_task`)\n\n"
-        "GUIDELINES:\n"
-        "1. Always execute the appropriate tool(s) immediately when the user asks to log a note, schedule a meeting, check a school, change a stage, or draft an email. You can chain multiple tool calls in a single turn (for example: add contact + schedule meeting + update stage).\n"
-        "2. Keep your responses concise, clear, and action-oriented in British English.\n"
-        "3. When you draft an email, display the Subject and Body clearly in your response so the user can review or copy it right away."
-    )
+    base_agent_prompt = get_prompt(db, "SMM_AGENT_SYSTEM_PROMPT")
+    system_prompt = f"{base_agent_prompt}\n\nToday's date is {now_str}.{current_school_info}"
 
     messages: list[dict[str, Any]] = [{"role": "system", "content": system_prompt}]
     for h in payload.history[-10:]:
