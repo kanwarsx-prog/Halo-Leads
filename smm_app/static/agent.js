@@ -49,7 +49,7 @@
     function initAgentUI() {
         if (document.getElementById('smmAgentDrawer')) return;
 
-        // Floating bottom-right button (keeps top header uncrowded)
+        // Floating bottom-right button
         const fab = document.createElement('button');
         fab.id = 'smmAgentFab';
         fab.type = 'button';
@@ -72,13 +72,12 @@
                     ${ctx.name ? `<span class="badge badge-gray" style="font-size: 0.68rem; font-weight: 500;">${escapeHtml(ctx.name)}</span>` : ''}
                 </div>
                 <div style="display: flex; align-items: center; gap: 0.35rem;">
-                    <button type="button" id="smmToggleLogsBtn" onclick="window.smmToggleAgentLogs()" class="btn btn-secondary btn-sm" title="View logged input prompts & LLM outputs" style="padding: 0.22rem 0.5rem; font-size: 0.72rem;">Logs</button>
                     <button type="button" onclick="window.smmClearAgentChat()" class="btn btn-secondary btn-sm" title="Clear chat" style="padding: 0.22rem 0.5rem; font-size: 0.72rem;">Clear</button>
                     <button type="button" onclick="window.toggleAgentDrawer(false)" class="btn btn-secondary btn-sm" title="Close" style="padding: 0.22rem 0.5rem; font-size: 0.82rem;">✕</button>
                 </div>
             </div>
 
-            <div class="smm-agent-chips" id="smmAgentChipsBar">
+            <div class="smm-agent-chips">
                 <button type="button" class="smm-chip" onclick="window.smmFillPrompt('Status of ')">School Status</button>
                 <button type="button" class="smm-chip" onclick="window.smmFillPrompt('Draft an email to ')">Draft Email</button>
                 <button type="button" class="smm-chip" onclick="window.smmFillPrompt('Add a note for ')">Take Note</button>
@@ -92,7 +91,6 @@
             </div>
 
             <div id="smmAgentMessages" class="smm-agent-messages"></div>
-            <div id="smmAgentLogsView" class="smm-agent-messages" style="display: none;"></div>
 
             <form id="smmAgentForm" class="smm-agent-input-bar" onsubmit="window.smmSubmitAgentMessage(event)">
                 <input type="text" id="smmAgentInput" autocomplete="off" placeholder="Ask SMM Agent..." />
@@ -171,52 +169,6 @@
         container.scrollTop = container.scrollHeight;
     }
 
-    window.smmToggleAgentLogs = async function () {
-        const msgView = document.getElementById('smmAgentMessages');
-        const logsView = document.getElementById('smmAgentLogsView');
-        const btn = document.getElementById('smmToggleLogsBtn');
-        if (!msgView || !logsView || !btn) return;
-
-        const showingLogs = logsView.style.display !== 'none';
-        if (showingLogs) {
-            logsView.style.display = 'none';
-            msgView.style.display = 'flex';
-            btn.textContent = 'Logs';
-            return;
-        }
-
-        msgView.style.display = 'none';
-        logsView.style.display = 'flex';
-        btn.textContent = '← Chat';
-        logsView.innerHTML = '<div style="color: var(--soft); font-size: 0.8rem;">Loading interaction logs...</div>';
-
-        try {
-            const res = await fetch('/seemymind/agent/logs?limit=25');
-            const logs = await res.json();
-            if (!logs || logs.length === 0) {
-                logsView.innerHTML = '<div style="color: var(--soft); font-size: 0.8rem;">No agent interactions logged yet.</div>';
-                return;
-            }
-            logsView.innerHTML = logs.map(l => {
-                const ts = l.created_at ? new Date(l.created_at).toLocaleString('en-GB', { dateStyle: 'short', timeStyle: 'short' }) : '';
-                const tools = (l.tool_calls || []).map(t => `<div style="font-size: 0.7rem; color: var(--teal); margin-top: 0.2rem;">Tool: <code>${escapeHtml(t.tool)}</code></div>`).join('');
-                return `
-                    <div style="border: 1px solid var(--line); border-radius: 8px; padding: 0.65rem; background: var(--gray-100); font-size: 0.76rem;">
-                        <div style="display: flex; justify-content: space-between; color: var(--soft); font-size: 0.68rem; margin-bottom: 0.3rem;">
-                            <span>${escapeHtml(l.model || 'LLM')}</span>
-                            <span>${escapeHtml(ts)}</span>
-                        </div>
-                        <div style="margin-bottom: 0.35rem;"><strong>Input Prompt:</strong><br>${escapeHtml(l.user_prompt)}</div>
-                        ${tools}
-                        <div style="margin-top: 0.35rem; padding-top: 0.35rem; border-top: 1px dashed var(--line);"><strong>LLM Output:</strong><br>${formatAgentMarkdown(l.llm_output)}</div>
-                    </div>
-                `;
-            }).join('');
-        } catch (err) {
-            logsView.innerHTML = '<div style="color: var(--danger); font-size: 0.8rem;">Failed to load logs.</div>';
-        }
-    };
-
     window.toggleAgentDrawer = function (forceState) {
         const drawer = document.getElementById('smmAgentDrawer');
         if (!drawer) return;
@@ -261,15 +213,7 @@
         const inp = document.getElementById('smmAgentInput');
         const sendBtn = document.getElementById('smmAgentSendBtn');
         const container = document.getElementById('smmAgentMessages');
-        const logsView = document.getElementById('smmAgentLogsView');
-        const logsBtn = document.getElementById('smmToggleLogsBtn');
         if (!inp || !container) return;
-
-        if (logsView && logsView.style.display !== 'none') {
-            logsView.style.display = 'none';
-            container.style.display = 'flex';
-            if (logsBtn) logsBtn.textContent = 'Logs';
-        }
 
         const message = inp.value.trim();
         if (!message) return;

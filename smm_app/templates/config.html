@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Prompt Configuration · See My Mind Lead Agent</title>
+    <title>Prompts &amp; Agent Execution Logs · See My Mind</title>
     <link rel="stylesheet" href="/seemymind/static/styles.css?v=3.0">
     <script src="/seemymind/static/theme.js"></script>
-    <script src="/seemymind/static/agent.js?v=1.2" defer></script>
+    <script src="/seemymind/static/agent.js?v=1.3" defer></script>
     <!-- Browser Favicons -->
     <link rel="icon" type="image/svg+xml" href="/seemymind/static/favicon.svg">
     <link rel="icon" type="image/png" sizes="32x32" href="/seemymind/static/favicon-32x32.png">
@@ -34,32 +34,213 @@
             </nav>
         </header>
 
-        <div style="margin-bottom: 2rem;">
-            <h2>Education AI Prompt Configuration</h2>
-            <p style="color: var(--soft); font-size: 0.95rem;">
-                Customize the system prompts that guide the school researcher, extraction agent, and outreach drafting engine.
-            </p>
+        <!-- Top-Level Tabs: System Prompts vs Agent Execution Logs -->
+        <div class="tabs" style="margin-bottom: 1.5rem;">
+            <button type="button" class="tab-btn active" id="tabBtnPrompts" onclick="switchConfigTab('prompts')">
+                ⚙️ System Prompts ({{ prompts | length }})
+            </button>
+            <button type="button" class="tab-btn" id="tabBtnLogs" onclick="switchConfigTab('logs')">
+                📜 Agent Execution Logs
+            </button>
         </div>
 
-        <div style="display: flex; flex-direction: column; gap: 1.75rem;">
-            {% for prompt in prompts %}
-            <div class="card">
-                <form class="prompt-form" data-name="{{ prompt.name }}" onsubmit="savePrompt(event)">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
-                        <h3 style="font-family: monospace; font-size: 1.15rem; color: var(--teal);">{{ prompt.name }}</h3>
-                        <button type="submit" class="btn btn-primary btn-sm">Save Changes</button>
-                    </div>
-                    {% if prompt.description %}
-                    <p style="color: var(--soft); font-size: 0.85rem; margin-bottom: 0.75rem;">{{ prompt.description }}</p>
-                    {% endif %}
-                    <textarea name="content" rows="14" style="width: 100%; font-family: monospace; font-size: 0.88rem; padding: 0.75rem; border: 1px solid var(--line); border-radius: 6px; line-height: 1.5;">{{ prompt.content }}</textarea>
-                </form>
+        <!-- TAB 1: System Prompts -->
+        <div id="panelPrompts">
+            <div style="margin-bottom: 1.5rem;">
+                <h2>Education AI Prompt Configuration</h2>
+                <p style="color: var(--soft); font-size: 0.9rem;">
+                    Customize the system prompts that guide the school researcher, extraction agent, and outreach drafting engine.
+                </p>
             </div>
-            {% endfor %}
+
+            <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                {% for prompt in prompts %}
+                <div class="card">
+                    <form class="prompt-form" data-name="{{ prompt.name }}" onsubmit="savePrompt(event)">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                            <h3 style="font-family: monospace; font-size: 1.1rem; color: var(--teal);">{{ prompt.name }}</h3>
+                            <button type="submit" class="btn btn-primary btn-sm">Save Changes</button>
+                        </div>
+                        {% if prompt.description %}
+                        <p style="color: var(--soft); font-size: 0.85rem; margin-bottom: 0.75rem;">{{ prompt.description }}</p>
+                        {% endif %}
+                        <textarea name="content" rows="14" style="width: 100%; font-family: monospace; font-size: 0.85rem; padding: 0.75rem; border: 1px solid var(--line); border-radius: 6px; line-height: 1.5; background: var(--paper); color: var(--ink);">{{ prompt.content }}</textarea>
+                    </form>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- TAB 2: Full Multi-Step Agent Execution Logs -->
+        <div id="panelLogs" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1.25rem;">
+                <div>
+                    <h2 style="margin-bottom: 0.2rem;">AI Agent Execution Trace Logs</h2>
+                    <p style="color: var(--soft); font-size: 0.86rem; margin: 0;">
+                        Full chronological trace of every LLM interaction: exact payloads sent from code to LLM, tool calls returned by LLM, tool outputs, and subsequent LLM rounds.
+                    </p>
+                </div>
+                <div style="display: flex; gap: 0.5rem;">
+                    <button type="button" onclick="loadAgentExecutionLogs()" class="btn btn-secondary btn-sm">↻ Refresh Logs</button>
+                    <button type="button" onclick="clearAgentExecutionLogs()" class="btn btn-secondary btn-sm" style="color: var(--danger);">🗑️ Clear Logs</button>
+                </div>
+            </div>
+
+            <div id="executionLogsContainer" style="display: flex; flex-direction: column; gap: 1rem;">
+                <div class="card" style="color: var(--soft);">Loading execution logs...</div>
+            </div>
         </div>
     </div>
 
     <script>
+        function switchConfigTab(tab) {
+            const pPanel = document.getElementById('panelPrompts');
+            const lPanel = document.getElementById('panelLogs');
+            const pBtn = document.getElementById('tabBtnPrompts');
+            const lBtn = document.getElementById('tabBtnLogs');
+
+            if (tab === 'logs') {
+                pPanel.style.display = 'none';
+                lPanel.style.display = 'block';
+                pBtn.classList.remove('active');
+                lBtn.classList.add('active');
+                loadAgentExecutionLogs();
+            } else {
+                pPanel.style.display = 'block';
+                lPanel.style.display = 'none';
+                pBtn.classList.add('active');
+                lBtn.classList.remove('active');
+            }
+        }
+
+        function escapeLogHtml(s) {
+            return String(s == null ? '' : s)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+        }
+
+        function renderTraceStep(stepObj) {
+            const stepType = stepObj.type || '';
+            let badgeClass = 'badge-gray';
+            let borderColor = 'var(--line)';
+            let icon = '🔹';
+
+            if (stepType === 'code_to_llm') {
+                badgeClass = 'badge-teal';
+                borderColor = 'var(--teal)';
+                icon = '📤';
+            } else if (stepType === 'llm_to_code') {
+                badgeClass = 'badge-mint';
+                borderColor = '#16a34a';
+                icon = '📥';
+            } else if (stepType === 'tool_execution') {
+                badgeClass = 'badge-gold';
+                borderColor = '#d97706';
+                icon = '🔧';
+            } else if (stepType === 'error') {
+                badgeClass = 'badge-coral';
+                borderColor = 'var(--danger)';
+                icon = '⚠️';
+            }
+
+            // Support legacy tool_calls entries if any exist from earlier schema
+            if (!stepObj.type && stepObj.tool) {
+                return `
+                    <div style="border-left: 3px solid #d97706; background: var(--gray-100); padding: 0.75rem; border-radius: 6px; margin-bottom: 0.65rem;">
+                        <div style="font-weight: 700; font-size: 0.8rem; margin-bottom: 0.35rem;">🔧 Tool Call: <code>${escapeLogHtml(stepObj.tool)}</code></div>
+                        <pre style="font-size: 0.76rem; overflow-x: auto; white-space: pre-wrap; word-break: break-word; background: var(--paper); padding: 0.6rem; border-radius: 5px; border: 1px solid var(--line);">${escapeLogHtml(JSON.stringify(stepObj, null, 2))}</pre>
+                    </div>
+                `;
+            }
+
+            const usageStr = stepObj.usage
+                ? `<span style="font-size: 0.72rem; color: var(--soft);">Tokens: ${stepObj.usage.prompt_tokens} in / ${stepObj.usage.completion_tokens} out (${stepObj.usage.total_tokens} total)</span>`
+                : '';
+            const finishStr = stepObj.finish_reason
+                ? `<span class="badge badge-gray" style="font-size: 0.68rem;">finish_reason: ${escapeLogHtml(stepObj.finish_reason)}</span>`
+                : '';
+
+            return `
+                <div style="border: 1px solid var(--line); border-left: 4px solid ${borderColor}; background: var(--gray-100); padding: 0.8rem 0.95rem; border-radius: 8px; margin-bottom: 0.75rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.5rem;">
+                        <div style="display: flex; align-items: center; gap: 0.45rem;">
+                            <span class="badge ${badgeClass}">Step ${stepObj.step || ''}</span>
+                            <strong style="font-size: 0.84rem; color: var(--ink);">${icon} ${escapeLogHtml(stepObj.title || stepType)}</strong>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            ${finishStr}
+                            ${usageStr}
+                        </div>
+                    </div>
+                    <pre style="font-family: monospace; font-size: 0.76rem; line-height: 1.45; overflow-x: auto; white-space: pre-wrap; word-break: break-word; background: var(--paper); color: var(--ink); padding: 0.7rem; border-radius: 6px; border: 1px solid var(--line); max-height: 360px; overflow-y: auto; margin: 0;">${escapeLogHtml(JSON.stringify(stepObj.payload, null, 2))}</pre>
+                </div>
+            `;
+        }
+
+        async function loadAgentExecutionLogs() {
+            const container = document.getElementById('executionLogsContainer');
+            if (!container) return;
+            container.innerHTML = '<div class="card" style="color: var(--soft);">Loading execution logs...</div>';
+
+            try {
+                const res = await fetch('/seemymind/agent/logs?limit=50');
+                const logs = await res.json();
+
+                if (!logs || logs.length === 0) {
+                    container.innerHTML = '<div class="card" style="text-align: center; padding: 2.5rem; color: var(--soft);">No AI Agent interactions logged yet. Open <strong>✨ SMM Agent</strong> and send a message to see the full multi-step execution trace here.</div>';
+                    return;
+                }
+
+                container.innerHTML = logs.map((log, idx) => {
+                    const ts = log.created_at ? new Date(log.created_at).toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'medium' }) : '';
+                    const trace = Array.isArray(log.execution_trace) ? log.execution_trace : [];
+                    const stepsHtml = trace.length > 0
+                        ? trace.map(renderTraceStep).join('')
+                        : `<div style="margin-bottom: 0.75rem;">
+                               <div style="font-weight: 700; font-size: 0.8rem; margin-bottom: 0.3rem;">System Prompt Sent to LLM:</div>
+                               <pre style="font-family: monospace; font-size: 0.75rem; white-space: pre-wrap; background: var(--paper); padding: 0.65rem; border-radius: 6px; border: 1px solid var(--line);">${escapeLogHtml(log.system_prompt || '')}</pre>
+                           </div>`;
+
+                    const isOpen = idx === 0 ? 'block' : 'none';
+                    return `
+                        <div class="card" style="padding: 1rem 1.15rem;">
+                            <div onclick="const b=this.nextElementSibling; b.style.display=(b.style.display==='none'?'block':'none');" style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; flex-wrap: wrap; gap: 0.5rem;">
+                                <div>
+                                    <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                                        <span class="badge ${log.status === 'error' ? 'badge-coral' : 'badge-mint'}">${escapeLogHtml(log.status || 'completed')}</span>
+                                        <span class="badge badge-gray" style="font-family: monospace;">${escapeLogHtml(log.model || 'gpt-4o-mini')}</span>
+                                        <span class="badge badge-teal">${trace.length} Execution Steps</span>
+                                        <span style="font-size: 0.76rem; color: var(--soft);">${escapeLogHtml(ts)}</span>
+                                    </div>
+                                    <div style="margin-top: 0.4rem; font-size: 0.92rem; font-weight: 700; color: var(--ink);">
+                                        User Input: "${escapeLogHtml(log.user_prompt)}"
+                                    </div>
+                                </div>
+                                <span style="font-size: 0.78rem; color: var(--teal); font-weight: 600;">Inspect Full Trace ▾</span>
+                            </div>
+
+                            <div style="display: ${isOpen}; margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed var(--line);">
+                                ${stepsHtml}
+                                <div style="border: 1px solid var(--line); border-left: 4px solid var(--teal); background: var(--paper); padding: 0.8rem 0.95rem; border-radius: 8px;">
+                                    <div style="font-weight: 700; font-size: 0.82rem; color: var(--teal); margin-bottom: 0.35rem;">✅ Final Output Delivered to User:</div>
+                                    <pre style="font-family: inherit; font-size: 0.82rem; white-space: pre-wrap; word-break: break-word; margin: 0; color: var(--ink);">${escapeLogHtml(log.llm_output)}</pre>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (err) {
+                container.innerHTML = '<div class="card" style="color: var(--danger);">Failed to load execution logs.</div>';
+            }
+        }
+
+        async function clearAgentExecutionLogs() {
+            if (!confirm('Clear all stored AI Agent execution logs?')) return;
+            await fetch('/seemymind/agent/logs', { method: 'DELETE' });
+            loadAgentExecutionLogs();
+        }
+
         async function savePrompt(e) {
             e.preventDefault();
             const form = e.target;
@@ -98,6 +279,12 @@
                 btn.disabled = false;
             }
         }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.location.search.includes('tab=logs') || window.location.hash === '#logs') {
+                switchConfigTab('logs');
+            }
+        });
     </script>
 </body>
 </html>

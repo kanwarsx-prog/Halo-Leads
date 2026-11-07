@@ -424,6 +424,7 @@ def _execute_tool(
     args: dict[str, Any],
     current_school_id: str | None,
     actions_taken: list[dict[str, Any]],
+    execution_trace: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     """Execute a single agent tool call against the database and record UI action badges."""
 
@@ -853,21 +854,30 @@ def _execute_tool(
             "Return JSON with keys: 'subject' and 'body'."
         )
 
+        sub_messages = [{"role": "user", "content": prompt}]
+        if execution_trace is not None:
+            execution_trace.append({
+                "step": len(execution_trace) + 1,
+                "type": "code_to_llm",
+                "title": "Code → LLM (Sub-Call: Email Drafting)",
+                "model": settings.openai_model,
+                "payload": {"messages": sub_messages, "response_format": "json_object", "temperature": 0.5},
+            })
         resp = client.chat.completions.create(
             model=settings.openai_model,
-            messages=[{"role": "user", "content": prompt}],
+            messages=sub_messages,
             response_format={"type": "json_object"},
             temperature=0.5,
         )
         raw_draft_output = resp.choices[0].message.content or "{}"
-        _log_llm_interaction(
-            db=db,
-            user_prompt=prompt,
-            llm_output=raw_draft_output,
-            system_prompt="Email Drafting Sub-Agent (JSON mode)",
-            school_id=school.id if school else current_school_id,
-            status="completed",
-        )
+        if execution_trace is not None:
+            execution_trace.append({
+                "step": len(execution_trace) + 1,
+                "type": "llm_to_code",
+                "title": "LLM → Code (Sub-Call Response)",
+                "finish_reason": resp.choices[0].finish_reason,
+                "payload": {"content": raw_draft_output},
+            })
         parsed = json.loads(raw_draft_output)
         subject = parsed.get("subject", f"Supporting SEN pupils at {school.name if school else 'your school'}")
         body = parsed.get("body", "")
@@ -1006,11 +1016,26 @@ def agent_chat(payload: AgentChatRequest, db: Session = Depends(get_db)) -> dict
     messages.append({"role": "user", "content": payload.message})
 
     actions_taken: list[dict[str, Any]] = []
-    tool_calls_trace: list[dict[str, Any]] = []
+    execution_trace: list[dict[str, Any]] = []
+    tool_names_list = [t["function"]["name"] for t in AGENT_TOOLS]
 
     try:
         # Up to 4 sequential tool-calling rounds
-        for _ in range(4):
+        for round_idx in range(1, 5):
+            # Log exact payload sent from Code -> LLM
+            execution_trace.append({
+                "step": len(execution_trace) + 1,
+                "type": "code_to_llm",
+                "title": f"Code → LLM (Call #{round_idx})",
+                "model": settings.openai_model,
+                "payload": {
+                    "model": settings.openai_model,
+                    "temperature": 0.3,
+                    "available_tools": tool_names_list,
+                    "messages": json.loads(json.dumps(messages, default=str)),
+                },
+            })
+
             response = client.chat.completions.create(
                 model=settings.openai_model,
                 messages=messages,
@@ -1019,6 +1044,38 @@ def agent_chat(payload: AgentChatRequest, db: Session = Depends(get_db)) -> dict
                 temperature=0.3,
             )
             msg = response.choices[0].message
+            usage_dict = (
+                {
+                    "prompt_tokens": response.usage.prompt_tokens,
+                    "completion_tokens": response.usage.completion_tokens,
+                    "total_tokens": response.usage.total_tokens,
+                }
+                if getattr(response, "usage", None)
+                else None
+            )
+
+            # Log exact response received from LLM -> Code
+            execution_trace.append({
+                "step": len(execution_trace) + 1,
+                "type": "llm_to_code",
+                "title": f"LLM → Code (Response #{round_idx})",
+                "finish_reason": response.choices[0].finish_reason,
+                "usage": usage_dict,
+                "payload": {
+                    "content": msg.content,
+                    "tool_calls": [
+                        {
+                            "id": tc.id,
+                            "type": tc.type,
+                            "function": {
+                                "name": tc.function.name,
+                                "arguments": tc.function.arguments,
+                            },
+                        }
+                        for tc in (msg.tool_calls or [])
+                    ],
+                },
+            })
 
             if not msg.tool_calls:
                 final_text = msg.content or "Done."
@@ -1028,7 +1085,7 @@ def agent_chat(payload: AgentChatRequest, db: Session = Depends(get_db)) -> dict
                     user_prompt=payload.message,
                     llm_output=final_text,
                     system_prompt=system_prompt,
-                    tool_calls_trace=tool_calls_trace,
+                    tool_calls_trace=execution_trace,
                     school_id=resolved_school_id,
                     status="completed",
                 )
@@ -1053,33 +1110,59 @@ def agent_chat(payload: AgentChatRequest, db: Session = Depends(get_db)) -> dict
                     args=fn_args,
                     current_school_id=payload.current_school_id,
                     actions_taken=actions_taken,
+                    execution_trace=execution_trace,
                 )
-                tool_calls_trace.append({
-                    "tool": fn_name,
-                    "arguments": fn_args,
-                    "output": tool_result,
-                })
-                messages.append({
+                tool_msg = {
                     "role": "tool",
                     "tool_call_id": tc.id,
                     "name": fn_name,
                     "content": json.dumps(tool_result),
+                }
+                execution_trace.append({
+                    "step": len(execution_trace) + 1,
+                    "type": "tool_execution",
+                    "title": f"Tool Executed: {fn_name}",
+                    "payload": {
+                        "tool_call_id": tc.id,
+                        "tool_name": fn_name,
+                        "arguments_parsed": fn_args,
+                        "tool_output_returned": tool_result,
+                    },
                 })
+                messages.append(tool_msg)
 
-        # Final synthesis after tool calls
+        # Final synthesis after 4 tool rounds
+        execution_trace.append({
+            "step": len(execution_trace) + 1,
+            "type": "code_to_llm",
+            "title": "Code → LLM (Final Synthesis Call)",
+            "model": settings.openai_model,
+            "payload": {
+                "model": settings.openai_model,
+                "temperature": 0.3,
+                "messages": json.loads(json.dumps(messages, default=str)),
+            },
+        })
         final_resp = client.chat.completions.create(
             model=settings.openai_model,
             messages=messages,
             temperature=0.3,
         )
         final_text = final_resp.choices[0].message.content or "Completed your request."
+        execution_trace.append({
+            "step": len(execution_trace) + 1,
+            "type": "llm_to_code",
+            "title": "LLM → Code (Final Synthesis Response)",
+            "finish_reason": final_resp.choices[0].finish_reason,
+            "payload": {"content": final_text},
+        })
         resolved_school_id = next((a.get("school_id") for a in actions_taken if a.get("school_id")), payload.current_school_id)
         _log_llm_interaction(
             db=db,
             user_prompt=payload.message,
             llm_output=final_text,
             system_prompt=system_prompt,
-            tool_calls_trace=tool_calls_trace,
+            tool_calls_trace=execution_trace,
             school_id=resolved_school_id,
             status="completed",
         )
@@ -1090,12 +1173,18 @@ def agent_chat(payload: AgentChatRequest, db: Session = Depends(get_db)) -> dict
         }
     except Exception as exc:
         err_msg = f"⚠️ Agent encountered an error while processing your request: {exc}"
+        execution_trace.append({
+            "step": len(execution_trace) + 1,
+            "type": "error",
+            "title": "Execution Error",
+            "payload": {"error": str(exc)},
+        })
         _log_llm_interaction(
             db=db,
             user_prompt=payload.message,
             llm_output=err_msg,
             system_prompt=system_prompt,
-            tool_calls_trace=tool_calls_trace,
+            tool_calls_trace=execution_trace,
             school_id=payload.current_school_id,
             status="error",
         )
@@ -1108,7 +1197,7 @@ def agent_chat(payload: AgentChatRequest, db: Session = Depends(get_db)) -> dict
 
 @router.get("/logs")
 def get_agent_logs(limit: int = 50, db: Session = Depends(get_db)) -> list[dict[str, Any]]:
-    """Retrieve logged AI Agent interactions (input prompt, system prompt, tool calls, and LLM output)."""
+    """Retrieve logged AI Agent interactions with full step-by-step execution trace."""
     AgentInteractionLog.__table__.create(bind=db.get_bind(), checkfirst=True)
     logs = (
         db.query(AgentInteractionLog)
@@ -1123,10 +1212,19 @@ def get_agent_logs(limit: int = 50, db: Session = Depends(get_db)) -> list[dict[
             "model": l.model,
             "user_prompt": l.user_prompt,
             "system_prompt": l.system_prompt,
-            "tool_calls": json.loads(l.tool_calls_json) if l.tool_calls_json else [],
+            "execution_trace": json.loads(l.tool_calls_json) if l.tool_calls_json else [],
             "llm_output": l.llm_output,
             "status": l.status,
             "created_at": l.created_at.isoformat() if l.created_at else None,
         }
         for l in logs
     ]
+
+
+@router.delete("/logs")
+def clear_agent_logs(db: Session = Depends(get_db)) -> dict[str, str]:
+    """Clear all stored AI Agent execution logs."""
+    AgentInteractionLog.__table__.create(bind=db.get_bind(), checkfirst=True)
+    db.query(AgentInteractionLog).delete()
+    db.commit()
+    return {"status": "cleared"}
