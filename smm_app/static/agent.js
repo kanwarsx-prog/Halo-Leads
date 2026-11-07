@@ -49,15 +49,19 @@
     function initAgentUI() {
         if (document.getElementById('smmAgentDrawer')) return;
 
-        // Floating bottom-right button
-        const fab = document.createElement('button');
-        fab.id = 'smmAgentFab';
-        fab.type = 'button';
-        fab.className = 'smm-agent-fab';
-        fab.title = 'Open SMM Agent (Ctrl+K)';
-        fab.innerHTML = '<span>✨</span> <span>SMM Agent</span>';
-        fab.onclick = () => toggleAgentDrawer();
-        document.body.appendChild(fab);
+        // Compact Agent button in top navigation bar
+        const nav = document.querySelector('header nav');
+        if (nav && !document.getElementById('navAgentBtn')) {
+            const btn = document.createElement('button');
+            btn.id = 'navAgentBtn';
+            btn.type = 'button';
+            btn.className = 'btn btn-secondary';
+            btn.style.cssText = 'border-color: var(--teal); color: var(--teal); font-weight: 700;';
+            btn.title = 'Open SMM Agent (Ctrl+K)';
+            btn.innerHTML = '<span>✨</span> <span>Agent</span>';
+            btn.onclick = () => toggleAgentDrawer();
+            nav.insertBefore(btn, nav.firstChild);
+        }
 
         // Clean Slide-over Drawer
         const ctx = getCurrentSchoolContext();
