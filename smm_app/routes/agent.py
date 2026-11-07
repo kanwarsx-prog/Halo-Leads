@@ -1,7 +1,7 @@
 """
 See My Mind In-App Agentic Assistant Router
 Provides an OpenAI tool-calling agent capable of checking school status,
-drafting tailored emails, taking CRM notes, logging meeting schedules,
+drafting tailored emails, taking notes, logging meeting schedules,
 updating pipeline stages, and managing contacts & follow-up tasks.
 """
 from __future__ import annotations
@@ -155,7 +155,7 @@ AGENT_TOOLS = [
         "function": {
             "name": "create_or_update_school",
             "description": (
-                "Add a new target school to the CRM if it does not exist yet, or update an existing school's "
+                "Add a new target school to the if it does not exist yet, or update an existing school's "
                 "pipeline stage, phase, trust, local authority, SEN %, or general notes."
             ),
             "parameters": {
@@ -598,7 +598,7 @@ def _execute_tool(
                 activity_type="stage_change",
                 title=f"Moved to {new_stage.value.replace('_', ' ').title()}",
                 notes=reason,
-                author="SeeMyMind Agent",
+                author="SMM Agent",
                 follow_up_completed=True,
             )
         )
@@ -669,7 +669,7 @@ def _execute_tool(
             title=title,
             notes=notes,
             contact_name=contact_name,
-            author="SeeMyMind Agent",
+            author="SMM Agent",
             next_follow_up_date=parsed_date,
             follow_up_task=follow_up_task,
             follow_up_completed=False if (follow_up_task or parsed_date) else True,
@@ -750,7 +750,7 @@ def _execute_tool(
                 email=c_email,
                 email_is_verified=bool(c_email),
                 phone_extension=c_phone,
-                source="Added via SeeMyMind Agent",
+                source="Added via SMM Agent",
                 status=ContactStatus.researched,
             )
             db.add(contact)
@@ -809,7 +809,7 @@ def _execute_tool(
                 f"Ofsted SEND Excerpt: {school.ofsted_send_excerpt or 'None'}\n"
                 f"Provision Strengths: {latest_run.strengths_found if latest_run else 'None'}\n"
                 f"Inclusion Challenges: {latest_run.challenges_found if latest_run else 'None'}\n"
-                f"Recent CRM Notes/Meetings: {act_summary or 'None'}"
+                f"Recent Notes/Meetings: {act_summary or 'None'}"
             )
 
         prompt = (
@@ -944,10 +944,10 @@ def agent_chat(payload: AgentChatRequest, db: Session = Depends(get_db)) -> dict
             )
 
     system_prompt = (
-        f"You are the See My Mind AI Agent, an executive operational assistant for Sushil Kanwar and his partners "
+        f"You are the SMM Agent, an executive operational assistant for Sushil Kanwar and his partners "
         f"at See My Mind (UK EdTech platform supporting SEN pupils, SENCOs, and school leaders).\n"
         f"Today's date is {now_str}.{current_school_info}\n\n"
-        "You have direct tool access to the live See My Mind CRM database:\n"
+        "You have direct tool access to the live See My Mind database:\n"
         "- Check school status, SEND metrics, Ofsted quotes, contacts, and activity history (`get_school_status`, `search_schools_pipeline`)\n"
         "- Add new schools or update pipeline stages (`create_or_update_school`, `update_school_stage`)\n"
         "- Take notes, log calls/emails, and schedule meetings/demos with follow-up dates (`log_note_or_meeting`)\n"

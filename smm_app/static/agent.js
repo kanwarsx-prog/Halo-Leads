@@ -1,10 +1,10 @@
 /**
- * See My Mind In-App AI Agent Copilot
- * Self-contained slide-over assistant for checking school status, drafting emails,
- * taking CRM notes, logging meeting schedules, and updating pipeline stages.
+ * SMM Agent
+ * Clean, minimal slide-over assistant for checking school status,
+ * drafting emails, taking notes, and logging meetings.
  */
 (function () {
-    const STORAGE_KEY = 'smm_agent_chat_history_v1';
+    const STORAGE_KEY = 'smm_agent_chat_history_v2';
 
     function getCurrentSchoolContext() {
         const match = window.location.pathname.match(/\/seemymind\/ui\/schools\/([a-zA-Z0-9\-]+)/);
@@ -12,7 +12,7 @@
         const h1 = document.querySelector('h1');
         return {
             id: match[1],
-            name: h1 ? h1.textContent.trim() : 'Current School'
+            name: h1 ? h1.textContent.trim() : null
         };
     }
 
@@ -40,13 +40,8 @@
 
     function formatAgentMarkdown(text) {
         let html = escapeHtml(text);
-        // Bold **text**
         html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-        // Links [label](url)
         html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" style="color: var(--teal); font-weight: 600; text-decoration: underline;">$1</a>');
-        // Inline code `code`
-        html = html.replace(/`([^`]+)`/g, '<code style="background: var(--gray-100); padding: 0.1rem 0.3rem; border-radius: 4px; font-size: 0.78rem;">$1</code>');
-        // Line breaks
         html = html.replace(/\n/g, '<br>');
         return html;
     }
@@ -54,7 +49,7 @@
     function initAgentUI() {
         if (document.getElementById('smmAgentDrawer')) return;
 
-        // 1. Add compact Agent button to <nav> if present
+        // 1. Header button
         const nav = document.querySelector('header nav');
         if (nav && !document.getElementById('navAgentBtn')) {
             const btn = document.createElement('button');
@@ -62,70 +57,64 @@
             btn.type = 'button';
             btn.className = 'btn btn-primary';
             btn.style.cssText = 'background: linear-gradient(135deg, #1d625d 0%, #123b38 100%); gap: 0.3rem;';
-            btn.title = 'Open AI Agent Assistant (Ctrl+K)';
-            btn.innerHTML = '<span>✨</span> <span>Agent</span>';
+            btn.title = 'Open SMM Agent (Ctrl+K)';
+            btn.innerHTML = '<span>✨</span> <span>SMM Agent</span>';
             btn.onclick = () => toggleAgentDrawer(true);
             nav.insertBefore(btn, nav.firstChild);
         }
 
-        // 2. Floating Bottom-Right FAB
+        // 2. Floating bottom-right button
         const fab = document.createElement('button');
         fab.id = 'smmAgentFab';
         fab.type = 'button';
         fab.className = 'smm-agent-fab';
-        fab.title = 'Ask See My Mind Agent (Ctrl+K)';
-        fab.innerHTML = '<span>✨</span> <span>Ask Agent</span>';
+        fab.title = 'Open SMM Agent (Ctrl+K)';
+        fab.innerHTML = '<span>✨</span> <span>SMM Agent</span>';
         fab.onclick = () => toggleAgentDrawer();
         document.body.appendChild(fab);
 
-        // 3. Slide-over Drawer HTML
+        // 3. Clean Slide-over Drawer
         const ctx = getCurrentSchoolContext();
         const drawer = document.createElement('div');
         drawer.id = 'smmAgentDrawer';
         drawer.className = 'smm-agent-drawer';
         drawer.innerHTML = `
             <div class="smm-agent-header">
-                <div>
-                    <div style="display: flex; align-items: center; gap: 0.45rem;">
-                        <span style="font-size: 1.1rem;">✨</span>
-                        <strong style="font-size: 0.98rem; color: var(--ink);">See My Mind Agent</strong>
-                        <span class="badge badge-mint" style="font-size: 0.65rem;">Live CRM Tools</span>
-                    </div>
-                    <div id="smmAgentContextBadge" style="font-size: 0.73rem; color: var(--soft); margin-top: 0.2rem;">
-                        ${ctx.id ? `📍 Context: <strong>${escapeHtml(ctx.name)}</strong>` : '🌐 Connected across all schools, contacts & schedules'}
-                    </div>
+                <div style="display: flex; align-items: center; gap: 0.45rem;">
+                    <span style="font-size: 1rem;">✨</span>
+                    <strong style="font-size: 0.96rem; color: var(--ink);">SMM Agent</strong>
+                    ${ctx.name ? `<span class="badge badge-gray" style="font-size: 0.68rem; font-weight: 500;">${escapeHtml(ctx.name)}</span>` : ''}
                 </div>
                 <div style="display: flex; align-items: center; gap: 0.35rem;">
-                    <button type="button" onclick="window.smmClearAgentChat()" class="btn btn-secondary btn-sm" title="Clear conversation" style="padding: 0.25rem 0.5rem; font-size: 0.72rem;">Clear</button>
-                    <button type="button" onclick="window.toggleAgentDrawer(false)" class="btn btn-secondary btn-sm" title="Close (Esc)" style="padding: 0.25rem 0.55rem; font-size: 0.85rem;">✕</button>
+                    <button type="button" onclick="window.smmClearAgentChat()" class="btn btn-secondary btn-sm" title="Clear chat" style="padding: 0.22rem 0.5rem; font-size: 0.72rem;">Clear</button>
+                    <button type="button" onclick="window.toggleAgentDrawer(false)" class="btn btn-secondary btn-sm" title="Close" style="padding: 0.22rem 0.5rem; font-size: 0.82rem;">✕</button>
                 </div>
             </div>
 
             <div class="smm-agent-chips">
-                <button type="button" class="smm-chip" onclick="window.smmFillPrompt('What is the status of ')">📊 School Status</button>
-                <button type="button" class="smm-chip" onclick="window.smmFillPrompt('Draft a warm email to ')">✉️ Draft Email</button>
-                <button type="button" class="smm-chip" onclick="window.smmFillPrompt('Take a note for ')">📝 Take Note</button>
-                <button type="button" class="smm-chip" onclick="window.smmFillPrompt('Schedule a meeting with ')">📅 Log Meeting</button>
-                <button type="button" class="smm-chip" onclick="window.smmSendQuickPrompt('What meetings and follow-up tasks do I have scheduled?')">⏰ My Schedule</button>
+                <button type="button" class="smm-chip" onclick="window.smmFillPrompt('Status of ')">School Status</button>
+                <button type="button" class="smm-chip" onclick="window.smmFillPrompt('Draft an email to ')">Draft Email</button>
+                <button type="button" class="smm-chip" onclick="window.smmFillPrompt('Add a note for ')">Take Note</button>
+                <button type="button" class="smm-chip" onclick="window.smmFillPrompt('Schedule a meeting with ')">Log Meeting</button>
+                <button type="button" class="smm-chip" onclick="window.smmSendQuickPrompt('What meetings and follow-ups do I have coming up?')">Schedule</button>
             </div>
 
             <div id="smmAgentRefreshBanner" class="smm-agent-refresh-banner" style="display: none;">
-                <span>✓ CRM records updated by Agent</span>
-                <button type="button" onclick="window.location.reload()" class="btn btn-primary btn-sm" style="padding: 0.2rem 0.55rem; font-size: 0.72rem;">↻ Refresh View</button>
+                <span>✓ Saved changes</span>
+                <button type="button" onclick="window.location.reload()" class="btn btn-primary btn-sm" style="padding: 0.18rem 0.5rem; font-size: 0.72rem;">↻ Refresh</button>
             </div>
 
             <div id="smmAgentMessages" class="smm-agent-messages"></div>
 
             <form id="smmAgentForm" class="smm-agent-input-bar" onsubmit="window.smmSubmitAgentMessage(event)">
-                <textarea id="smmAgentInput" rows="2" placeholder="Ask anything: e.g. 'Log meeting with Paul at Poverest Primary on 18 Nov', 'Status of Gallions', 'Draft email to SENCO'..." onkeydown="if(event.key==='Enter' && !event.shiftKey){event.preventDefault(); window.smmSubmitAgentMessage(event);}"></textarea>
-                <button type="submit" id="smmAgentSendBtn" class="btn btn-primary" style="align-self: flex-end; height: 38px; padding: 0 0.85rem;">Send &rarr;</button>
+                <input type="text" id="smmAgentInput" autocomplete="off" placeholder="Ask SMM Agent..." />
+                <button type="submit" id="smmAgentSendBtn" class="btn btn-primary" style="height: 36px; padding: 0 0.85rem;">Send</button>
             </form>
         `;
         document.body.appendChild(drawer);
 
         renderStoredMessages();
 
-        // Keyboard shortcut Ctrl+K / Cmd+K or Esc
         document.addEventListener('keydown', function (e) {
             if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
                 e.preventDefault();
@@ -144,12 +133,12 @@
 
         if (history.length === 0) {
             const ctx = getCurrentSchoolContext();
-            const sample = ctx.id
-                ? `Try asking:<br>• <em>"Summarize the status and contacts for ${escapeHtml(ctx.name)}"</em><br>• <em>"Draft a short intro email to the Headteacher"</em><br>• <em>"Log a note: spoke to reception, follow up next Tuesday"</em>`
-                : `I can execute tasks directly on your CRM:<br>• <strong>Status:</strong> <em>"What's the status of Poverest Primary?"</em><br>• <strong>Meetings:</strong> <em>"Log a meeting with Paul (Headteacher) at Poverest Primary on 2026-11-18 about SEN pupils"</em><br>• <strong>Notes:</strong> <em>"Take a note on Gallions Primary: SENCO interested in sandbox demo"</em><br>• <strong>Emails:</strong> <em>"Draft a follow-up email for Gallions Primary"</em>`;
+            const greeting = ctx.name
+                ? `How can I help with <strong>${escapeHtml(ctx.name)}</strong>? Ask me for their status, draft an email, add a note, or schedule a meeting.`
+                : `How can I help? Ask me to check a school's status, draft an email, add a note, or schedule a meeting.`;
             container.innerHTML = `
                 <div class="smm-msg smm-msg-assistant">
-                    <div class="smm-msg-bubble">${sample}</div>
+                    <div class="smm-msg-bubble">${greeting}</div>
                 </div>
             `;
             return;
@@ -172,7 +161,7 @@
         if (actions && actions.length > 0) {
             const badges = actions.map(a => {
                 const link = a.school_id
-                    ? `<a href="/seemymind/ui/schools/${escapeHtml(a.school_id)}" style="color: inherit; text-decoration: underline; margin-left: 0.25rem;">View &rarr;</a>`
+                    ? `<a href="/seemymind/ui/schools/${escapeHtml(a.school_id)}" style="color: inherit; text-decoration: underline; margin-left: 0.25rem;">Open &rarr;</a>`
                     : '';
                 return `<div class="smm-action-pill">✓ ${escapeHtml(a.label)} ${link}</div>`;
             }).join('');
@@ -181,7 +170,7 @@
             let copyBtn = '';
             if (emailAction) {
                 const encoded = encodeURIComponent(`Subject: ${emailAction.email_draft.subject}\n\n${emailAction.email_draft.body}`);
-                copyBtn = `<button type="button" class="btn btn-secondary btn-sm" style="margin-top: 0.35rem; font-size: 0.72rem;" onclick="navigator.clipboard.writeText(decodeURIComponent('${encoded}')); this.textContent='✓ Copied Email!'; setTimeout(()=>this.textContent='📋 Copy Subject & Body', 2000);">📋 Copy Subject & Body</button>`;
+                copyBtn = `<button type="button" class="btn btn-secondary btn-sm" style="margin-top: 0.3rem; font-size: 0.72rem;" onclick="navigator.clipboard.writeText(decodeURIComponent('${encoded}')); this.textContent='✓ Copied'; setTimeout(()=>this.textContent='Copy Email', 2000);">Copy Email</button>`;
             }
             actionsHtml = `<div class="smm-actions-list">${badges}${copyBtn}</div>`;
         }
@@ -211,7 +200,7 @@
         const ctx = getCurrentSchoolContext();
         const inp = document.getElementById('smmAgentInput');
         if (!inp) return;
-        if (ctx.id && prefix.endsWith(' ')) {
+        if (ctx.name && prefix.endsWith(' ')) {
             inp.value = `${prefix}${ctx.name}: `;
         } else {
             inp.value = prefix;
@@ -228,6 +217,8 @@
 
     window.smmClearAgentChat = function () {
         sessionStorage.removeItem(STORAGE_KEY);
+        const banner = document.getElementById('smmAgentRefreshBanner');
+        if (banner) banner.style.display = 'none';
         renderStoredMessages();
     };
 
@@ -245,10 +236,9 @@
         const history = loadHistory();
         appendMessageDOM('user', message);
 
-        // Show thinking indicator
         const thinkingEl = document.createElement('div');
         thinkingEl.className = 'smm-msg smm-msg-assistant';
-        thinkingEl.innerHTML = `<div class="smm-msg-bubble" style="color: var(--soft); font-style: italic;">✨ Agent is working...</div>`;
+        thinkingEl.innerHTML = `<div class="smm-msg-bubble" style="color: var(--soft);">Working...</div>`;
         container.appendChild(thinkingEl);
         container.scrollTop = container.scrollHeight;
 
@@ -268,7 +258,7 @@
             const data = await res.json();
             thinkingEl.remove();
 
-            const reply = data.reply || 'Completed.';
+            const reply = data.reply || 'Done.';
             const actions = data.actions_taken || [];
             appendMessageDOM('assistant', reply, actions);
 
@@ -282,7 +272,7 @@
             }
         } catch (err) {
             thinkingEl.remove();
-            appendMessageDOM('assistant', '⚠️ Connection error while reaching the Agent endpoint.');
+            appendMessageDOM('assistant', 'Could not reach SMM Agent. Please try again.');
         } finally {
             sendBtn.disabled = false;
             inp.focus();
