@@ -132,15 +132,22 @@
         const recognition = new SpeechRecognition();
         recognition.lang = document.documentElement.lang || 'en-GB';
         recognition.interimResults = true;
-        recognition.continuous = false;
+        recognition.continuous = true;
         let startingText = '';
+        let spokenText = '';
+        let keepListening = false;
+        let restartTimer = null;
 
         button.addEventListener('click', () => {
-            if (button.classList.contains('is-listening')) {
+            if (keepListening) {
+                keepListening = false;
+                if (restartTimer) clearTimeout(restartTimer);
                 recognition.stop();
                 return;
             }
             startingText = input.value.trim();
+            spokenText = '';
+            keepListening = true;
             try { recognition.start(); } catch (_) {}
         });
 
@@ -150,19 +157,29 @@
             button.title = 'Stop dictation';
         };
         recognition.onresult = event => {
-            const transcript = Array.from(event.results)
-                .map(result => result[0].transcript)
-                .join(' ')
-                .trim();
+            let interimText = '';
+            for (let i = event.resultIndex; i < event.results.length; i += 1) {
+                const text = event.results[i][0].transcript.trim();
+                if (event.results[i].isFinal) spokenText += `${spokenText ? ' ' : ''}${text}`;
+                else interimText += text;
+            }
+            const transcript = `${spokenText} ${interimText}`.trim();
             input.value = startingText ? `${startingText} ${transcript}` : transcript;
             input.focus();
         };
-        recognition.onerror = () => {
+        recognition.onerror = event => {
+            if (event.error === 'not-allowed' || event.error === 'service-not-allowed') keepListening = false;
             button.classList.remove('is-listening');
             button.textContent = '🎙';
             button.title = 'Use voice dictation';
         };
         recognition.onend = () => {
+            if (keepListening) {
+                restartTimer = setTimeout(() => {
+                    try { recognition.start(); } catch (_) {}
+                }, 250);
+                return;
+            }
             button.classList.remove('is-listening');
             button.textContent = '🎙';
             button.title = 'Use voice dictation';
