@@ -7,6 +7,17 @@
     <link rel="stylesheet" href="/seemymind/static/styles.css?v=3.0">
     <script src="/seemymind/static/theme.js"></script>
     <script src="/seemymind/static/agent.js?v=1.4" defer></script>
+    <style>
+        nav.nav-collapsed > a, nav.nav-collapsed > button:not(#navAgentBtn) { display: none !important; }
+        .top-menu { position: relative; }
+        .top-menu summary { list-style: none; cursor: pointer; }
+        .top-menu summary::-webkit-details-marker { display: none; }
+        .top-menu-panel { position: absolute; right: 0; top: calc(100% + .55rem); z-index: 20; min-width: 220px; padding: .45rem; background: var(--paper); border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 14px 30px rgba(0,0,0,.14); }
+        .top-menu-panel a, .top-menu-panel button { display: block; width: 100%; padding: .65rem .75rem; border: 0; border-radius: 8px; background: transparent; color: var(--ink); text-align: left; text-decoration: none; font: inherit; cursor: pointer; }
+        .top-menu-panel a:hover, .top-menu-panel button:hover { background: var(--gray-100); }
+        .top-menu-panel .menu-danger { color: var(--coral); }
+        .pipeline-tasks > summary::-webkit-details-marker { display: none; }
+    </style>
     <!-- Browser Favicons -->
     <link rel="icon" type="image/svg+xml" href="/seemymind/static/favicon.svg">
     <link rel="icon" type="image/png" sizes="32x32" href="/seemymind/static/favicon-32x32.png">
@@ -22,7 +33,19 @@
                 <span class="brand-title-text smm-title">See My Mind</span>
                 <span class="brand-badge"><span class="live-dot"></span> Education Intelligence</span>
             </a>
-            <nav>
+            <nav class="nav-collapsed">
+                <details class="top-menu">
+                    <summary class="btn btn-secondary" title="Open navigation">☰ <span class="menu-label">Menu</span></summary>
+                    <div class="top-menu-panel">
+                        <a href="/seemymind/ui/kanban">📋 Pipeline Board</a>
+                        <a href="/seemymind/ui/rollups">🏛️ Trusts &amp; Councils</a>
+                        <a href="/seemymind/ui/contacts">👥 Contacts ({{ contacts_count }})</a>
+                        <a href="/seemymind/product-requests">💡 Product Requests</a>
+                        <button onclick="openModal('addSchoolModal')">＋ Add Target School</button>
+                        <button onclick="toggleTheme()"><span class="theme-icon">🌙</span> Theme</button>
+                        <a href="/logout" class="menu-danger">Log out</a>
+                    </div>
+                </details>
                 <a href="/seemymind/ui/kanban" class="btn btn-secondary">
                     <span>📋</span> Pipeline Board
                 </a>
@@ -31,6 +54,9 @@
                 </a>
                 <a href="/seemymind/ui/contacts" class="btn btn-secondary">
                     <span>👥</span> Contacts ({{ contacts_count }})
+                </a>
+                <a href="/seemymind/product-requests" class="btn btn-secondary">
+                    <span>💡</span> Product Requests
                 </a>
                 <button onclick="openModal('addSchoolModal')" class="btn btn-primary">
                     <span>+</span> Add Target School
@@ -77,7 +103,7 @@
                     <span class="metric-icon">✉️</span>
                 </div>
                 <div class="metric-value" style="color: #16a34a;">
-                    {{ schools | selectattr('pipeline_stage.value', 'equalto', 'outreach_ready') | list | length }}
+                    {{ outreach_ready_count }}
                 </div>
                 <div class="metric-subtitle">Emails & Letters Drafted</div>
             </div>
@@ -88,21 +114,21 @@
                     <span class="metric-icon">⭐</span>
                 </div>
                 <div class="metric-value" style="color: #8b5cf6;">
-                    {{ schools | selectattr('pipeline_stage.value', 'equalto', 'demo_booked') | list | length }}
+                    {{ demos_booked_count }}
                 </div>
                 <div class="metric-subtitle">School Conversions</div>
             </div>
         </div>
 
         <!-- Action Queue: Due Follow-Ups & Tasks -->
-        <div class="card" style="margin-bottom: 1.5rem; background: var(--paper); border-left: 4px solid var(--teal);">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
+        <details class="card pipeline-tasks" style="margin-bottom: 1.5rem; background: var(--paper); border-left: 4px solid var(--teal);">
+            <summary style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
                 <div style="display: flex; align-items: center; gap: 0.5rem;">
                     <span style="font-size: 1.15rem;">⏰</span>
                     <strong style="font-size: 1rem; color: var(--ink);">Pipeline Tasks & Due Follow-Ups</strong>
                     <span class="badge badge-teal" style="font-size: 0.76rem;">{{ pending_tasks | length }} Action Items</span>
                 </div>
-            </div>
+            </summary>
 
             {% if pending_tasks %}
             <div style="display: flex; flex-direction: column; gap: 0.6rem;">
@@ -141,14 +167,14 @@
                 ✅ All pipeline follow-ups are up to date! Log next actions directly on any school page.
             </p>
             {% endif %}
-        </div>
+        </details>
 
         <!-- School List & Filter Bar -->
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
             <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
                 <h2 style="margin: 0;">Schools & Academy Trusts</h2>
                 <span id="schoolsCountLabel" style="font-size: 0.82rem; color: var(--soft); font-weight: 500;">
-                    Showing {{ schools | length }} of {{ schools | length }} schools
+                    Showing {{ schools | length }} of {{ total_schools }} schools
                 </span>
             </div>
             <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
@@ -777,5 +803,19 @@
         })();
     </script>
 
+    <script>
+    (function () {
+        let serverPage = 1, serverPageSize = 25, serverTotal = {{ total_schools }};
+        const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+        function params() { return new URLSearchParams({page: serverPage, page_size: serverPageSize, search: document.getElementById('colSearchSchool')?.value || '', phase: document.getElementById('colFilterPhase')?.value || '', mat_name: document.getElementById('colSearchTrust')?.value || '', sen: document.getElementById('colFilterSen')?.value || '', ofsted: document.getElementById('colFilterOfsted')?.value || '', priority: document.getElementById('colFilterPriority')?.value || '', stage: document.getElementById('colFilterStage')?.value || ''}); }
+        function row(s) { const score = Number(s.overall_score || 0), sen = Number(s.sen_percentage || 0), scoreClass = s.priority === 'Immediate Focus' ? 'badge-coral' : (s.priority === 'Target School' ? 'badge-mint' : 'badge-gray'); return `<tr class="school-row" data-name="${esc(s.name).toLowerCase()}" data-postcode="${esc(s.postcode).toLowerCase()}" data-phase="${esc(s.phase)}" data-mat="${esc(s.mat_name).toLowerCase()}" data-la="${esc(s.local_authority).toLowerCase()}" data-sen="${sen}" data-ofsted="${esc(s.ofsted_rating || 'Pending Discovery')}" data-score="${score}" data-priority="${esc(s.priority)}" data-stage="${esc(s.pipeline_stage)}"><td><a href="/seemymind/ui/schools/${esc(s.id)}" style="font-weight:600;color:var(--teal);text-decoration:none">${esc(s.name)}</a>${s.postcode ? `<div style="font-size:.75rem;color:var(--soft)">${esc(s.postcode)}</div>` : ''}</td><td><span class="badge badge-gray">${esc(s.phase)}</span></td><td>${s.mat_name ? esc(s.mat_name) : '<span style="color:var(--soft);font-size:.8rem">Maintained / Single</span>'}</td><td>${sen ? `<strong ${sen >= 16 ? 'style="color:var(--coral)"' : ''}>${sen.toFixed(1)}%</strong>` : '<span style="color:var(--soft)">-</span>'}</td><td>${s.ofsted_rating ? `<span class="badge badge-teal">${esc(s.ofsted_rating)}</span>` : '<span style="color:var(--soft);font-size:.8rem">Pending Discovery</span>'}</td><td><span class="badge ${scoreClass}">${score ? `${score}/100 · ${esc(s.priority)}` : 'Pending Discovery'}</span></td><td><span class="badge badge-gray" style="text-transform:capitalize">${esc(s.pipeline_stage).replaceAll('_',' ')}</span></td><td><div style="display:flex;gap:.4rem"><a href="/seemymind/ui/schools/${esc(s.id)}" class="btn btn-secondary btn-sm">View</a><button onclick="triggerAudit('${esc(s.id)}', this)" class="btn btn-primary btn-sm">Run Discovery</button></div></td></tr>`; }
+        async function loadSchoolsFromServer() { const tbody = document.querySelector('#schoolsTable tbody'); if (!tbody) return; tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--soft)">Loading schools…</td></tr>'; try { const data = await (await fetch('/seemymind/schools/table?' + params())).json(); serverTotal = data.total; tbody.innerHTML = data.schools.length ? data.schools.map(row).join('') : '<tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--soft)">No matching schools found.</td></tr>'; document.getElementById('schoolsCountLabel').textContent = `Showing ${data.schools.length} of ${data.total} schools`; document.getElementById('pageInfoLabel').textContent = data.total ? `Showing ${(serverPage - 1) * serverPageSize + 1}–${Math.min(serverPage * serverPageSize, data.total)} of ${data.total} schools` : 'No matching schools found'; const pages = Math.max(1, Math.ceil(data.total / serverPageSize)); document.getElementById('pageNumDisplay').textContent = `Page ${serverPage} of ${pages}`; ['firstPageBtn','prevPageBtn'].forEach(id => document.getElementById(id).disabled = serverPage <= 1); ['nextPageBtn','lastPageBtn'].forEach(id => document.getElementById(id).disabled = serverPage >= pages); } catch (_) { tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--coral)">Unable to load schools. Please refresh.</td></tr>'; } }
+        window.filterSchools = function () { serverPage = 1; loadSchoolsFromServer(); };
+        window.goToPage = function (page) { const pages = Math.max(1, Math.ceil(serverTotal / serverPageSize)); if (page >= 1 && page <= pages) { serverPage = page; loadSchoolsFromServer(); } };
+        window.changePageSize = function (value) { serverPageSize = value === 'all' ? 100 : Number(value); serverPage = 1; loadSchoolsFromServer(); };
+        window.resetAllFilters = function () { ['colSearchSchool','colFilterPhase','colSearchTrust','colFilterSen','colFilterOfsted','colFilterPriority','colFilterStage'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; }); serverPage = 1; loadSchoolsFromServer(); };
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', loadSchoolsFromServer); else loadSchoolsFromServer();
+    })();
+    </script>
 </body>
 </html>

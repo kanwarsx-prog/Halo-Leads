@@ -412,6 +412,22 @@ AGENT_TOOLS = [
             },
         },
     },
+    {
+        "type": "function",
+        "function": {
+            "name": "search_product_requests",
+            "description": "Read internal product requests and summarise demand by keyword, status, source, or product area. Never contact customers or promise delivery.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "query": {"type": "string", "description": "Optional keyword or product area."},
+                    "status": {"type": "string", "description": "Optional status: new, reviewing, planned, in_progress, shipped, declined."},
+                    "limit": {"type": "integer", "description": "Maximum number of requests to return, default 10."}
+                },
+                "required": []
+            }
+        }
+    },
 ]
 
 
@@ -945,6 +961,22 @@ def _execute_tool(
             })
         return {"count": len(schedule), "schedule": schedule}
 
+    elif tool_name == "search_product_requests":
+        from smm_app.models import ProductRequest, ProductRequestStatus
+        q = (args.get("query") or "").strip()
+        query = db.query(ProductRequest)
+        if q:
+            term = f"%{q}%"
+            query = query.filter(or_(ProductRequest.title.ilike(term), ProductRequest.description.ilike(term), ProductRequest.product_area.ilike(term)))
+        if args.get("status"):
+            try:
+                query = query.filter(ProductRequest.status == ProductRequestStatus(args["status"]))
+            except ValueError:
+                return {"error": "Unknown product request status."}
+        rows = query.order_by(ProductRequest.created_at.desc()).limit(min(int(args.get("limit") or 10), 50)).all()
+        actions_taken.append({"label": f"Reviewed {len(rows)} internal product requests", "mutated": False})
+        return {"count": len(rows), "requests": [{"id": r.id, "title": r.title, "description": r.description, "source": r.source.value, "status": r.status.value, "priority": r.priority, "product_area": r.product_area, "school": r.school.name if r.school else None, "requester": r.requester_name} for r in rows], "note": "Internal product data only; do not draft or send external follow-up."}
+
     elif tool_name == "complete_task":
         q = (args.get("school_query") or "").strip()
         act = db.get(SchoolActivity, q)
@@ -994,7 +1026,7 @@ def agent_chat(payload: AgentChatRequest, db: Session = Depends(get_db)) -> dict
             )
 
     base_agent_prompt = get_prompt(db, "SMM_AGENT_SYSTEM_PROMPT")
-    system_prompt = f"{base_agent_prompt}\n\nToday's date is {now_str}.{current_school_info}"
+    system_prompt = f"{base_agent_prompt}\n\nToday's date is {now_str}.{current_school_info}\n\nINTERNAL PRODUCT MODE: You may answer questions about product requests using the search_product_requests tool. Keep all roadmap, prioritisation, and progress information internal. Do not contact schools, draft customer follow-ups, promise delivery dates, or send outbound messages about product requests."
 
     messages: list[dict[str, Any]] = [{"role": "system", "content": system_prompt}]
     for h in payload.history[-10:]:

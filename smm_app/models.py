@@ -261,3 +261,47 @@ class AgentInteractionLog(Base):
         DateTime(timezone=True),
         server_default=func.now(),
     )
+
+
+class ProductRequestStatus(str, enum.Enum):
+    new = "new"
+    reviewing = "reviewing"
+    planned = "planned"
+    in_progress = "in_progress"
+    shipped = "shipped"
+    declined = "declined"
+
+
+class ProductRequestSource(str, enum.Enum):
+    school = "school"
+    partner = "partner"
+    internal = "internal"
+
+
+class ProductRequest(Base):
+    """Internal product discovery record; deliberately has no outbound actions."""
+    __tablename__ = "smm_product_requests"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    title: Mapped[str] = mapped_column(String(300), nullable=False, index=True)
+    description: Mapped[str] = mapped_column(Text, nullable=False)
+    source: Mapped[ProductRequestSource] = mapped_column(
+        Enum(ProductRequestSource, native_enum=False), nullable=False, default=ProductRequestSource.internal
+    )
+    requester_name: Mapped[str | None] = mapped_column(String(200))
+    product_area: Mapped[str | None] = mapped_column(String(120), index=True)
+    status: Mapped[ProductRequestStatus] = mapped_column(
+        Enum(ProductRequestStatus, native_enum=False), nullable=False, default=ProductRequestStatus.new, index=True
+    )
+    priority: Mapped[str] = mapped_column(String(40), default="Medium", index=True)
+    impact_score: Mapped[int] = mapped_column(Integer, default=3)
+    effort_score: Mapped[int] = mapped_column(Integer, default=3)
+    evidence_score: Mapped[int] = mapped_column(Integer, default=1)
+    owner: Mapped[str | None] = mapped_column(String(120))
+    target_release: Mapped[str | None] = mapped_column(String(100))
+    internal_notes: Mapped[str | None] = mapped_column(Text)
+    school_id: Mapped[str | None] = mapped_column(ForeignKey("smm_schools.id", ondelete="SET NULL"), index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    school: Mapped["School | None"] = relationship()

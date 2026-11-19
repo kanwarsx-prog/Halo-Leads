@@ -30,6 +30,43 @@ def list_schools(
     return list(db.scalars(query).all())
 
 
+@router.get("/table")
+def list_school_table(
+    page: int = Query(1, ge=1), page_size: int = Query(25, ge=10, le=100), search: str = "",
+    phase: str | None = None, mat_name: str | None = None, sen: str | None = None,
+    ofsted: str | None = None, priority: str | None = None, stage: SchoolPipelineStage | None = None,
+    db: Session = Depends(get_db),
+):
+    """Return one filtered school page; the dashboard never loads the full school universe."""
+    query = db.query(School)
+    if search.strip():
+        term = f"%{search.strip()}%"
+        query = query.filter((School.name.ilike(term)) | (School.postcode.ilike(term)))
+    if phase:
+        query = query.filter(School.phase.ilike(f"%{phase}%"))
+    if mat_name:
+        term = f"%{mat_name.strip()}%"
+        query = query.filter((School.mat_name.ilike(term)) | (School.local_authority.ilike(term)))
+    if sen == "16":
+        query = query.filter(School.sen_percentage >= 16)
+    elif sen == "recorded":
+        query = query.filter(School.sen_percentage > 0)
+    if ofsted:
+        query = query.filter(School.ofsted_rating.ilike(f"%{ofsted}%"))
+    if priority:
+        query = query.filter(School.priority == priority)
+    if stage:
+        query = query.filter(School.pipeline_stage == stage)
+    total = query.count()
+    rows = query.order_by(School.created_at.desc()).offset((page - 1) * page_size).limit(page_size).all()
+    return {"page": page, "page_size": page_size, "total": total, "schools": [{
+        "id": s.id, "name": s.name, "postcode": s.postcode, "phase": s.phase or "Primary",
+        "mat_name": s.mat_name, "local_authority": s.local_authority, "sen_percentage": s.sen_percentage or 0,
+        "ofsted_rating": s.ofsted_rating, "overall_score": s.overall_score or 0, "priority": s.priority,
+        "pipeline_stage": s.pipeline_stage.value,
+    } for s in rows]}
+
+
 @router.post("", response_model=SchoolRead)
 def create_school(payload: SchoolCreate, db: Session = Depends(get_db)):
     school = School(

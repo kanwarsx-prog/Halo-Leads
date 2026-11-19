@@ -3,6 +3,7 @@ from pathlib import Path
 from fastapi import APIRouter, Depends, Request, HTTPException
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 
 from smm_app.database import get_db
 from smm_app.models import School, SchoolContact, SchoolAuditRun, PromptConfig, SchoolPipelineStage, ContactStatus, SchoolActivity
@@ -16,14 +17,17 @@ router = APIRouter(prefix="/ui", tags=["ui"])
 
 @router.get("/")
 def dashboard(request: Request, db: Session = Depends(get_db)):
-    schools = db.query(School).order_by(School.created_at.desc()).all()
+    schools = []
+    total_schools = db.query(func.count(School.id)).scalar() or 0
     # Exclude role placeholders from named contacts metric
     contacts_count = (
         db.query(SchoolContact)
         .filter(~SchoolContact.name.startswith("The "))
         .count()
     )
-    high_priority_count = sum(1 for s in schools if s.priority == "Immediate Focus")
+    high_priority_count = db.query(func.count(School.id)).filter(School.priority == "Immediate Focus").scalar() or 0
+    demos_booked_count = db.query(func.count(School.id)).filter(School.pipeline_stage == SchoolPipelineStage.demo_booked).scalar() or 0
+    outreach_ready_count = db.query(func.count(School.id)).filter(School.pipeline_stage == SchoolPipelineStage.outreach_ready).scalar() or 0
 
     pending_tasks = (
         db.query(SchoolActivity)
@@ -41,11 +45,13 @@ def dashboard(request: Request, db: Session = Depends(get_db)):
         name="index.html",
         context={
             "schools": schools,
-            "total_schools": len(schools),
+            "total_schools": total_schools,
             "contacts_count": contacts_count,
             "high_priority_count": high_priority_count,
             "pending_tasks": pending_tasks,
             "now": datetime.now(),
+            "demos_booked_count": demos_booked_count,
+            "outreach_ready_count": outreach_ready_count,
         },
     )
 
