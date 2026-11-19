@@ -428,6 +428,26 @@ AGENT_TOOLS = [
             }
         }
     },
+    {
+        "type": "function",
+        "function": {
+            "name": "create_product_request",
+            "description": "Add a product request to the internal product list. Use this when a school, partner, or team member suggests a feature or change. Do not send any message externally.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "title": {"type": "string", "description": "Short title for the request."},
+                    "description": {"type": "string", "description": "What is wanted and why."},
+                    "source": {"type": "string", "enum": ["school", "partner", "internal"], "description": "Who raised the request."},
+                    "requester_name": {"type": "string", "description": "Person or team who raised it, if known."},
+                    "school_query": {"type": "string", "description": "School name or postcode to link, if relevant."},
+                    "product_area": {"type": "string", "description": "Area such as lesson plans, reporting, or parent updates."},
+                    "priority": {"type": "string", "enum": ["High", "Medium", "Low"]}
+                },
+                "required": ["title", "description", "source"]
+            }
+        }
+    },
 ]
 
 
@@ -961,6 +981,32 @@ def _execute_tool(
             })
         return {"count": len(schedule), "schedule": schedule}
 
+    elif tool_name == "create_product_request":
+        from smm_app.models import ProductRequest, ProductRequestSource
+        title = (args.get("title") or "").strip()
+        description = (args.get("description") or "").strip()
+        if not title or not description:
+            return {"error": "A title and description are required."}
+        try:
+            source = ProductRequestSource(args.get("source") or "internal")
+        except ValueError:
+            return {"error": "Source must be school, partner, or internal."}
+        school = _resolve_school(db, args.get("school_query")) if args.get("school_query") else None
+        item = ProductRequest(
+            title=title,
+            description=description,
+            source=source,
+            requester_name=(args.get("requester_name") or "").strip() or None,
+            product_area=(args.get("product_area") or "").strip() or None,
+            priority=args.get("priority") or "Medium",
+            school_id=school.id if school else None,
+        )
+        db.add(item)
+        db.commit()
+        db.refresh(item)
+        actions_taken.append({"label": f"Added product request: {item.title}", "mutated": True})
+        return {"status": "success", "request_id": item.id, "title": item.title, "source": item.source.value, "school": school.name if school else None, "message": "Added to the internal product list. No external message was sent."}
+
     elif tool_name == "search_product_requests":
         from smm_app.models import ProductRequest, ProductRequestStatus
         q = (args.get("query") or "").strip()
@@ -1026,7 +1072,7 @@ def agent_chat(payload: AgentChatRequest, db: Session = Depends(get_db)) -> dict
             )
 
     base_agent_prompt = get_prompt(db, "SMM_AGENT_SYSTEM_PROMPT")
-    system_prompt = f"{base_agent_prompt}\n\nToday's date is {now_str}.{current_school_info}\n\nINTERNAL PRODUCT MODE: You may answer questions about product requests using the search_product_requests tool. Keep all roadmap, prioritisation, and progress information internal. Do not contact schools, draft customer follow-ups, promise delivery dates, or send outbound messages about product requests."
+    system_prompt = f"{base_agent_prompt}\n\nToday's date is {now_str}.{current_school_info}\n\nPRODUCT REQUESTS: You can search product requests and add new ones with the create_product_request tool when the user asks. Keep this work internal. Do not contact schools, draft customer follow-ups, promise delivery dates, or send outbound messages about product requests."
 
     messages: list[dict[str, Any]] = [{"role": "system", "content": system_prompt}]
     for h in payload.history[-10:]:

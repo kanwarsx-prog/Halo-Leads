@@ -28,6 +28,9 @@ from smm_app.models import (
     SchoolAuditRun,
     SchoolPipelineStage,
     AuditStatus,
+    ProductRequest,
+    ProductRequestSource,
+    ProductRequestStatus,
 )
 from smm_app.school_research import draft_outreach_for_school
 
@@ -79,6 +82,43 @@ def search_schools(query: str, limit: int = 20) -> list[dict[str, Any]]:
             }
             for s in schools
         ]
+    finally:
+        db.close()
+
+
+@mcp.tool()
+def create_product_request(
+    title: str,
+    description: str,
+    source: str,
+    requester_name: str | None = None,
+    school_id: str | None = None,
+    product_area: str | None = None,
+    priority: str = "Medium",
+) -> dict[str, Any]:
+    """Add an internal product request raised by a school, partner, or team member.
+
+    This records the request only. It does not notify the school, send email, or promise delivery.
+    """
+    db = SessionLocal()
+    try:
+        try:
+            request_source = ProductRequestSource(source)
+        except ValueError:
+            return {"error": "source must be school, partner, or internal"}
+        school = db.get(School, school_id) if school_id else None
+        if school_id and not school:
+            return {"error": f"School with ID '{school_id}' not found"}
+        item = ProductRequest(
+            title=title.strip(), description=description.strip(), source=request_source,
+            requester_name=requester_name.strip() if requester_name else None,
+            school_id=school.id if school else None, product_area=product_area.strip() if product_area else None,
+            priority=priority,
+        )
+        db.add(item)
+        db.commit()
+        db.refresh(item)
+        return {"status": "success", "request_id": item.id, "title": item.title, "source": item.source.value, "school_name": school.name if school else None, "message": "Product request added internally. No external message was sent."}
     finally:
         db.close()
 

@@ -50,5 +50,9 @@ def mcp_server_info():
                 "name": "list_schools",
                 "description": "List target schools filtered by pipeline stage or priority tier",
             },
+            {
+                "name": "create_product_request",
+                "description": "Add an internal product request without contacting the school",
+            },
         ],
     }
