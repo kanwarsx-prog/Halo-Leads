@@ -98,12 +98,14 @@
 
             <form id="smmAgentForm" class="smm-agent-input-bar" onsubmit="window.smmSubmitAgentMessage(event)">
                 <input type="text" id="smmAgentInput" autocomplete="off" placeholder="Ask SMM Agent..." />
+                <button type="button" id="smmAgentMicBtn" class="smm-agent-mic" aria-label="Use voice dictation" title="Use voice dictation">🎙</button>
                 <button type="submit" id="smmAgentSendBtn" class="btn btn-primary" style="height: 36px; padding: 0 0.85rem;">Send</button>
             </form>
         `;
         document.body.appendChild(drawer);
 
         renderStoredMessages();
+        initVoiceDictation();
 
         document.addEventListener('keydown', function (e) {
             if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
@@ -113,6 +115,58 @@
                 toggleAgentDrawer(false);
             }
         });
+    }
+
+    function initVoiceDictation() {
+        const input = document.getElementById('smmAgentInput');
+        const button = document.getElementById('smmAgentMicBtn');
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!input || !button) return;
+        if (!SpeechRecognition) {
+            button.disabled = true;
+            button.title = 'Voice dictation is not supported in this browser';
+            button.setAttribute('aria-label', button.title);
+            return;
+        }
+
+        const recognition = new SpeechRecognition();
+        recognition.lang = document.documentElement.lang || 'en-GB';
+        recognition.interimResults = true;
+        recognition.continuous = false;
+        let startingText = '';
+
+        button.addEventListener('click', () => {
+            if (button.classList.contains('is-listening')) {
+                recognition.stop();
+                return;
+            }
+            startingText = input.value.trim();
+            try { recognition.start(); } catch (_) {}
+        });
+
+        recognition.onstart = () => {
+            button.classList.add('is-listening');
+            button.textContent = '⏹';
+            button.title = 'Stop dictation';
+        };
+        recognition.onresult = event => {
+            const transcript = Array.from(event.results)
+                .map(result => result[0].transcript)
+                .join(' ')
+                .trim();
+            input.value = startingText ? `${startingText} ${transcript}` : transcript;
+            input.focus();
+        };
+        recognition.onerror = () => {
+            button.classList.remove('is-listening');
+            button.textContent = '🎙';
+            button.title = 'Use voice dictation';
+        };
+        recognition.onend = () => {
+            button.classList.remove('is-listening');
+            button.textContent = '🎙';
+            button.title = 'Use voice dictation';
+        };
     }
 
     function renderStoredMessages() {
