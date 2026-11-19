@@ -18,4 +18,16 @@
 <div class="product-grid"><div class="product-stat"><strong>{{ stats.total }}</strong><span>Total requests</span></div><div class="product-stat"><strong>{{ stats.new }}</strong><span>Needs triage</span></div><div class="product-stat"><strong>{{ stats.planned }}</strong><span>Planned or active</span></div><div class="product-stat"><strong>{{ stats.school_voice }}</strong><span>From schools</span></div></div>
 <div class="product-layout"><section class="product-panel"><h2>Capture a request</h2><form method="post" action="/seemymind/product-requests"><label>Request title *</label><input name="title" required placeholder="e.g. Multi-school pupil overview"><label>What is needed? *</label><textarea name="description" required placeholder="Describe the problem, desired outcome, and any evidence."></textarea><label>Source</label><select name="source">{% for source in sources %}<option value="{{ source }}">{{ source|replace('_',' ')|title }}</option>{% endfor %}</select><label>Product area</label><input name="product_area" placeholder="e.g. Reporting, SENCO workflow"><label>Requester</label><input name="requester_name" placeholder="Name or team"><label>Linked school (optional)</label><select name="school_id"><option value="">Not linked</option>{% for school in schools %}<option value="{{ school.id }}">{{ school.name }}</option>{% endfor %}</select><label>Initial priority</label><select name="priority"><option>High</option><option selected>Medium</option><option>Low</option></select><button class="btn btn-primary" style="width:100%;margin-top:1rem">Add to triage</button></form></section>
 <section><div class="product-panel" style="margin-bottom:1rem"><h2 style="display:inline">Request backlog</h2><span style="float:right;color:var(--soft);font-size:.75rem">Sorted newest first</span></div><div class="request-list">{% for item in requests %}<article class="request-card"><div><h3>{{ item.title }}</h3><p>{{ item.description }}</p><div class="chips"><span class="chip">{{ item.source.value|title }}</span>{% if item.product_area %}<span class="chip muted">{{ item.product_area }}</span>{% endif %}<span class="chip muted">{{ item.priority }} priority</span>{% if item.school %}<span class="chip muted">{{ item.school.name }}</span>{% endif %}</div></div><form class="status-form" method="post" action="/seemymind/product-requests/{{ item.id }}/status"><select name="status" onchange="this.form.submit()">{% for status in statuses %}<option value="{{ status }}" {% if item.status.value == status %}selected{% endif %}>{{ status|replace('_',' ')|title }}</option>{% endfor %}</select></form></article>{% else %}<div class="product-panel"><p style="color:var(--soft)">No requests yet. Capture the first internal product signal.</p></div>{% endfor %}</div></section></div>
+<script>
+document.querySelectorAll('.request-card').forEach(card => {
+  const heading = card.querySelector('h3');
+  const statusForm = card.querySelector('.status-form');
+  if (!heading || !statusForm) return;
+  const parts = statusForm.action.split('/');
+  const requestId = parts[parts.length - 2];
+  heading.style.cursor = 'pointer';
+  heading.title = 'Open request';
+  heading.addEventListener('click', () => { window.location.href = `/seemymind/product-requests/${requestId}`; });
+});
+</script>
 </div></body></html>
