@@ -9,10 +9,10 @@
     <script src="/seemymind/static/agent.js?v=1.4" defer></script>
     <style>
         nav.nav-collapsed > a, nav.nav-collapsed > button:not(#navAgentBtn) { display: none !important; }
-        .top-menu { position: relative; }
+        .top-menu { position: relative; z-index: 1100; }
         .top-menu summary { list-style: none; cursor: pointer; }
         .top-menu summary::-webkit-details-marker { display: none; }
-        .top-menu-panel { position: absolute; right: 0; top: calc(100% + .55rem); z-index: 20; min-width: 220px; padding: .45rem; background: var(--paper); border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 14px 30px rgba(0,0,0,.14); }
+        .top-menu-panel { position: absolute; right: 0; top: calc(100% + .55rem); z-index: 1200; min-width: 220px; padding: .45rem; background: var(--paper); border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 14px 30px rgba(0,0,0,.14); }
         .top-menu-panel a, .top-menu-panel button { display: block; width: 100%; padding: .65rem .75rem; border: 0; border-radius: 8px; background: transparent; color: var(--ink); text-align: left; text-decoration: none; font: inherit; cursor: pointer; }
         .top-menu-panel a:hover, .top-menu-panel button:hover { background: var(--gray-100); }
         .top-menu-panel .menu-danger { color: var(--coral); }
