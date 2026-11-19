@@ -34,7 +34,7 @@ def list_schools(
 def list_school_table(
     page: int = Query(1, ge=1), page_size: int = Query(25, ge=10, le=100), search: str = "",
     phase: str | None = None, mat_name: str | None = None, sen: str | None = None,
-    ofsted: str | None = None, priority: str | None = None, stage: SchoolPipelineStage | None = None,
+    ofsted: str | None = None, priority: str | None = None, stage: str | None = None,
     db: Session = Depends(get_db),
 ):
     """Return one filtered school page; the dashboard never loads the full school universe."""
@@ -56,7 +56,7 @@ def list_school_table(
     if priority:
         query = query.filter(School.priority == priority)
     if stage:
-        query = query.filter(School.pipeline_stage == stage)
+        query = query.filter(School.pipeline_stage == SchoolPipelineStage(stage))
     total = query.count()
     rows = query.order_by(School.created_at.desc()).offset((page - 1) * page_size).limit(page_size).all()
     return {"page": page, "page_size": page_size, "total": total, "schools": [{
